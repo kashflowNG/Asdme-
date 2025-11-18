@@ -61,27 +61,29 @@ function SortableLinkItem({ link, onDelete }: SortableLinkItemProps) {
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-3 p-4 bg-card rounded-lg border border-card-border"
+      className="group flex items-center gap-4 p-4 bg-card rounded-xl border-2 border-card-border hover:border-primary/30 shadow-sm hover:shadow-md transition-all"
       data-testid={`link-item-${link.platform}`}
     >
       <button
-        className="cursor-grab active:cursor-grabbing touch-none text-muted-foreground hover-elevate p-1 rounded"
+        className="cursor-grab active:cursor-grabbing touch-none text-muted-foreground hover:text-primary p-2 rounded-lg hover:bg-primary/10 transition-colors"
         {...attributes}
         {...listeners}
         data-testid={`drag-handle-${link.platform}`}
       >
         <GripVertical className="w-5 h-5" />
       </button>
-      <Icon className="w-5 h-5 flex-shrink-0" style={{ color: platform.color }} />
+      <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
+        <Icon className="w-6 h-6 flex-shrink-0" style={{ color: platform.color }} />
+      </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium">{platform.name}</p>
+        <p className="text-sm font-semibold">{platform.name}</p>
         <p className="text-xs text-muted-foreground truncate">{link.url}</p>
       </div>
       <Button
         size="icon"
         variant="ghost"
         onClick={() => onDelete(link.id)}
-        className="flex-shrink-0"
+        className="flex-shrink-0 hover:bg-destructive/10 hover:text-destructive transition-colors"
         data-testid={`button-delete-${link.platform}`}
       >
         <Trash2 className="w-4 h-4" />
@@ -276,17 +278,23 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 h-14 px-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 h-16 px-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
         <div className="max-w-2xl mx-auto h-full flex items-center justify-between">
-          <h1 className="text-lg font-semibold">LinkHub</h1>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">LN</span>
+            </div>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">LinkNero</h1>
+          </div>
           {profile && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate(`/user/${profile.username}`)}
               data-testid="button-preview"
+              className="gap-2"
             >
-              <Eye className="w-4 h-4 mr-2" />
+              <Eye className="w-4 h-4" />
               Preview
             </Button>
           )}
@@ -294,8 +302,11 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-6 space-y-8">
-        <Card className="p-6 space-y-6" data-testid="card-profile-editor">
-          <h2 className="text-xl font-semibold">Profile</h2>
+        <Card className="p-6 space-y-6 shadow-lg border-2" data-testid="card-profile-editor">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold">Profile Configuration</h2>
+            <span className="text-xs px-3 py-1 bg-primary/10 text-primary rounded-full font-semibold">PRO</span>
+          </div>
           
           <div className="flex items-center gap-4">
             <Avatar className="w-20 h-20 border-2 border-border">
@@ -356,31 +367,32 @@ export default function Dashboard() {
           </div>
         </Card>
 
-        <Card className="p-6 space-y-6" data-testid="card-links-manager">
+        <Card className="p-6 space-y-6 shadow-lg border-2" data-testid="card-links-manager">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Social Links</h2>
-            <Button
-              onClick={() => setShowAddDialog(true)}
-              disabled={!profile}
-              data-testid="button-add-link"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Link
-            </Button>
+            <div>
+              <h2 className="text-2xl font-bold">Platform Links</h2>
+              <p className="text-sm text-muted-foreground mt-1">Manage your digital presence across 25+ platforms</p>
+            </div>
           </div>
+          <Button
+            onClick={() => setShowAddDialog(true)}
+            disabled={!profile}
+            data-testid="button-add-link"
+            className="w-full h-12 text-base font-semibold bg-primary hover:bg-primary/90"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Add Platform Link
+          </Button>
 
           {sortedLinks.length === 0 ? (
-            <div className="text-center py-12 space-y-4">
-              <p className="text-muted-foreground">No social links yet</p>
-              <Button
-                variant="outline"
-                onClick={() => setShowAddDialog(true)}
-                disabled={!profile}
-                data-testid="button-add-first-link"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Your First Link
-              </Button>
+            <div className="text-center py-16 space-y-4 bg-gradient-to-b from-primary/5 to-transparent rounded-xl border-2 border-dashed">
+              <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                <Plus className="w-8 h-8 text-primary" />
+              </div>
+              <div>
+                <p className="text-lg font-semibold">No platforms connected yet</p>
+                <p className="text-sm text-muted-foreground mt-1">Start building your unified digital presence</p>
+              </div>
             </div>
           ) : (
             <DndContext

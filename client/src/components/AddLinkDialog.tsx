@@ -1,10 +1,13 @@
+
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PLATFORMS } from "@/lib/platforms";
+import { PLATFORMS, PLATFORM_CATEGORIES, getPlatformsByCategory } from "@/lib/platforms";
 import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface AddLinkDialogProps {
   open: boolean;
@@ -16,6 +19,7 @@ interface AddLinkDialogProps {
 export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: AddLinkDialogProps) {
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
   const [url, setUrl] = useState("");
+  const [activeCategory, setActiveCategory] = useState<string>('social');
 
   const handleAdd = () => {
     if (selectedPlatform && url.trim()) {
@@ -42,51 +46,76 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-2xl max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle>Add Social Link</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">Add Platform Link</DialogTitle>
+          <DialogDescription>
+            Connect your audience across 25+ platforms with LinkNero's unified presence manager
+          </DialogDescription>
         </DialogHeader>
 
         {!selectedPlatform ? (
-          <div className="space-y-4">
-            <Label>Choose a platform</Label>
-            <div className="grid grid-cols-3 gap-3 max-h-96 overflow-y-auto">
-              {availablePlatforms.map((platform) => {
-                const Icon = platform.icon;
-                return (
-                  <Card
-                    key={platform.id}
-                    className="aspect-square flex flex-col items-center justify-center gap-2 cursor-pointer hover-elevate active-elevate-2 p-4"
-                    onClick={() => setSelectedPlatform(platform.id)}
-                    data-testid={`platform-${platform.id}`}
-                  >
-                    <Icon className="w-8 h-8" style={{ color: platform.color }} />
-                    <span className="text-xs font-medium text-center">{platform.name}</span>
-                  </Card>
-                );
-              })}
-            </div>
-            {availablePlatforms.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-8">
-                All available platforms have been added
-              </p>
-            )}
-          </div>
+          <Tabs value={activeCategory} onValueChange={setActiveCategory} className="w-full">
+            <TabsList className="grid w-full grid-cols-5">
+              {PLATFORM_CATEGORIES.map((cat) => (
+                <TabsTrigger key={cat.id} value={cat.id} className="text-xs">
+                  <span className="mr-1">{cat.icon}</span>
+                  <span className="hidden sm:inline">{cat.label}</span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            
+            {PLATFORM_CATEGORIES.map((category) => (
+              <TabsContent key={category.id} value={category.id} className="mt-4">
+                <ScrollArea className="h-[400px] pr-4">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                    {getPlatformsByCategory(category.id as any)
+                      .filter((p) => !existingPlatforms.includes(p.id))
+                      .map((platform) => {
+                        const Icon = platform.icon;
+                        return (
+                          <Card
+                            key={platform.id}
+                            className="aspect-square flex flex-col items-center justify-center gap-2 cursor-pointer hover-elevate active-elevate-2 p-3 transition-all hover:shadow-lg"
+                            onClick={() => setSelectedPlatform(platform.id)}
+                            data-testid={`platform-${platform.id}`}
+                          >
+                            <Icon className="w-8 h-8" style={{ color: platform.color }} />
+                            <span className="text-xs font-medium text-center leading-tight">{platform.name}</span>
+                          </Card>
+                        );
+                      })}
+                  </div>
+                  {getPlatformsByCategory(category.id as any)
+                    .filter((p) => !existingPlatforms.includes(p.id)).length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-8">
+                      All {category.label.toLowerCase()} platforms have been added
+                    </p>
+                  )}
+                </ScrollArea>
+              </TabsContent>
+            ))}
+          </Tabs>
         ) : (
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 p-4 bg-muted rounded-lg">
+          <div className="space-y-6">
+            <div className="flex items-center gap-4 p-6 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl border-2 border-primary/20">
               {selectedPlatformData && (
                 <>
-                  <selectedPlatformData.icon
-                    className="w-6 h-6"
-                    style={{ color: selectedPlatformData.color }}
-                  />
-                  <span className="font-medium">{selectedPlatformData.name}</span>
+                  <div className="p-3 bg-background rounded-lg shadow-sm">
+                    <selectedPlatformData.icon
+                      className="w-8 h-8"
+                      style={{ color: selectedPlatformData.color }}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-lg">{selectedPlatformData.name}</p>
+                    <p className="text-xs text-muted-foreground capitalize">{selectedPlatformData.category}</p>
+                  </div>
                 </>
               )}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="url">Profile URL</Label>
+            <div className="space-y-3">
+              <Label htmlFor="url" className="text-base font-semibold">Profile URL</Label>
               <Input
                 id="url"
                 type="url"
@@ -94,8 +123,12 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 autoFocus
+                className="h-12 text-base"
                 data-testid="input-url"
               />
+              <p className="text-xs text-muted-foreground">
+                Enter the complete URL to your profile on this platform
+              </p>
             </div>
           </div>
         )}
@@ -107,7 +140,7 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
               onClick={() => setSelectedPlatform(null)}
               data-testid="button-back"
             >
-              Back
+              ← Back
             </Button>
           )}
           <Button
@@ -122,6 +155,7 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
               onClick={handleAdd}
               disabled={!url.trim()}
               data-testid="button-add"
+              className="bg-primary hover:bg-primary/90"
             >
               Add Link
             </Button>

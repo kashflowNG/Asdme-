@@ -81,7 +81,7 @@ export default function PublicProfile() {
           )}
         </div>
 
-        <div className="space-y-3 pb-16" data-testid="links-container">
+        <div className="space-y-3 pb-8" data-testid="links-container">
           {linksLoading ? (
             <>
               <Skeleton className="h-14 w-full rounded-xl" />
@@ -102,6 +102,20 @@ export default function PublicProfile() {
             ))
           )}
         </div>
+
+        <footer className="py-8 text-center border-t mt-8">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <div className="w-6 h-6 bg-gradient-to-br from-primary to-primary/60 rounded flex items-center justify-center">
+              <span className="text-white font-bold text-xs">LN</span>
+            </div>
+            <span className="text-sm font-semibold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              Powered by LinkNero
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Enterprise Link Management Platform
+          </p>
+        </footer>
       </div>
     </div>
   );
