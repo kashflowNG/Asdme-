@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { useRoute } from "wouter";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Globe, Users, TrendingUp, Zap } from "lucide-react";
 import type { Profile, SocialLink } from "@shared/schema";
+import { useMemo } from "react";
 
 export default function PublicProfile() {
   const [, params] = useRoute("/user/:username");
@@ -23,6 +23,13 @@ export default function PublicProfile() {
     queryKey: ["/api/profiles", username, "links"],
     enabled: !!username && !!profile,
   });
+
+  const isLoading = profileLoading || linksLoading;
+
+  const sortedLinks = useMemo(() => 
+    [...links].sort((a, b) => a.order - b.order),
+    [links]
+  );
 
   if (profileLoading) {
     return (
@@ -59,14 +66,16 @@ export default function PublicProfile() {
     );
   }
 
-  const initials = profile.username
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
+  const initials = useMemo(() => 
+    (profile?.username || "U")
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2),
+    [profile?.username]
+  );
 
-  const sortedLinks = [...links].sort((a, b) => a.order - b.order);
   const totalConnections = sortedLinks.length;
 
   return (

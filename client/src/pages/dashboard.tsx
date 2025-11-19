@@ -428,42 +428,32 @@ export default function Dashboard() {
           </div>
 
           {profile && (
-            <div className="space-y-3 p-4 bg-gradient-to-br from-primary/5 to-cyan-500/5 rounded-xl border border-primary/20">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-semibold">Your Profile Link</Label>
-                <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => window.open(`/user/${profile.username}`, '_blank')}
-                    className="h-8 gap-2"
-                  >
-                    <ExternalLink className="w-3 h-3" />
-                    Visit
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={handleCopyLink}
-                    className="h-8 gap-2"
-                    data-testid="button-copy-link"
-                  >
-                    {copied ? (
-                      <>
-                        <Check className="w-3 h-3" />
-                        Copied!
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-3 h-3" />
-                        Copy Link
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
-              <div className="p-3 bg-background/80 rounded-lg border border-border/50 font-mono text-sm break-all">
-                {window.location.origin}/user/{profile.username}
-              </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={() => window.open(`/user/${profile.username}`, '_blank')}
+                className="flex-1 h-10 gap-2"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Preview Profile
+              </Button>
+              <Button
+                onClick={handleCopyLink}
+                className="flex-1 h-10 gap-2"
+                data-testid="button-copy-link"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-4 h-4" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" />
+                    Copy Link
+                  </>
+                )}
+              </Button>
             </div>
           )}
 
