@@ -162,25 +162,57 @@ export default function Dashboard() {
     },
   });
 
-  const createLinkMutation = useMutation({
-    mutationFn: async (data: { platform: string; url: string }) => {
-      return await apiRequest("POST", "/api/links", {
-        platform: data.platform,
-        url: data.url,
-        order: links.length,
+  const saveProfileMutation = useMutation({
+    mutationFn: async () => {
+      const profile = await queryClient.getQueryData<Profile>(["/api/profiles/me"]);
+      if (!profile) throw new Error("Profile not found");
+
+      const res = await apiRequest(`/api/profiles/${profile.id}`, {
+        method: "PATCH",
+        body: JSON.stringify(profileForm),
       });
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Profile saved",
+        description: "Your changes have been saved successfully",
+      });
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to save profile",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const createLinkMutation = useMutation({
+    mutationFn: async (newLink: { platform: string; url: string }) => {
+      const res = await apiRequest("/api/links", {
+        method: "POST",
+        body: JSON.stringify(newLink),
+      });
+      return await res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/links"] });
       toast({
         title: "Link added",
-        description: "Your social link has been added successfully.",
+        description: "Your social link has been added",
       });
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     },
-    onError: (error: Error) => {
+    onError: () => {
       toast({
         title: "Error",
-        description: error.message || "Failed to add link",
+        description: "Failed to add link",
         variant: "destructive",
       });
     },
@@ -268,6 +300,10 @@ export default function Dashboard() {
     createLinkMutation.mutate({ platform, url });
   };
 
+  const handleSaveProfile = () => {
+    saveProfileMutation.mutate();
+  };
+
   const initials = (profile?.username || "U")
     .split(" ")
     .map((n) => n[0])
@@ -283,7 +319,7 @@ export default function Dashboard() {
         <div className="max-w-2xl mx-auto h-full flex items-center justify-between">
           <div className="flex items-center gap-2">
             <NeropageLogo size={32} />
-            <h1 
+            <h1
               className="text-xl font-bold select-none"
               style={{
                 background: 'linear-gradient(135deg, #8B5CF6, #06B6D4, #EC4899, #8B5CF6)',
@@ -376,6 +412,14 @@ export default function Dashboard() {
               data-testid="input-bio"
             />
           </div>
+          <Button
+            onClick={handleSaveProfile}
+            disabled={saveProfileMutation.isPending}
+            className="w-full h-12 text-base font-semibold gradient-shimmer hover-neon-glow"
+            data-testid="button-save-profile"
+          >
+            {saveProfileMutation.isPending ? "Saving..." : "Save Changes"}
+          </Button>
         </Card>
 
         <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-links-manager">
