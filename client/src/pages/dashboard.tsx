@@ -187,10 +187,11 @@ export default function Dashboard() {
   });
 
   const createLinkMutation = useMutation({
-    mutationFn: async (data: { platform: string; url: string }) => {
+    mutationFn: async (data: { platform: string; url: string; customTitle?: string }) => {
       return await apiRequest("POST", "/api/links", {
         platform: data.platform,
         url: data.url,
+        customTitle: data.customTitle,
         order: links.length,
       });
     },
@@ -290,8 +291,8 @@ export default function Dashboard() {
     updateProfileMutation.mutate({ [field]: value });
   };
 
-  const handleAddLink = (platform: string, url: string) => {
-    createLinkMutation.mutate({ platform, url });
+  const handleAddLink = (platform: string, url: string, customTitle?: string) => {
+    createLinkMutation.mutate({ platform, url, customTitle });
   };
 
   const handleSaveProfile = () => {

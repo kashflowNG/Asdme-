@@ -19,13 +19,15 @@ interface AddLinkDialogProps {
 export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: AddLinkDialogProps) {
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
   const [url, setUrl] = useState("");
+  const [customTitle, setCustomTitle] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>('social');
 
   const handleAdd = () => {
     if (selectedPlatform && url.trim()) {
-      onAdd(selectedPlatform, url.trim());
+      onAdd(selectedPlatform, url.trim(), customTitle.trim() || undefined);
       setSelectedPlatform(null);
       setUrl("");
+      setCustomTitle("");
       onOpenChange(false);
     }
   };
@@ -114,21 +116,46 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
                 </>
               )}
             </div>
-            <div className="space-y-3">
-              <Label htmlFor="url" className="text-base font-semibold">Profile URL</Label>
-              <Input
-                id="url"
-                type="url"
-                placeholder={selectedPlatformData?.placeholder}
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                autoFocus
-                className="h-12 text-base"
-                data-testid="input-url"
-              />
-              <p className="text-xs text-muted-foreground">
-                Enter the complete URL to your profile on this platform
-              </p>
+            <div className="space-y-4">
+              {selectedPlatform === 'custom' && (
+                <div className="space-y-3">
+                  <Label htmlFor="customTitle" className="text-base font-semibold">Link Title</Label>
+                  <Input
+                    id="customTitle"
+                    type="text"
+                    placeholder="e.g., My Portfolio, My Blog, etc."
+                    value={customTitle}
+                    onChange={(e) => setCustomTitle(e.target.value)}
+                    autoFocus
+                    className="h-12 text-base"
+                    data-testid="input-custom-title"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Give your custom link a descriptive name
+                  </p>
+                </div>
+              )}
+              <div className="space-y-3">
+                <Label htmlFor="url" className="text-base font-semibold">
+                  {selectedPlatform === 'custom' ? 'URL' : 'Profile URL'}
+                </Label>
+                <Input
+                  id="url"
+                  type="url"
+                  placeholder={selectedPlatformData?.placeholder}
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  autoFocus={selectedPlatform !== 'custom'}
+                  className="h-12 text-base"
+                  data-testid="input-url"
+                />
+                <p className="text-xs text-muted-foreground">
+                  {selectedPlatform === 'custom' 
+                    ? 'Enter the complete URL for this link'
+                    : 'Enter the complete URL to your profile on this platform'
+                  }
+                </p>
+              </div>
             </div>
           </div>
         )}

@@ -1,54 +1,49 @@
-
 import { getPlatform } from "@/lib/platforms";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Link2 } from "lucide-react";
 
 interface SocialLinkButtonProps {
   platform: string;
   url: string;
+  customTitle?: string;
 }
 
-export function SocialLinkButton({ platform: platformName, url }: SocialLinkButtonProps) {
-  const platform = getPlatform(platformName);
-  
-  // If platform is not found, return null or a fallback
-  if (!platform) {
-    console.warn(`Platform "${platformName}" not found`);
-    return null;
-  }
+export function SocialLinkButton({ platform, url, customTitle }: SocialLinkButtonProps) {
+  const platformData = getPlatform(platform);
 
-  const Icon = platform.icon;
-  const formattedName = platform.name.toLowerCase();
+  // Handle custom links that don't match any platform
+  const isCustom = !platformData || platform === 'custom';
+  const Icon = platformData?.icon || Link2;
+  const displayName = customTitle || platformData?.name || 'Custom Link';
+  const iconColor = platformData?.color || '#8B5CF6';
 
   return (
     <a
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className={`
-        relative group block w-full h-14 rounded-xl
-        overflow-hidden transition-all duration-300
-        hover:scale-[1.02] active:scale-[0.98]
-        neon-glow glass-card
-        border-2 border-${formattedName}/30
-        hover:border-${formattedName}/60
-      `}
-      style={{
-        background: `linear-gradient(135deg, var(--${formattedName}-start) 0%, var(--${formattedName}-end) 100%)`,
-      }}
+      className="group relative block w-full overflow-hidden"
+      data-testid={`link-${platform}`}
     >
-      {/* Animated gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-      
-      <div className="relative h-full px-6 flex items-center justify-between text-white">
-        <div className="flex items-center gap-3">
-          <div className="w-6 h-6 flex-shrink-0">
-            <Icon className="w-full h-full drop-shadow-lg" />
-          </div>
-          <span className="font-medium text-sm drop-shadow-md">
-            {platform.name}
-          </span>
+      <div className="relative flex items-center gap-4 h-16 px-6 rounded-xl bg-card border-2 border-card-border hover:border-primary/50 shadow-sm hover:shadow-xl transition-all duration-300 hover-elevate active-elevate-2">
+        {/* Animated background gradient on hover */}
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-cyan-500/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+        {/* Platform icon with subtle glow */}
+        <div className="relative z-10 w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5 group-hover:scale-110 transition-transform duration-300">
+          <Icon className="w-6 h-6" style={{ color: iconColor }} />
         </div>
-        <ExternalLink className="w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity" />
+
+        {/* Platform name */}
+        <div className="relative z-10 flex-1">
+          <p className="text-sm font-semibold group-hover:text-primary transition-colors duration-300">
+            {displayName}
+          </p>
+        </div>
+
+        {/* External link indicator */}
+        <div className="relative z-10 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300">
+          <ExternalLink className="w-5 h-5" />
+        </div>
       </div>
     </a>
   );

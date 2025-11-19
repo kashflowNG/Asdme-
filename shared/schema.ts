@@ -15,6 +15,7 @@ export const socialLinks = pgTable("social_links", {
   profileId: varchar("profile_id").notNull(),
   platform: text("platform").notNull(),
   url: text("url").notNull(),
+  customTitle: text("custom_title"),
   order: integer("order").notNull().default(0),
 });
 

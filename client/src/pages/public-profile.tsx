@@ -162,6 +162,7 @@ export default function PublicProfile() {
                   <SocialLinkButton
                     platform={sortedLinks[0].platform}
                     url={sortedLinks[0].url}
+                    customTitle={sortedLinks[0].customTitle}
                   />
                 </div>
               )}
@@ -183,6 +184,7 @@ export default function PublicProfile() {
                         <SocialLinkButton
                           platform={link.platform}
                           url={link.url}
+                          customTitle={link.customTitle}
                         />
                       </div>
                     ))}
