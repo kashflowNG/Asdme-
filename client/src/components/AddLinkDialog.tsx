@@ -55,27 +55,17 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
 
   const handleAdd = () => {
     if (formData.platform && formData.url) {
-      onAdd(
-        formData.platform,
-        formData.url,
-        formData.customTitle || undefined,
-        formData.badge || undefined,
-        formData.description || undefined,
-        formData.isScheduled,
-        formData.scheduleStart || undefined,
-        formData.scheduleEnd || undefined
-      );
-      setFormData({
-        platform: "",
-        url: "",
-        customTitle: "",
-        badge: "",
-        description: "",
-        isScheduled: false,
-        scheduleStart: "",
-        scheduleEnd: "",
+      addLinkMutation.mutate({
+        platform: formData.platform,
+        url: formData.url,
+        customTitle: formData.customTitle || undefined,
+        badge: formData.badge || undefined,
+        description: formData.description || undefined,
+        isScheduled: formData.isScheduled,
+        scheduleStart: formData.scheduleStart || undefined,
+        scheduleEnd: formData.scheduleEnd || undefined,
+        order: existingPlatforms.length,
       });
-      onOpenChange(false);
     }
   };
 
