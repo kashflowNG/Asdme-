@@ -210,13 +210,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Analytics endpoint
-  app.get("/api/analytics", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).send("Not authenticated");
-    }
-
+  app.get("/api/analytics", async (_req, res) => {
     try {
-      const profile = await storage.getMyProfile(req.user!.id);
+      const profile = await storage.getDefaultProfile();
       if (!profile) {
         return res.status(404).send("Profile not found");
       }
@@ -229,13 +225,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Detailed analytics endpoint
-  app.get("/api/analytics/detailed", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).send("Not authenticated");
-    }
-
+  app.get("/api/analytics/detailed", async (_req, res) => {
     try {
-      const profile = await storage.getMyProfile(req.user!.id);
+      const profile = await storage.getDefaultProfile();
       if (!profile) {
         return res.status(404).send("Profile not found");
       }
