@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/input";
 import { Globe, Zap, Play, Mail } from "lucide-react";
 import type { Profile, SocialLink, ContentBlock } from "@shared/schema";
 import { useMemo, useEffect, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Helmet } from "react-helmet";
@@ -22,6 +21,8 @@ export default function PublicProfile() {
   const [, params] = useRoute("/user/:username");
   const username = params?.username || "";
   const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [emailFormData, setEmailFormData] = useState({ name: "", email: "", message: "" });
 
   const { data: profile, isLoading: profileLoading } = useQuery<Profile>({
     queryKey: ["/api/profiles", username],

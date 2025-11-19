@@ -56,6 +56,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useLocation } from "wouter";
+import { Helmet } from "react-helmet";
 
 interface SortableLinkItemProps {
   link: SocialLink;
@@ -159,19 +160,8 @@ export default function Dashboard() {
     }
   }, [profile]);
 
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = '//pl28091865.effectivegatecpm.com/d3086215aaf6d1aac4a8cf2c4eda801b/invoke.js';
-    script.async = true;
-    script.setAttribute('data-cfasync', 'false');
-    document.body.appendChild(script);
-
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
-    };
-  }, []);
+  // Removed the ad script injection from useEffect as it's now handled by Helmet
+  // The ad script will be loaded automatically by Helmet
 
   // Auto-refresh data every 3 seconds for instant updates
   useEffect(() => {
@@ -397,315 +387,246 @@ export default function Dashboard() {
 
   const sortedLinks = [...links].sort((a, b) => a.order - b.order);
 
+  // Dummy handleDelete function to satisfy the types in the changes, as it's not defined in original
+  const handleDelete = (id: string) => {
+    deleteLinkMutation.mutate(id);
+  };
+
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 h-16 px-4 border-b border-glow-animate bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
-        <div className="max-w-6xl mx-auto h-full flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <NeropageLogo size={32} />
-            <h1
-              className="text-xl font-bold select-none"
-              style={{
-                background: 'linear-gradient(135deg, #8B5CF6, #06B6D4, #EC4899, #8B5CF6)',
-                backgroundSize: '300% 300%',
-                WebkitBackgroundClip: 'text',
-                backgroundClip: 'text',
-                color: 'transparent',
-                animation: 'shimmer 3s linear infinite',
-              }}
-            >
-              Neropage
-            </h1>
-          </div>
-          <div className="flex items-center gap-2">
-            {profile && (
-              <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate(`/user/${profile.username}`)}
-                  data-testid="button-preview"
-                  className="gap-2"
-                >
-                  <Eye className="w-4 h-4" />
-                  Preview
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      data-testid="button-sign-out"
-                      className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      Sign Out
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Are you sure you want to sign out?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        You will need to sign in again to access your dashboard and manage your profile.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={handleSignOut}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      >
-                        Sign Out
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </>
-            )}
-          </div>
+    <>
+      <Helmet>
+        <script async data-cfasync="false" src="//pl28091865.effectivegatecpm.com/d3086215aaf6d1aac4a8cf2c4eda801b/invoke.js"></script>
+      </Helmet>
+
+      <div className="min-h-screen bg-background relative overflow-hidden">
+        {/* Background Effects */}
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse-slow" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1s' }} />
         </div>
-      </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-6 animate-fade-in">
-        <EngagementAlerts />
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
-          <TabsList className="grid w-full grid-cols-5 h-auto p-1">
-            <TabsTrigger value="overview" className="gap-2 py-3">
-              <BarChart3 className="w-4 h-4" />
-              <span className="hidden sm:inline">Overview</span>
-            </TabsTrigger>
-            <TabsTrigger value="profile" className="gap-2 py-3">
-              <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Profile</span>
-            </TabsTrigger>
-            <TabsTrigger value="links" className="gap-2 py-3">
-              <Link2 className="w-4 h-4" />
-              <span className="hidden sm:inline">Links</span>
-            </TabsTrigger>
-            <TabsTrigger value="appearance" className="gap-2 py-3">
-              <Palette className="w-4 h-4" />
-              <span className="hidden sm:inline">Appearance</span>
-            </TabsTrigger>
-            <TabsTrigger value="advanced" className="gap-2 py-3">
-              <Zap className="w-4 h-4" />
-              <span className="hidden sm:inline">Advanced</span>
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6 mt-6">
-            <AnalyticsDashboard />
-            <ClickHeatmap />
-            <LinkScheduleVisualizer links={sortedLinks} />
-            <SmartRecommendations
-              existingPlatforms={links.map(l => l.platform)}
-              onAddPlatform={() => setShowAddDialog(true)}
-            />
-
-            {/* Ad Placement */}
-            <div className="flex justify-center py-6">
-              <div className="w-full max-w-sm mx-auto">
-                <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b" className="rounded-lg overflow-hidden"></div>
-              </div>
+        <header className="sticky top-0 z-50 h-16 px-4 border-b border-glow-animate bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
+          <div className="max-w-6xl mx-auto h-full flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <NeropageLogo size={32} />
+              <h1
+                className="text-xl font-bold select-none"
+                style={{
+                  background: 'linear-gradient(135deg, #8B5CF6, #06B6D4, #EC4899, #8B5CF6)',
+                  backgroundSize: '300% 300%',
+                  WebkitBackgroundClip: 'text',
+                  backgroundClip: 'text',
+                  color: 'transparent',
+                  animation: 'shimmer 3s linear infinite',
+                }}
+              >
+                Neropage
+              </h1>
             </div>
-          </TabsContent>
+            <div className="flex items-center gap-2">
+              {profile && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate(`/user/${profile.username}`)}
+                    data-testid="button-preview"
+                    className="gap-2"
+                  >
+                    <Eye className="w-4 h-4" />
+                    Preview
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        data-testid="button-sign-out"
+                        className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Sign Out
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure you want to sign out?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          You will need to sign in again to access your dashboard and manage your profile.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleSignOut}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Sign Out
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </>
+              )}
+            </div>
+          </div>
+        </header>
 
-          {/* Profile Tab */}
-          <TabsContent value="profile" className="space-y-6 mt-6">
-            <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-profile-editor">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold">Profile Settings</h2>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)] animate-pulse" />
-                  <span className="text-xs text-muted-foreground font-medium">Active</span>
+        <main className="max-w-6xl mx-auto px-4 py-6 animate-fade-in">
+          <EngagementAlerts />
+
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
+            <TabsList className="grid w-full grid-cols-5 h-auto p-1">
+              <TabsTrigger value="overview" className="gap-2 py-3">
+                <BarChart3 className="w-4 h-4" />
+                <span className="hidden sm:inline">Overview</span>
+              </TabsTrigger>
+              <TabsTrigger value="profile" className="gap-2 py-3">
+                <Settings className="w-4 h-4" />
+                <span className="hidden sm:inline">Profile</span>
+              </TabsTrigger>
+              <TabsTrigger value="links" className="gap-2 py-3">
+                <Link2 className="w-4 h-4" />
+                <span className="hidden sm:inline">Links</span>
+              </TabsTrigger>
+              <TabsTrigger value="appearance" className="gap-2 py-3">
+                <Palette className="w-4 h-4" />
+                <span className="hidden sm:inline">Appearance</span>
+              </TabsTrigger>
+              <TabsTrigger value="advanced" className="gap-2 py-3">
+                <Zap className="w-4 h-4" />
+                <span className="hidden sm:inline">Advanced</span>
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Overview Tab */}
+            <TabsContent value="overview" className="space-y-6 mt-6">
+              <AnalyticsDashboard />
+              <ClickHeatmap />
+              <LinkScheduleVisualizer links={sortedLinks} />
+              <SmartRecommendations
+                existingPlatforms={links.map(l => l.platform)}
+                onAddPlatform={() => setShowAddDialog(true)}
+              />
+
+              {/* Ad Placement - Overview Tab */}
+              <div className="flex justify-center py-6">
+                <div className="w-full max-w-sm mx-auto">
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b" className="rounded-lg overflow-hidden"></div>
                 </div>
               </div>
+            </TabsContent>
 
-              <div className="flex items-center gap-4">
-                <Avatar className="w-20 h-20 border-2 border-border">
-                  <AvatarImage src={profile?.avatar || profileForm.avatar} alt={profile?.username} />
-                  <AvatarFallback className="text-xl font-bold bg-primary text-primary-foreground">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <Label htmlFor="avatar" className="text-sm font-medium">Avatar URL</Label>
-                  <div className="flex gap-2 mt-1">
-                    <Input
-                      id="avatar"
-                      type="url"
-                      placeholder="https://example.com/avatar.jpg"
-                      value={profileForm.avatar}
-                      onChange={(e) => setProfileForm({ ...profileForm, avatar: e.target.value })}
-                      onBlur={() => handleUpdateProfile("avatar")}
-                      disabled={!profile}
-                      data-testid="input-avatar"
-                    />
-                    <Button size="icon" variant="outline" data-testid="button-upload-avatar">
-                      <Upload className="w-4 h-4" />
-                    </Button>
+            {/* Profile Tab */}
+            <TabsContent value="profile" className="space-y-6 mt-6">
+              <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-profile-editor">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold">Profile Settings</h2>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)] animate-pulse" />
+                    <span className="text-xs text-muted-foreground font-medium">Active</span>
                   </div>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground">@</span>
-                  <Input
-                    id="username"
-                    type="text"
-                    placeholder="yourname"
-                    value={profileForm.username}
-                    onChange={(e) => setProfileForm({ ...profileForm, username: e.target.value })}
-                    onBlur={() => handleUpdateProfile("username")}
+                <div className="flex items-center gap-4">
+                  <Avatar className="w-20 h-20 border-2 border-border">
+                    <AvatarImage src={profile?.avatar || profileForm.avatar} alt={profile?.username} />
+                    <AvatarFallback className="text-xl font-bold bg-primary text-primary-foreground">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <Label htmlFor="avatar" className="text-sm font-medium">Avatar URL</Label>
+                    <div className="flex gap-2 mt-1">
+                      <Input
+                        id="avatar"
+                        type="url"
+                        placeholder="https://example.com/avatar.jpg"
+                        value={profileForm.avatar}
+                        onChange={(e) => setProfileForm({ ...profileForm, avatar: e.target.value })}
+                        onBlur={() => handleUpdateProfile("avatar")}
+                        disabled={!profile}
+                        data-testid="input-avatar"
+                      />
+                      <Button size="icon" variant="outline" data-testid="button-upload-avatar">
+                        <Upload className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="username">Username</Label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground">@</span>
+                    <Input
+                      id="username"
+                      type="text"
+                      placeholder="yourname"
+                      value={profileForm.username}
+                      onChange={(e) => setProfileForm({ ...profileForm, username: e.target.value })}
+                      onBlur={() => handleUpdateProfile("username")}
+                      disabled={!profile}
+                      data-testid="input-username"
+                    />
+                  </div>
+                </div>
+
+                {profile && (
+                  <div className="grid grid-cols-3 gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => window.open(`/user/${profile.username}`, '_blank')}
+                      className="h-10 gap-2"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      <span className="hidden sm:inline">Preview</span>
+                    </Button>
+                    <Button
+                      onClick={handleCopyLink}
+                      className="h-10 gap-2"
+                      data-testid="button-copy-link"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="w-4 h-4" />
+                          <span className="hidden sm:inline">Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-4 h-4" />
+                          <span className="hidden sm:inline">Copy</span>
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowQRDialog(true)}
+                      className="h-10 gap-2"
+                    >
+                      <QrCode className="w-4 h-4" />
+                      <span className="hidden sm:inline">QR Code</span>
+                    </Button>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="bio">Bio</Label>
+                  <Textarea
+                    id="bio"
+                    placeholder="Tell people about yourself..."
+                    value={profileForm.bio}
+                    onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
+                    onBlur={() => handleUpdateProfile("bio")}
                     disabled={!profile}
-                    data-testid="input-username"
+                    className="min-h-24 resize-none"
+                    data-testid="input-bio"
                   />
                 </div>
-              </div>
+              </Card>
 
-              {profile && (
-                <div className="grid grid-cols-3 gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => window.open(`/user/${profile.username}`, '_blank')}
-                    className="h-10 gap-2"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    <span className="hidden sm:inline">Preview</span>
-                  </Button>
-                  <Button
-                    onClick={handleCopyLink}
-                    className="h-10 gap-2"
-                    data-testid="button-copy-link"
-                  >
-                    {copied ? (
-                      <>
-                        <Check className="w-4 h-4" />
-                        <span className="hidden sm:inline">Copied!</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-4 h-4" />
-                        <span className="hidden sm:inline">Copy</span>
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowQRDialog(true)}
-                    className="h-10 gap-2"
-                  >
-                    <QrCode className="w-4 h-4" />
-                    <span className="hidden sm:inline">QR Code</span>
-                  </Button>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label htmlFor="bio">Bio</Label>
-                <Textarea
-                  id="bio"
-                  placeholder="Tell people about yourself..."
-                  value={profileForm.bio}
-                  onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
-                  onBlur={() => handleUpdateProfile("bio")}
-                  disabled={!profile}
-                  className="min-h-24 resize-none"
-                  data-testid="input-bio"
-                />
-              </div>
-            </Card>
-
-            <SEOEditor
-              profile={profile!}
-              onUpdate={async (updates) => {
-                if (profile) {
-                  await updateProfileMutation.mutateAsync(updates);
-                  await queryClient.refetchQueries({ queryKey: ["/api/profiles/me"] });
-                }
-              }}
-            />
-          </TabsContent>
-
-          {/* Links Tab */}
-          <TabsContent value="links" className="space-y-6 mt-6">
-            <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-links-manager">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-1">
-                    <h2 className="text-2xl font-bold">Platform Links</h2>
-                    <span className="text-xs px-2.5 py-1 bg-muted/50 text-muted-foreground rounded-md font-medium border border-border/50">
-                      {sortedLinks.length} Connected
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">Manage your digital presence across 25+ platforms</p>
-                </div>
-              </div>
-              <Button
-                onClick={() => setShowAddDialog(true)}
-                disabled={!profile}
-                data-testid="button-add-link"
-                className="w-full h-12 text-base font-semibold gradient-shimmer hover-neon-glow"
-              >
-                <Plus className="w-5 h-5 mr-2" />
-                Add Platform Link
-              </Button>
-
-              {sortedLinks.length === 0 ? (
-                <div className="relative text-center py-16 space-y-4 bg-gradient-to-b from-primary/5 to-transparent rounded-xl border-2 border-dashed overflow-hidden">
-                  <div className="absolute inset-0 opacity-5">
-                    <div className="absolute top-4 left-4 w-32 h-32 bg-primary rounded-full blur-3xl" />
-                    <div className="absolute bottom-4 right-4 w-32 h-32 bg-cyan-500 rounded-full blur-3xl" />
-                  </div>
-                  <div className="relative">
-                    <div className="w-20 h-20 mx-auto bg-gradient-to-br from-primary/20 to-cyan-500/10 rounded-2xl flex items-center justify-center border border-primary/30 shadow-lg">
-                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" className="text-primary">
-                        <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                      </svg>
-                    </div>
-                    <div className="mt-6">
-                      <p className="text-lg font-semibold">No platforms connected yet</p>
-                      <p className="text-sm text-muted-foreground mt-2 max-w-sm mx-auto">
-                        Connect your social platforms to create a unified digital presence
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragEnd={handleDragEnd}
-                >
-                  <SortableContext
-                    items={sortedLinks.map((link) => link.id)}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    <div className="space-y-3">
-                      {sortedLinks.map((link) => (
-                        <SortableLinkItem
-                          key={link.id}
-                          link={link}
-                          onDelete={deleteLinkMutation.mutate}
-                        />
-                      ))}
-                    </div>
-                  </SortableContext>
-                </DndContext>
-              )}
-            </Card>
-
-            <LinkGroupManager />
-          </TabsContent>
-
-          {/* Appearance Tab */}
-          <TabsContent value="appearance" className="space-y-6 mt-6">
-            {profile && (
-              <AppearanceEditor
-                profile={profile}
+              <SEOEditor
+                profile={profile!}
                 onUpdate={async (updates) => {
                   if (profile) {
                     await updateProfileMutation.mutateAsync(updates);
@@ -713,44 +634,142 @@ export default function Dashboard() {
                   }
                 }}
               />
-            )}
-            <TemplateSelector />
-          </TabsContent>
+            </TabsContent>
 
-          {/* Advanced Tab */}
-          <TabsContent value="advanced" className="space-y-6 mt-6">
-            <ContentBlockManager />
-            <CustomDomainManager />
-            <ABTestManager />
-          </TabsContent>
-        </Tabs>
-      </main>
+            {/* Links Tab */}
+            <TabsContent value="links" className="space-y-6 mt-6">
+              <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-links-manager">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-1">
+                      <h2 className="text-2xl font-bold">Platform Links</h2>
+                      <span className="text-xs px-2.5 py-1 bg-muted/50 text-muted-foreground rounded-md font-medium border border-border/50">
+                        {sortedLinks.length} Connected
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">Manage your digital presence across 25+ platforms</p>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => setShowAddDialog(true)}
+                  disabled={!profile}
+                  data-testid="button-add-link"
+                  className="w-full h-12 text-base font-semibold gradient-shimmer hover-neon-glow"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  Add Platform Link
+                </Button>
 
-      <AddLinkDialog
-        open={showAddDialog}
-        onOpenChange={setShowAddDialog}
-        onAdd={handleAddLink}
-        existingPlatforms={links.map((link) => link.platform)}
-      />
+                {sortedLinks.length === 0 ? (
+                  <div className="relative text-center py-16 space-y-4 bg-gradient-to-b from-primary/5 to-transparent rounded-xl border-2 border-dashed overflow-hidden">
+                    <div className="absolute inset-0 opacity-5">
+                      <div className="absolute top-4 left-4 w-32 h-32 bg-primary rounded-full blur-3xl" />
+                      <div className="absolute bottom-4 right-4 w-32 h-32 bg-cyan-500 rounded-full blur-3xl" />
+                    </div>
+                    <div className="relative">
+                      <div className="w-20 h-20 mx-auto bg-gradient-to-br from-primary/20 to-cyan-500/10 rounded-2xl flex items-center justify-center border border-primary/30 shadow-lg">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" className="text-primary">
+                          <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                        </svg>
+                      </div>
+                      <div className="mt-6">
+                        <p className="text-lg font-semibold">No platforms connected yet</p>
+                        <p className="text-sm text-muted-foreground mt-2 max-w-sm mx-auto">
+                          Connect your social platforms to create a unified digital presence
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {/* Drag and Drop Links */}
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <SortableContext
+                        items={sortedLinks.map(l => l.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        <div className="space-y-3">
+                          {sortedLinks.map((link) => (
+                            <SortableLinkItem
+                              key={link.id}
+                              link={link}
+                              onDelete={() => handleDelete(link.id)}
+                            />
+                          ))}
+                        </div>
+                      </SortableContext>
+                    </DndContext>
 
-      {profile && (
-        <AlertDialog open={showQRDialog} onOpenChange={setShowQRDialog}>
-          <AlertDialogContent className="max-w-md">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-2xl font-bold text-center">Your Profile QR Code</AlertDialogTitle>
-              <AlertDialogDescription className="text-center">
-                Share your Neropage profile instantly with a QR code
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <div className="py-6">
-              <QRCodeGenerator url={`${window.location.origin}/user/${profile.username}`} />
-            </div>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Close</AlertDialogCancel>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
-    </div>
+                    {/* Ad Placement - Bottom of links section */}
+                    {sortedLinks.length > 3 && (
+                      <div className="flex justify-center py-6 mt-6">
+                        <div className="w-full max-w-md mx-auto">
+                          <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-2" className="rounded-lg overflow-hidden"></div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </Card>
+
+              <LinkGroupManager />
+            </TabsContent>
+
+            {/* Appearance Tab */}
+            <TabsContent value="appearance" className="space-y-6 mt-6">
+              {profile && (
+                <AppearanceEditor
+                  profile={profile}
+                  onUpdate={async (updates) => {
+                    if (profile) {
+                      await updateProfileMutation.mutateAsync(updates);
+                      await queryClient.refetchQueries({ queryKey: ["/api/profiles/me"] });
+                    }
+                  }}
+                />
+              )}
+              <TemplateSelector />
+            </TabsContent>
+
+            {/* Advanced Tab */}
+            <TabsContent value="advanced" className="space-y-6 mt-6">
+              <ContentBlockManager />
+              <CustomDomainManager />
+              <ABTestManager />
+            </TabsContent>
+          </Tabs>
+        </main>
+
+        <AddLinkDialog
+          open={showAddDialog}
+          onOpenChange={setShowAddDialog}
+          onAdd={handleAddLink}
+          existingPlatforms={links.map((link) => link.platform)}
+        />
+
+        {profile && (
+          <AlertDialog open={showQRDialog} onOpenChange={setShowQRDialog}>
+            <AlertDialogContent className="max-w-md">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-2xl font-bold text-center">Your Profile QR Code</AlertDialogTitle>
+                <AlertDialogDescription className="text-center">
+                  Share your Neropage profile instantly with a QR code
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <div className="py-6">
+                <QRCodeGenerator url={`${window.location.origin}/user/${profile.username}`} />
+              </div>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Close</AlertDialogCancel>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+      </div>
+    </>
   );
 }
