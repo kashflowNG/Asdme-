@@ -196,13 +196,31 @@ export default function PublicProfile() {
       <Helmet>
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
+        <meta name="author" content={profile.username} />
+        <meta name="keywords" content={`${profile.username}, social links, bio link, ${profile.username} links, contact ${profile.username}`} />
+        <link rel="canonical" href={profileUrl} />
 
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="profile" />
         <meta property="og:url" content={profileUrl} />
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={pageDescription} />
+        <meta property="og:site_name" content="Neropage" />
         {profile.ogImage && <meta property="og:image" content={profile.ogImage} />}
+        {profile.ogImage && <meta property="og:image:alt" content={`${profile.username}'s profile image`} />}
+        {profile.avatarUrl && !profile.ogImage && <meta property="og:image" content={profile.avatarUrl} />}
+        
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" content={profileUrl} />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={pageDescription} />
+        {profile.ogImage && <meta name="twitter:image" content={profile.ogImage} />}
+        {profile.avatarUrl && !profile.ogImage && <meta name="twitter:image" content={profile.avatarUrl} />}
+        
+        {/* Additional SEO */}
+        <meta name="robots" content="index, follow" />
+        <meta name="googlebot" content="index, follow" />
 
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />

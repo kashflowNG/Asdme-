@@ -26,14 +26,14 @@ export function SEOEditor({ profile, onUpdate }: SEOEditorProps) {
           <Input
             id="seo-title"
             type="text"
-            placeholder={`${profile.username} - Link Hub`}
+            placeholder={`${profile.username} - All My Links | Neropage`}
             value={profile.seoTitle || ""}
             onChange={(e) => onUpdate({ seoTitle: e.target.value })}
             maxLength={60}
             data-testid="input-seo-title"
           />
           <p className="text-xs text-muted-foreground">
-            {(profile.seoTitle || "").length}/60 characters. Shown in search results and browser tabs.
+            {(profile.seoTitle || "").length}/60 characters. Optimize for search engines - include your name and key descriptors.
           </p>
         </div>
 
@@ -41,7 +41,7 @@ export function SEOEditor({ profile, onUpdate }: SEOEditorProps) {
           <Label htmlFor="seo-description">Meta Description</Label>
           <Textarea
             id="seo-description"
-            placeholder="Discover all my social media profiles and links in one place..."
+            placeholder="Connect with me across all platforms. Find my latest content, social profiles, and ways to get in touch - all in one place."
             value={profile.seoDescription || ""}
             onChange={(e) => onUpdate({ seoDescription: e.target.value })}
             maxLength={160}
@@ -64,7 +64,7 @@ export function SEOEditor({ profile, onUpdate }: SEOEditorProps) {
             data-testid="input-og-image"
           />
           <p className="text-xs text-muted-foreground">
-            Recommended: 1200x630px. This image appears when sharing on social media.
+            Recommended: 1200x630px (2:1 ratio). This image appears when your profile is shared on social media. If empty, your avatar will be used.
           </p>
         </div>
 
