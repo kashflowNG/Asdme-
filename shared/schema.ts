@@ -12,6 +12,33 @@ export const profiles = pgTable("profiles", {
   primaryColor: text("primary_color").default("#8B5CF6"),
   backgroundColor: text("background_color").default("#0A0A0F"),
   views: integer("views").notNull().default(0),
+  
+  // Advanced Appearance
+  backgroundImage: text("background_image"),
+  backgroundVideo: text("background_video"),
+  backgroundType: text("background_type").default("color"), // color, gradient, image, video
+  customCSS: text("custom_css"),
+  layout: text("layout").default("stacked"), // stacked, grid, minimal
+  fontFamily: text("font_family").default("DM Sans"),
+  buttonStyle: text("button_style").default("rounded"), // rounded, square, pill
+  
+  // SEO & Metadata
+  seoTitle: text("seo_title"),
+  seoDescription: text("seo_description"),
+  ogImage: text("og_image"),
+  
+  // Branding
+  customDomain: text("custom_domain"),
+  hideBranding: integer("hide_branding", { mode: 'boolean' }).notNull().default(sql`0`),
+  verificationBadge: integer("verification_badge", { mode: 'boolean' }).notNull().default(sql`0`),
+});
+
+export const linkGroups = pgTable("link_groups", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  profileId: varchar("profile_id").notNull(),
+  name: text("name").notNull(),
+  order: integer("order").notNull().default(0),
+  isCollapsed: integer("is_collapsed", { mode: 'boolean' }).notNull().default(sql`0`),
 });
 
 export const socialLinks = pgTable("social_links", {
@@ -22,10 +49,16 @@ export const socialLinks = pgTable("social_links", {
   customTitle: text("custom_title"),
   order: integer("order").notNull().default(0),
   clicks: integer("clicks").notNull().default(0),
-  isScheduled: integer("is_scheduled", { mode: 'boolean' }).notNull().default(false),
+  isScheduled: integer("is_scheduled", { mode: 'boolean' }).notNull().default(sql`0`),
   scheduleStart: text("schedule_start"),
   scheduleEnd: text("schedule_end"),
   thumbnail: text("thumbnail"),
+  
+  // Enhanced Features
+  groupId: varchar("group_id"),
+  isPriority: integer("is_priority", { mode: 'boolean' }).notNull().default(sql`0`),
+  badge: text("badge"), // "new", "popular", "limited", "hot"
+  description: text("description"),
 });
 
 export const linkClicks = pgTable("link_clicks", {
@@ -44,6 +77,41 @@ export const profileViews = pgTable("profile_views", {
   referrer: text("referrer"),
 });
 
+export const contentBlocks = pgTable("content_blocks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  profileId: varchar("profile_id").notNull(),
+  type: text("type").notNull(), // video, image, gallery, text, embed, form, payment, product
+  order: integer("order").notNull().default(0),
+  
+  // Generic Content
+  title: text("title"),
+  content: text("content"), // JSON string for flexible data storage
+  
+  // Media
+  mediaUrl: text("media_url"),
+  thumbnailUrl: text("thumbnail_url"),
+  
+  // Settings
+  isVisible: integer("is_visible", { mode: 'boolean' }).notNull().default(sql`1`),
+  settings: text("settings"), // JSON string for block-specific settings
+});
+
+export const formSubmissions = pgTable("form_submissions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  profileId: varchar("profile_id").notNull(),
+  blockId: varchar("block_id"), // Optional: reference to content block if from a form block
+  
+  // Submission Data
+  email: text("email"),
+  name: text("name"),
+  phone: text("phone"),
+  message: text("message"),
+  customFields: text("custom_fields"), // JSON string for additional fields
+  
+  timestamp: text("timestamp").notNull(),
+  userAgent: text("user_agent"),
+});
+
 export const insertProfileSchema = createInsertSchema(profiles).omit({
   id: true,
 });
@@ -55,9 +123,40 @@ export const updateProfileSchema = z.object({
   theme: z.string().optional(),
   primaryColor: z.string().optional(),
   backgroundColor: z.string().optional(),
+  
+  // Advanced Appearance
+  backgroundImage: z.string().optional(),
+  backgroundVideo: z.string().optional(),
+  backgroundType: z.string().optional(),
+  customCSS: z.string().optional(),
+  layout: z.string().optional(),
+  fontFamily: z.string().optional(),
+  buttonStyle: z.string().optional(),
+  
+  // SEO
+  seoTitle: z.string().optional(),
+  seoDescription: z.string().optional(),
+  ogImage: z.string().optional(),
+  
+  // Branding
+  customDomain: z.string().optional(),
+  hideBranding: z.boolean().optional(),
+  verificationBadge: z.boolean().optional(),
 });
 
 export const insertSocialLinkSchema = createInsertSchema(socialLinks).omit({
+  id: true,
+});
+
+export const insertLinkGroupSchema = createInsertSchema(linkGroups).omit({
+  id: true,
+});
+
+export const insertContentBlockSchema = createInsertSchema(contentBlocks).omit({
+  id: true,
+});
+
+export const insertFormSubmissionSchema = createInsertSchema(formSubmissions).omit({
   id: true,
 });
 
@@ -68,3 +167,9 @@ export type InsertSocialLink = z.infer<typeof insertSocialLinkSchema>;
 export type SocialLink = typeof socialLinks.$inferSelect;
 export type LinkClick = typeof linkClicks.$inferSelect;
 export type ProfileView = typeof profileViews.$inferSelect;
+export type LinkGroup = typeof linkGroups.$inferSelect;
+export type InsertLinkGroup = z.infer<typeof insertLinkGroupSchema>;
+export type ContentBlock = typeof contentBlocks.$inferSelect;
+export type InsertContentBlock = z.infer<typeof insertContentBlockSchema>;
+export type FormSubmission = typeof formSubmissions.$inferSelect;
+export type InsertFormSubmission = z.infer<typeof insertFormSubmissionSchema>;

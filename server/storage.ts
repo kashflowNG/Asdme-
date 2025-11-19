@@ -1,8 +1,14 @@
-import { type Profile, type InsertProfile, type SocialLink, type InsertSocialLink } from "@shared/schema";
-import { randomUUID } from "crypto";
-import { readFile, writeFile, mkdir } from "fs/promises";
-import { existsSync } from "fs";
-import path from "path";
+import { 
+  type Profile, type InsertProfile, 
+  type SocialLink, type InsertSocialLink,
+  type LinkGroup, type InsertLinkGroup,
+  type ContentBlock, type InsertContentBlock,
+  type FormSubmission, type InsertFormSubmission,
+  profiles, socialLinks, linkGroups, contentBlocks, formSubmissions, linkClicks, profileViews
+} from "@shared/schema";
+import { neon } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-http";
+import { eq, sql as drizzleSql } from "drizzle-orm";
 
 export interface IStorage {
   // Profile methods
@@ -10,181 +16,218 @@ export interface IStorage {
   getProfileByUsername(username: string): Promise<Profile | undefined>;
   getDefaultProfile(): Promise<Profile | undefined>;
   createProfile(profile: InsertProfile): Promise<Profile>;
-  updateProfile(id: string, profile: Partial<InsertProfile>): Promise<Profile | undefined>;
+  updateProfile(id: string, profile: Partial<Profile>): Promise<Profile | undefined>;
 
   // Social Link methods
   getSocialLinks(profileId: string): Promise<SocialLink[]>;
   getSocialLink(id: string): Promise<SocialLink | undefined>;
   createSocialLink(link: InsertSocialLink): Promise<SocialLink>;
+  updateSocialLink(id: string, link: Partial<SocialLink>): Promise<SocialLink | undefined>;
   deleteSocialLink(id: string): Promise<boolean>;
   reorderSocialLinks(links: Array<{ id: string; order: number }>): Promise<void>;
+
+  // Link Groups methods
+  getLinkGroups(profileId: string): Promise<LinkGroup[]>;
+  createLinkGroup(group: InsertLinkGroup): Promise<LinkGroup>;
+  deleteLinkGroup(id: string): Promise<boolean>;
+
+  // Content Blocks methods
+  getContentBlocks(profileId: string): Promise<ContentBlock[]>;
+  createContentBlock(block: InsertContentBlock): Promise<ContentBlock>;
+  updateContentBlock(id: string, block: Partial<ContentBlock>): Promise<ContentBlock | undefined>;
+  deleteContentBlock(id: string): Promise<boolean>;
+  reorderContentBlocks(blocks: Array<{ id: string; order: number }>): Promise<void>;
+
+  // Form Submissions methods
+  getFormSubmissions(profileId: string): Promise<FormSubmission[]>;
+  createFormSubmission(submission: InsertFormSubmission): Promise<FormSubmission>;
+  deleteFormSubmission(id: string): Promise<boolean>;
 
   // Analytics methods
   trackLinkClick(linkId: string, userAgent?: string, referrer?: string): Promise<void>;
   trackProfileView(profileId: string, userAgent?: string, referrer?: string): Promise<void>;
   getLinkAnalytics(linkId: string): Promise<{ clicks: number }>;
   getProfileAnalytics(profileId: string): Promise<{ views: number; totalClicks: number; linkCount: number }>;
+  getDetailedAnalytics(profileId: string): Promise<{
+    totalViews: number;
+    totalClicks: number;
+    linkCount: number;
+    formSubmissions: number;
+    topLinks: Array<{ platform: string; url: string; clicks: number }>;
+    recentViews: Array<{ timestamp: string; userAgent?: string; referrer?: string }>;
+  }>;
 }
 
-export class FileStorage implements IStorage {
-  private dataDir: string;
-  private profilesFile: string;
-  private linksFile: string;
+export class DatabaseStorage implements IStorage {
+  private db;
 
-  // In-memory storage for quicker access, will be synchronized with files
-  private profiles: Profile[] = [];
-  private socialLinks: SocialLink[] = [];
-
-  constructor(dataDir: string = "./data") {
-    this.dataDir = dataDir;
-    this.profilesFile = path.join(dataDir, "profiles.json");
-    this.linksFile = path.join(dataDir, "links.json");
+  constructor() {
+    const connectionString = process.env.DATABASE_URL;
+    if (!connectionString) {
+      throw new Error("DATABASE_URL environment variable is not set");
+    }
+    const sql = neon(connectionString);
+    this.db = drizzle(sql);
     this.initialize();
   }
 
   private async initialize() {
-    if (!existsSync(this.dataDir)) {
-      await mkdir(this.dataDir, { recursive: true });
-    }
-
-    if (!existsSync(this.profilesFile)) {
-      const defaultProfile: Profile = {
-        id: randomUUID(),
+    const existingProfiles = await this.db.select().from(profiles).limit(1);
+    if (existingProfiles.length === 0) {
+      await this.db.insert(profiles).values({
         username: "demo",
         bio: "Welcome to my link hub! Find all my social profiles here.",
         avatar: "",
-        views: 0, // Initialize views for analytics
-      };
-      this.profiles = [defaultProfile];
-      await writeFile(this.profilesFile, JSON.stringify(this.profiles, null, 2));
-    } else {
-      const data = await readFile(this.profilesFile, "utf-8");
-      this.profiles = JSON.parse(data);
+        theme: "neon",
+        primaryColor: "#8B5CF6",
+        backgroundColor: "#0A0A0F",
+      });
     }
-
-    if (!existsSync(this.linksFile)) {
-      this.socialLinks = [];
-      await writeFile(this.linksFile, JSON.stringify(this.socialLinks, null, 2));
-    } else {
-      const data = await readFile(this.linksFile, "utf-8");
-      // Ensure clicks and order are initialized if they don't exist
-      this.socialLinks = JSON.parse(data).map((link: SocialLink) => ({
-        ...link,
-        clicks: link.clicks || 0,
-        order: link.order || 0,
-      }));
-    }
-  }
-
-  private async saveData() {
-    await writeFile(this.profilesFile, JSON.stringify(this.profiles, null, 2));
-    await writeFile(this.linksFile, JSON.stringify(this.socialLinks, null, 2));
   }
 
   async getProfile(id: string): Promise<Profile | undefined> {
-    return this.profiles.find((p) => p.id === id);
+    const result = await this.db.select().from(profiles).where(eq(profiles.id, id)).limit(1);
+    return result[0];
   }
 
   async getProfileByUsername(username: string): Promise<Profile | undefined> {
-    return this.profiles.find(
-      (profile) => profile.username.toLowerCase() === username.toLowerCase()
-    );
+    const result = await this.db.select().from(profiles).where(eq(profiles.username, username)).limit(1);
+    return result[0];
   }
 
   async getDefaultProfile(): Promise<Profile | undefined> {
-    return this.profiles[0];
+    const result = await this.db.select().from(profiles).limit(1);
+    return result[0];
   }
 
   async createProfile(insertProfile: InsertProfile): Promise<Profile> {
-    const id = randomUUID();
-    const profile: Profile = {
-      ...insertProfile,
-      id,
-      bio: insertProfile.bio || "",
-      avatar: insertProfile.avatar || "",
-      views: 0, // Initialize views for analytics
-    };
-    this.profiles.push(profile);
-    await this.saveData();
-    return profile;
+    const result = await this.db.insert(profiles).values(insertProfile).returning();
+    return result[0];
   }
 
-  async updateProfile(id: string, updates: Partial<InsertProfile>): Promise<Profile | undefined> {
-    const index = this.profiles.findIndex((p) => p.id === id);
-    if (index === -1) return undefined;
-
-    const updatedProfile = { ...this.profiles[index], ...updates };
-    this.profiles[index] = updatedProfile;
-    await this.saveData();
-    return updatedProfile;
+  async updateProfile(id: string, updates: Partial<Profile>): Promise<Profile | undefined> {
+    const result = await this.db.update(profiles).set(updates).where(eq(profiles.id, id)).returning();
+    return result[0];
   }
 
   async getSocialLinks(profileId: string): Promise<SocialLink[]> {
-    return this.socialLinks
-      .filter((link) => link.profileId === profileId)
-      .sort((a, b) => a.order - b.order);
+    return await this.db.select().from(socialLinks).where(eq(socialLinks.profileId, profileId)).orderBy(socialLinks.order);
   }
 
   async getSocialLink(id: string): Promise<SocialLink | undefined> {
-    return this.socialLinks.find((l) => l.id === id);
+    const result = await this.db.select().from(socialLinks).where(eq(socialLinks.id, id)).limit(1);
+    return result[0];
   }
 
   async createSocialLink(insertLink: InsertSocialLink): Promise<SocialLink> {
-    const id = randomUUID();
-    const link: SocialLink = {
-      ...insertLink,
-      id,
-      clicks: 0, // Initialize clicks for analytics
-      order: this.socialLinks.filter(l => l.profileId === insertLink.profileId).length, // Default order
-    };
-    this.socialLinks.push(link);
-    await this.saveData();
-    return link;
+    const result = await this.db.insert(socialLinks).values(insertLink).returning();
+    return result[0];
+  }
+
+  async updateSocialLink(id: string, updates: Partial<SocialLink>): Promise<SocialLink | undefined> {
+    const result = await this.db.update(socialLinks).set(updates).where(eq(socialLinks.id, id)).returning();
+    return result[0];
   }
 
   async deleteSocialLink(id: string): Promise<boolean> {
-    const initialLength = this.socialLinks.length;
-    this.socialLinks = this.socialLinks.filter((l) => l.id !== id);
-    if (this.socialLinks.length === initialLength) return false;
-    await this.saveData();
-    return true;
+    const result = await this.db.delete(socialLinks).where(eq(socialLinks.id, id)).returning();
+    return result.length > 0;
   }
 
   async reorderSocialLinks(linksToReorder: Array<{ id: string; order: number }>): Promise<void> {
     for (const { id, order } of linksToReorder) {
-      const link = this.socialLinks.find((l) => l.id === id);
-      if (link) {
-        link.order = order;
-      }
+      await this.db.update(socialLinks).set({ order }).where(eq(socialLinks.id, id));
     }
-    await this.saveData();
+  }
+
+  async getLinkGroups(profileId: string): Promise<LinkGroup[]> {
+    return await this.db.select().from(linkGroups).where(eq(linkGroups.profileId, profileId)).orderBy(linkGroups.order);
+  }
+
+  async createLinkGroup(group: InsertLinkGroup): Promise<LinkGroup> {
+    const result = await this.db.insert(linkGroups).values(group).returning();
+    return result[0];
+  }
+
+  async deleteLinkGroup(id: string): Promise<boolean> {
+    const result = await this.db.delete(linkGroups).where(eq(linkGroups.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async getContentBlocks(profileId: string): Promise<ContentBlock[]> {
+    return await this.db.select().from(contentBlocks).where(eq(contentBlocks.profileId, profileId)).orderBy(contentBlocks.order);
+  }
+
+  async createContentBlock(block: InsertContentBlock): Promise<ContentBlock> {
+    const result = await this.db.insert(contentBlocks).values(block).returning();
+    return result[0];
+  }
+
+  async updateContentBlock(id: string, updates: Partial<ContentBlock>): Promise<ContentBlock | undefined> {
+    const result = await this.db.update(contentBlocks).set(updates).where(eq(contentBlocks.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteContentBlock(id: string): Promise<boolean> {
+    const result = await this.db.delete(contentBlocks).where(eq(contentBlocks.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async reorderContentBlocks(blocksToReorder: Array<{ id: string; order: number }>): Promise<void> {
+    for (const { id, order } of blocksToReorder) {
+      await this.db.update(contentBlocks).set({ order }).where(eq(contentBlocks.id, id));
+    }
+  }
+
+  async getFormSubmissions(profileId: string): Promise<FormSubmission[]> {
+    return await this.db.select().from(formSubmissions).where(eq(formSubmissions.profileId, profileId));
+  }
+
+  async createFormSubmission(submission: InsertFormSubmission): Promise<FormSubmission> {
+    const result = await this.db.insert(formSubmissions).values(submission).returning();
+    return result[0];
+  }
+
+  async deleteFormSubmission(id: string): Promise<boolean> {
+    const result = await this.db.delete(formSubmissions).where(eq(formSubmissions.id, id)).returning();
+    return result.length > 0;
   }
 
   async trackLinkClick(linkId: string, userAgent?: string, referrer?: string): Promise<void> {
-    const link = this.socialLinks.find((l) => l.id === linkId);
-    if (link) {
-      link.clicks = (link.clicks || 0) + 1;
-      await this.saveData();
-    }
+    await this.db.update(socialLinks).set({ 
+      clicks: drizzleSql`${socialLinks.clicks} + 1` 
+    }).where(eq(socialLinks.id, linkId));
+    
+    await this.db.insert(linkClicks).values({
+      linkId,
+      timestamp: new Date().toISOString(),
+      userAgent,
+      referrer,
+    });
   }
 
   async trackProfileView(profileId: string, userAgent?: string, referrer?: string): Promise<void> {
-    const profile = this.profiles.find((p) => p.id === profileId);
-    if (profile) {
-      profile.views = (profile.views || 0) + 1;
-      await this.saveData();
-    }
+    await this.db.update(profiles).set({ 
+      views: drizzleSql`${profiles.views} + 1` 
+    }).where(eq(profiles.id, profileId));
+    
+    await this.db.insert(profileViews).values({
+      profileId,
+      timestamp: new Date().toISOString(),
+      userAgent,
+      referrer,
+    });
   }
 
   async getLinkAnalytics(linkId: string): Promise<{ clicks: number }> {
-    const link = this.socialLinks.find((l) => l.id === linkId);
-    return link ? { clicks: link.clicks || 0 } : { clicks: 0 };
+    const link = await this.getSocialLink(linkId);
+    return { clicks: link?.clicks || 0 };
   }
 
   async getProfileAnalytics(profileId: string): Promise<{ views: number; totalClicks: number; linkCount: number }> {
-    const profile = this.profiles.find((p) => p.id === profileId);
-    const links = this.socialLinks.filter((l) => l.profileId === profileId);
-    const totalClicks = links.reduce((sum, link) => sum + (link.clicks || 0), 0);
+    const profile = await this.getProfile(profileId);
+    const links = await this.getSocialLinks(profileId);
+    const totalClicks = links.reduce((sum, link) => sum + link.clicks, 0);
 
     return {
       views: profile?.views || 0,
@@ -192,6 +235,42 @@ export class FileStorage implements IStorage {
       linkCount: links.length,
     };
   }
+
+  async getDetailedAnalytics(profileId: string): Promise<{
+    totalViews: number;
+    totalClicks: number;
+    linkCount: number;
+    formSubmissions: number;
+    topLinks: Array<{ platform: string; url: string; clicks: number }>;
+    recentViews: Array<{ timestamp: string; userAgent?: string; referrer?: string }>;
+  }> {
+    const profile = await this.getProfile(profileId);
+    const links = await this.getSocialLinks(profileId);
+    const submissions = await this.getFormSubmissions(profileId);
+    const views = await this.db.select().from(profileViews)
+      .where(eq(profileViews.profileId, profileId))
+      .orderBy(drizzleSql`${profileViews.timestamp} DESC`)
+      .limit(10);
+
+    const totalClicks = links.reduce((sum, link) => sum + link.clicks, 0);
+    const topLinks = links
+      .sort((a, b) => b.clicks - a.clicks)
+      .slice(0, 5)
+      .map(link => ({ platform: link.platform, url: link.url, clicks: link.clicks }));
+
+    return {
+      totalViews: profile?.views || 0,
+      totalClicks,
+      linkCount: links.length,
+      formSubmissions: submissions.length,
+      topLinks,
+      recentViews: views.map(v => ({
+        timestamp: v.timestamp,
+        userAgent: v.userAgent || undefined,
+        referrer: v.referrer || undefined,
+      })),
+    };
+  }
 }
 
-export const storage = new FileStorage();
+export const storage = new DatabaseStorage();
