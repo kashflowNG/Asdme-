@@ -6,11 +6,11 @@
   .hover-elevate {
     @apply transition-all duration-200;
   }
-  
+
   .hover-elevate:hover {
     @apply -translate-y-0.5;
   }
-  
+
   .active-elevate-2:active {
     @apply translate-y-0;
   }
@@ -183,11 +183,110 @@
   * {
     @apply border-border;
   }
-
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply bg-background text-foreground;
   }
 }
+
+/* Neo-Neon Futuristic Animations */
+@keyframes neonPulse {
+  0%, 100% {
+    filter: brightness(1) drop-shadow(0 0 8px currentColor);
+  }
+  50% {
+    filter: brightness(1.15) drop-shadow(0 0 15px currentColor);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes borderGlow {
+  0%, 100% {
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 8px hsl(var(--primary) / 0.4);
+  }
+  50% {
+    border-color: hsl(var(--accent));
+    box-shadow: 0 0 15px hsl(var(--accent) / 0.6);
+  }
+}
+
+/* Utility classes for neon effects */
+.neon-glow {
+  filter: drop-shadow(0 0 8px hsl(var(--primary) / 0.6));
+}
+
+.neon-glow-strong {
+  filter: drop-shadow(0 0 15px hsl(var(--primary) / 0.8));
+}
+
+.animate-pulse-neon {
+  animation: neonPulse 1.8s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.gradient-shimmer {
+  background-size: 200% 100%;
+  animation: shimmer 3s linear infinite;
+}
+
+.hover-neon-glow {
+  transition: all 0.25s ease;
+}
+
+.hover-neon-glow:hover {
+  filter: brightness(1.1) drop-shadow(0 0 12px hsl(var(--primary) / 0.7));
+}
+
+.border-glow-animate {
+  animation: borderGlow 2s ease-in-out infinite;
+}
+
 
 /**
  * Using the elevate system.

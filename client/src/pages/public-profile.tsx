@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute } from "wouter";
-import { SocialLinkButton } from "@/components/SocialLinkButton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { SocialLinkButton } from "@/components/SocialLinkButton";
+import { NeropageLogo } from "@/components/NeropageLogo";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 import type { Profile, SocialLink } from "@shared/schema";
@@ -105,11 +106,9 @@ export default function PublicProfile() {
 
         <footer className="py-8 text-center border-t mt-8">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <div className="w-6 h-6 bg-gradient-to-br from-primary to-primary/60 rounded flex items-center justify-center">
-              <span className="text-white font-bold text-xs">LN</span>
-            </div>
+            <NeropageLogo className="w-6 h-6" />
             <span className="text-sm font-semibold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-              Powered by LinkNero
+              Powered by Neropage
             </span>
           </div>
           <p className="text-xs text-muted-foreground">

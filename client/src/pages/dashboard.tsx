@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { AddLinkDialog } from "@/components/AddLinkDialog";
+import { NeropageLogo } from "@/components/NeropageLogo";
 import { getPlatform } from "@/lib/platforms";
 import { GripVertical, Trash2, Plus, Eye, Upload } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -101,7 +102,7 @@ export default function Dashboard() {
     bio: "",
     avatar: "",
   });
-  
+
   // Track the last committed profile to prevent stale comparisons
   const lastCommittedProfile = useRef<Profile | null>(null);
 
@@ -138,7 +139,7 @@ export default function Dashboard() {
       // Do NOT reset form state to allow in-flight edits
       queryClient.setQueryData(["/api/profiles/me"], updatedProfile);
       lastCommittedProfile.current = updatedProfile;
-      
+
       toast({
         title: "Profile updated",
         description: "Your profile has been saved successfully.",
@@ -234,20 +235,20 @@ export default function Dashboard() {
 
   const handleUpdateProfile = (field: "username" | "bio" | "avatar") => {
     const value = profileForm[field];
-    
+
     // Don't update if profile hasn't loaded yet
     if (!lastCommittedProfile.current) {
       return;
     }
-    
+
     // Get the last committed value for this field
     const committedValue = (lastCommittedProfile.current[field] || "") as string;
-    
+
     // Don't update if value is unchanged from last committed
     if (value === committedValue) {
       return;
     }
-    
+
     // Don't allow empty username
     if (field === "username" && value.trim() === "") {
       toast({
@@ -259,7 +260,7 @@ export default function Dashboard() {
       setProfileForm({ ...profileForm, username: committedValue });
       return;
     }
-    
+
     updateProfileMutation.mutate({ [field]: value });
   };
 
@@ -281,10 +282,8 @@ export default function Dashboard() {
       <header className="sticky top-0 z-50 h-16 px-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
         <div className="max-w-2xl mx-auto h-full flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">LN</span>
-            </div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">LinkNero</h1>
+            <NeropageLogo className="w-8 h-8" />
+            <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">Neropage</h1>
           </div>
           {profile && (
             <Button
@@ -307,7 +306,7 @@ export default function Dashboard() {
             <h2 className="text-2xl font-bold">Profile Configuration</h2>
             <span className="text-xs px-3 py-1 bg-primary/10 text-primary rounded-full font-semibold">PRO</span>
           </div>
-          
+
           <div className="flex items-center gap-4">
             <Avatar className="w-20 h-20 border-2 border-border">
               <AvatarImage src={profile?.avatar || profileForm.avatar} alt={profile?.username} />
