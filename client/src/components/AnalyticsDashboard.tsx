@@ -1,13 +1,33 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
-import { Eye, MousePointerClick, Link2, TrendingUp, Users, Mail } from "lucide-react";
+import { Eye, MousePointerClick, Link2, TrendingUp, Users, Mail, Download } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 
 export function AnalyticsDashboard() {
   const { data: analytics } = useQuery({
     queryKey: ["/api/analytics/detailed"],
   });
+
+  const exportAnalytics = () => {
+    if (!analytics) return;
+    
+    const csv = [
+      ['Metric', 'Value'],
+      ['Total Views', analytics.totalViews || 0],
+      ['Total Clicks', analytics.totalClicks || 0],
+      ['Active Links', analytics.linkCount || 0],
+      ['Engagement Rate', analytics.totalViews ? `${Math.round((analytics.totalClicks / analytics.totalViews) * 100)}%` : '0%'],
+    ].map(row => row.join(',')).join('\n');
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `neropage-analytics-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+  };
 
   const stats = [
     {

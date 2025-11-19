@@ -15,6 +15,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Helmet } from "react-helmet";
+import { SocialProofWidget } from "@/components/SocialProofWidget";
 
 export default function PublicProfile() {
   const [, params] = useRoute("/user/:username");

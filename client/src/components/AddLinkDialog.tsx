@@ -14,6 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Calendar } from "lucide-react";
 
 interface AddLinkDialogProps {
   open: boolean;
@@ -214,12 +216,10 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
               </div>
 
               <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
+                <Switch
                   id="scheduled"
                   checked={formData.isScheduled}
-                  onChange={(e) => setFormData({ ...formData, isScheduled: e.target.checked })}
-                  className="w-4 h-4"
+                  onCheckedChange={(checked) => setFormData({ ...formData, isScheduled: checked })}
                 />
                 <Label htmlFor="scheduled" className="cursor-pointer">Schedule this link</Label>
               </div>
@@ -228,19 +228,27 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
                 <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg">
                   <div className="space-y-2">
                     <Label>Start Date</Label>
-                    <Input
-                      type="datetime-local"
-                      value={formData.scheduleStart}
-                      onChange={(e) => setFormData({ ...formData, scheduleStart: e.target.value })}
-                    />
+                    <div className="relative">
+                      <Input
+                        type="datetime-local"
+                        value={formData.scheduleStart}
+                        onChange={(e) => setFormData({ ...formData, scheduleStart: e.target.value })}
+                        className="pr-8"
+                      />
+                      <Calendar className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label>End Date</Label>
-                    <Input
-                      type="datetime-local"
-                      value={formData.scheduleEnd}
-                      onChange={(e) => setFormData({ ...formData, scheduleEnd: e.target.value })}
-                    />
+                    <div className="relative">
+                      <Input
+                        type="datetime-local"
+                        value={formData.scheduleEnd}
+                        onChange={(e) => setFormData({ ...formData, scheduleEnd: e.target.value })}
+                        className="pr-8"
+                      />
+                      <Calendar className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    </div>
                   </div>
                 </div>
               )}

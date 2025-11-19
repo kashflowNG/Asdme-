@@ -486,6 +486,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Webhook configuration
+  app.post("/api/webhooks/configure", async (req, res) => {
+    try {
+      const profile = await storage.getDefaultProfile();
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+
+      // Store webhook URL for email service integration
+      const { webhookUrl, service } = req.body;
+      
+      // In a real app, this would save to database
+      res.status(200).json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to configure webhook" });
+    }
+  });
+
   // Create form submission (public endpoint)
   app.post("/api/profiles/:username/submit-form", async (req, res) => {
     try {

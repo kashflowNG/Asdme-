@@ -14,6 +14,10 @@ import { QRCodeGenerator } from "@/components/QRCodeGenerator";
 import { AppearanceEditor } from "@/components/AppearanceEditor";
 import { SEOEditor } from "@/components/SEOEditor";
 import { ContentBlockManager } from "@/components/ContentBlockManager";
+import { CustomDomainManager } from "@/components/CustomDomainManager";
+import { LinkGroupManager } from "@/components/LinkGroupManager";
+import { TemplateSelector } from "@/components/TemplateSelector";
+import { ABTestManager } from "@/components/ABTestManager";
 import { getPlatform } from "@/lib/platforms";
 import { GripVertical, Trash2, Plus, Eye, Upload, Copy, Check, ExternalLink, LogOut, QrCode, BarChart3 } from "lucide-react";
 import {
@@ -630,6 +634,18 @@ export default function Dashboard() {
 
         {/* Content Blocks Manager */}
         <ContentBlockManager />
+
+        {/* Template Selector */}
+        <TemplateSelector />
+
+        {/* Link Groups */}
+        <LinkGroupManager />
+
+        {/* Custom Domain */}
+        <CustomDomainManager />
+
+        {/* A/B Testing */}
+        <ABTestManager />
 
         <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-links-manager">
           <div className="flex items-center justify-between">
