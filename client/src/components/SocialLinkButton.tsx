@@ -5,9 +5,10 @@ interface SocialLinkButtonProps {
   platformId: string;
   url: string;
   customTitle?: string | null;
+  onClick?: () => void;
 }
 
-export function SocialLinkButton({ platformId, url, customTitle }: SocialLinkButtonProps) {
+export function SocialLinkButton({ platformId, url, customTitle, onClick }: SocialLinkButtonProps) {
   const platform = getPlatform(platformId);
 
   // Handle custom links or unknown platforms
@@ -17,6 +18,7 @@ export function SocialLinkButton({ platformId, url, customTitle }: SocialLinkBut
         href={url}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={onClick}
         className="group relative block w-full h-16 px-6 rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-gradient-to-r from-card to-card/80 border-2 border-border hover:border-primary/50 shadow-lg hover:shadow-xl"
         data-testid={`social-link-custom`}
       >
@@ -50,6 +52,7 @@ export function SocialLinkButton({ platformId, url, customTitle }: SocialLinkBut
       href={url}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={onClick}
       className="group relative block w-full h-16 px-6 rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-gradient-to-r from-card to-card/80 border-2 border-border hover:border-primary/50 shadow-lg hover:shadow-xl"
       data-testid={`social-link-${platformId}`}
     >

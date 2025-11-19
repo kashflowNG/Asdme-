@@ -8,6 +8,10 @@ export const profiles = pgTable("profiles", {
   username: text("username").notNull().unique(),
   bio: text("bio").default(""),
   avatar: text("avatar").default(""),
+  theme: text("theme").default("neon"),
+  primaryColor: text("primary_color").default("#8B5CF6"),
+  backgroundColor: text("background_color").default("#0A0A0F"),
+  views: integer("views").notNull().default(0),
 });
 
 export const socialLinks = pgTable("social_links", {
@@ -17,6 +21,27 @@ export const socialLinks = pgTable("social_links", {
   url: text("url").notNull(),
   customTitle: text("custom_title"),
   order: integer("order").notNull().default(0),
+  clicks: integer("clicks").notNull().default(0),
+  isScheduled: integer("is_scheduled", { mode: 'boolean' }).notNull().default(false),
+  scheduleStart: text("schedule_start"),
+  scheduleEnd: text("schedule_end"),
+  thumbnail: text("thumbnail"),
+});
+
+export const linkClicks = pgTable("link_clicks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  linkId: varchar("link_id").notNull(),
+  timestamp: text("timestamp").notNull(),
+  userAgent: text("user_agent"),
+  referrer: text("referrer"),
+});
+
+export const profileViews = pgTable("profile_views", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  profileId: varchar("profile_id").notNull(),
+  timestamp: text("timestamp").notNull(),
+  userAgent: text("user_agent"),
+  referrer: text("referrer"),
 });
 
 export const insertProfileSchema = createInsertSchema(profiles).omit({
@@ -27,6 +52,9 @@ export const updateProfileSchema = z.object({
   username: z.string().trim().min(1).optional(),
   bio: z.string().optional(),
   avatar: z.string().optional(),
+  theme: z.string().optional(),
+  primaryColor: z.string().optional(),
+  backgroundColor: z.string().optional(),
 });
 
 export const insertSocialLinkSchema = createInsertSchema(socialLinks).omit({
@@ -38,3 +66,5 @@ export type UpdateProfile = z.infer<typeof updateProfileSchema>;
 export type Profile = typeof profiles.$inferSelect;
 export type InsertSocialLink = z.infer<typeof insertSocialLinkSchema>;
 export type SocialLink = typeof socialLinks.$inferSelect;
+export type LinkClick = typeof linkClicks.$inferSelect;
+export type ProfileView = typeof profileViews.$inferSelect;

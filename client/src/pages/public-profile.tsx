@@ -8,7 +8,9 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Globe, Users, TrendingUp, Zap } from "lucide-react";
 import type { Profile, SocialLink } from "@shared/schema";
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function PublicProfile() {
   const [, params] = useRoute("/user/:username");
@@ -42,6 +44,29 @@ export default function PublicProfile() {
   );
 
   const totalConnections = sortedLinks.length;
+
+  const trackViewMutation = useMutation({
+    mutationFn: async () => {
+      if (!username) return;
+      return await apiRequest("POST", `/api/profiles/${username}/view`, {});
+    },
+  });
+
+  const trackClickMutation = useMutation({
+    mutationFn: async (linkId: string) => {
+      return await apiRequest("POST", `/api/links/${linkId}/click`, {});
+    },
+  });
+
+  useEffect(() => {
+    if (profile) {
+      trackViewMutation.mutate();
+    }
+  }, [profile?.id]);
+
+  const handleLinkClick = (linkId: string) => {
+    trackClickMutation.mutate(linkId);
+  };
 
   if (profileLoading) {
     return (
@@ -172,6 +197,7 @@ export default function PublicProfile() {
                     platformId={sortedLinks[0].platform}
                     url={sortedLinks[0].url}
                     customTitle={sortedLinks[0].customTitle}
+                    onClick={() => handleLinkClick(sortedLinks[0].id)}
                   />
                 </div>
               )}
@@ -194,6 +220,7 @@ export default function PublicProfile() {
                           platformId={link.platform}
                           url={link.url}
                           customTitle={link.customTitle}
+                          onClick={() => handleLinkClick(link.id)}
                         />
                       </div>
                     ))}

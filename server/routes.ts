@@ -172,6 +172,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Track link click
+  app.post("/api/links/:id/click", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userAgent = req.headers['user-agent'];
+      const referrer = req.headers['referer'];
+      
+      await storage.trackLinkClick(id, userAgent, referrer);
+      res.status(200).json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to track click" });
+    }
+  });
+
+  // Track profile view
+  app.post("/api/profiles/:username/view", async (req, res) => {
+    try {
+      const { username } = req.params;
+      const profile = await storage.getProfileByUsername(username);
+      
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+
+      const userAgent = req.headers['user-agent'];
+      const referrer = req.headers['referer'];
+      
+      await storage.trackProfileView(profile.id, userAgent, referrer);
+      res.status(200).json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to track view" });
+    }
+  });
+
+  // Get analytics
+  app.get("/api/analytics", async (_req, res) => {
+    try {
+      const profile = await storage.getDefaultProfile();
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+
+      const analytics = await storage.getProfileAnalytics(profile.id);
+      res.json(analytics);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch analytics" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

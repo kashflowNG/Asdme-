@@ -9,8 +9,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { AddLinkDialog } from "@/components/AddLinkDialog";
 import { NeropageLogo } from "@/components/NeropageLogo";
+import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
+import { QRCodeGenerator } from "@/components/QRCodeGenerator";
 import { getPlatform } from "@/lib/platforms";
-import { GripVertical, Trash2, Plus, Eye, Upload, Copy, Check, ExternalLink, LogOut } from "lucide-react";
+import { GripVertical, Trash2, Plus, Eye, Upload, Copy, Check, ExternalLink, LogOut, QrCode, BarChart3 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -108,6 +110,7 @@ export default function Dashboard() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showQRDialog, setShowQRDialog] = useState(false);
   const [copied, setCopied] = useState(false);
   const [profileForm, setProfileForm] = useState({
     username: "",
@@ -428,6 +431,15 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-6 space-y-8 animate-fade-in">
+        {/* Analytics Dashboard */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <BarChart3 className="w-6 h-6 text-primary" />
+            <h2 className="text-2xl font-bold">Analytics Overview</h2>
+          </div>
+          <AnalyticsDashboard />
+        </div>
+
         <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-profile-editor">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -489,31 +501,39 @@ export default function Dashboard() {
           </div>
 
           {profile && (
-            <div className="flex items-center gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <Button
                 variant="outline"
                 onClick={() => window.open(`/user/${profile.username}`, '_blank')}
-                className="flex-1 h-10 gap-2"
+                className="h-10 gap-2"
               >
                 <ExternalLink className="w-4 h-4" />
-                Preview Profile
+                <span className="hidden sm:inline">Preview</span>
               </Button>
               <Button
                 onClick={handleCopyLink}
-                className="flex-1 h-10 gap-2"
+                className="h-10 gap-2"
                 data-testid="button-copy-link"
               >
                 {copied ? (
                   <>
                     <Check className="w-4 h-4" />
-                    Copied!
+                    <span className="hidden sm:inline">Copied!</span>
                   </>
                 ) : (
                   <>
                     <Copy className="w-4 h-4" />
-                    Copy Link
+                    <span className="hidden sm:inline">Copy</span>
                   </>
                 )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setShowQRDialog(true)}
+                className="h-10 gap-2"
+              >
+                <QrCode className="w-4 h-4" />
+                <span className="hidden sm:inline">QR Code</span>
               </Button>
             </div>
           )}
@@ -614,6 +634,26 @@ export default function Dashboard() {
         onAdd={handleAddLink}
         existingPlatforms={links.map((link) => link.platform)}
       />
+
+      {/* QR Code Dialog */}
+      {profile && (
+        <AlertDialog open={showQRDialog} onOpenChange={setShowQRDialog}>
+          <AlertDialogContent className="max-w-md">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-2xl font-bold text-center">Your Profile QR Code</AlertDialogTitle>
+              <AlertDialogDescription className="text-center">
+                Share your Neropage profile instantly with a QR code
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="py-6">
+              <QRCodeGenerator url={`${window.location.origin}/user/${profile.username}`} />
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Close</AlertDialogCancel>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   );
 }
