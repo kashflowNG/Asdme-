@@ -1,6 +1,12 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import session from "express-session";
+import passport from "passport";
+import { Strategy as LocalStrategy } from "passport-local";
+import bcrypt from "bcrypt";
+import { storage } from "./storage";
+import type { User } from "@shared/schema";
 
 const app = express();
 
@@ -9,12 +15,70 @@ declare module 'http' {
     rawBody: unknown
   }
 }
+
+declare global {
+  namespace Express {
+    interface User {
+      id: string;
+      username: string;
+    }
+  }
+}
+
 app.use(express.json({
   verify: (req, _res, buf) => {
     req.rawBody = buf;
   }
 }));
 app.use(express.urlencoded({ extended: false }));
+
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'neropage-secret-key-change-in-production',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+  }
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.use(new LocalStrategy(async (username, password, done) => {
+  try {
+    const user = await storage.getUserByUsername(username);
+    if (!user) {
+      return done(null, false, { message: 'Incorrect username or password' });
+    }
+
+    const isValidPassword = await bcrypt.compare(password, user.passwordHash);
+    if (!isValidPassword) {
+      return done(null, false, { message: 'Incorrect username or password' });
+    }
+
+    return done(null, { id: user.id, username: user.username });
+  } catch (error) {
+    return done(error);
+  }
+}));
+
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser(async (id: string, done) => {
+  try {
+    const user = await storage.getUserById(id);
+    if (!user) {
+      return done(null, false);
+    }
+    done(null, { id: user.id, username: user.username });
+  } catch (error) {
+    done(error);
+  }
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
