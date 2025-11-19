@@ -6,8 +6,8 @@ import {
   type FormSubmission, type InsertFormSubmission,
   profiles, socialLinks, linkGroups, contentBlocks, formSubmissions, linkClicks, profileViews
 } from "@shared/schema";
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
+import postgres from "postgres";
+import { drizzle } from "drizzle-orm/postgres-js";
 import { eq, sql as drizzleSql } from "drizzle-orm";
 
 export interface IStorage {
@@ -111,7 +111,8 @@ export class DatabaseStorage implements IStorage {
       // No database setup needed
       this.db = null as any;
     } else {
-      const sql = neon(connectionString);
+      console.log("✓ Connecting to PostgreSQL database...");
+      const sql = postgres(connectionString);
       this.db = drizzle(sql);
       this.initialize().catch(err => {
         console.warn("Database initialization failed:", err.message);
