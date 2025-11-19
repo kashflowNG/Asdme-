@@ -127,11 +127,15 @@ export default function Dashboard() {
   const { data: profile } = useQuery<Profile>({
     queryKey: ["/api/profiles/me"],
     staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   const { data: links = [] } = useQuery<SocialLink[]>({
     queryKey: ["/api/links"],
     staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   // Hydrate form state and update committed ref from fetched profile
@@ -152,11 +156,13 @@ export default function Dashboard() {
     mutationFn: async (data: { username?: string; bio?: string; avatar?: string }) => {
       return await apiRequest("PATCH", "/api/profiles/me", data);
     },
-    onSuccess: (updatedProfile: Profile) => {
-      // Invalidate queries to force refetch
-      queryClient.invalidateQueries({ queryKey: ["/api/profiles/me"] });
+    onSuccess: async (updatedProfile: Profile) => {
+      // Set the new data immediately
       queryClient.setQueryData(["/api/profiles/me"], updatedProfile);
       lastCommittedProfile.current = updatedProfile;
+
+      // Force a refetch to ensure we have the latest data
+      await queryClient.refetchQueries({ queryKey: ["/api/profiles/me"] });
 
       toast({
         title: "Profile updated",
@@ -600,9 +606,10 @@ export default function Dashboard() {
         {profile && (
           <AppearanceEditor 
             profile={profile} 
-            onUpdate={(updates) => {
+            onUpdate={async (updates) => {
               if (profile) {
-                updateProfileMutation.mutate(updates);
+                await updateProfileMutation.mutateAsync(updates);
+                await queryClient.refetchQueries({ queryKey: ["/api/profiles/me"] });
               }
             }}
           />
@@ -612,9 +619,10 @@ export default function Dashboard() {
         {profile && (
           <SEOEditor 
             profile={profile} 
-            onUpdate={(updates) => {
+            onUpdate={async (updates) => {
               if (profile) {
-                updateProfileMutation.mutate(updates);
+                await updateProfileMutation.mutateAsync(updates);
+                await queryClient.refetchQueries({ queryKey: ["/api/profiles/me"] });
               }
             }}
           />
