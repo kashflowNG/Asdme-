@@ -6,15 +6,21 @@ import { NeropageLogo } from "@/components/NeropageLogo";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Globe, Users, TrendingUp, Zap } from "lucide-react";
-import type { Profile, SocialLink } from "@shared/schema";
-import { useMemo, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Globe, Zap, Play, Mail } from "lucide-react";
+import type { Profile, SocialLink, ContentBlock } from "@shared/schema";
+import { useMemo, useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { Helmet } from "react-helmet";
 
 export default function PublicProfile() {
   const [, params] = useRoute("/user/:username");
   const username = params?.username;
+  const { toast } = useToast();
+  const [emailFormData, setEmailFormData] = useState({ name: "", email: "", message: "" });
 
   const { data: profile, isLoading: profileLoading } = useQuery<Profile>({
     queryKey: ["/api/profiles", username],
@@ -26,11 +32,21 @@ export default function PublicProfile() {
     enabled: !!username && !!profile,
   });
 
+  const { data: contentBlocks = [] } = useQuery<ContentBlock[]>({
+    queryKey: ["/api/profiles", username, "content-blocks"],
+    enabled: !!username && !!profile,
+  });
+
   const isLoading = profileLoading || linksLoading;
 
   const sortedLinks = useMemo(() => 
     [...links].sort((a, b) => a.order - b.order),
     [links]
+  );
+
+  const sortedBlocks = useMemo(() => 
+    [...contentBlocks].sort((a, b) => a.order - b.order),
+    [contentBlocks]
   );
 
   const initials = useMemo(() => 
@@ -42,8 +58,6 @@ export default function PublicProfile() {
       .slice(0, 2),
     [profile?.username]
   );
-
-  const totalConnections = sortedLinks.length;
 
   const trackViewMutation = useMutation({
     mutationFn: async () => {
@@ -58,6 +72,27 @@ export default function PublicProfile() {
     },
   });
 
+  const submitFormMutation = useMutation({
+    mutationFn: async (data: { name: string; email: string; message: string }) => {
+      if (!username) return;
+      return await apiRequest("POST", `/api/profiles/${username}/form-submit`, data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Message sent!",
+        description: "Thank you for your submission.",
+      });
+      setEmailFormData({ name: "", email: "", message: "" });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   useEffect(() => {
     if (profile) {
       trackViewMutation.mutate();
@@ -68,6 +103,53 @@ export default function PublicProfile() {
     trackClickMutation.mutate(linkId);
   };
 
+  const handleFormSubmit = (e: React.FormEvent, blockId: string) => {
+    e.preventDefault();
+    submitFormMutation.mutate(emailFormData);
+  };
+
+  // Get background style based on customization
+  const getBackgroundStyle = () => {
+    if (!profile) return {};
+
+    const baseStyle: React.CSSProperties = {
+      backgroundColor: profile.backgroundColor || "#0A0A0F",
+    };
+
+    if (profile.backgroundType === "image" && profile.backgroundImage) {
+      return {
+        ...baseStyle,
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${profile.backgroundImage})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed",
+      };
+    }
+
+    if (profile.backgroundType === "gradient") {
+      return {
+        ...baseStyle,
+        background: `linear-gradient(135deg, ${profile.backgroundColor || "#0A0A0F"}, ${profile.primaryColor || "#8B5CF6"})`,
+      };
+    }
+
+    return baseStyle;
+  };
+
+  // Get button class based on button style
+  const getButtonClass = () => {
+    if (!profile) return "";
+    
+    switch (profile.buttonStyle) {
+      case "pill":
+        return "rounded-full";
+      case "square":
+        return "rounded-none";
+      default:
+        return "rounded-lg";
+    }
+  };
+
   if (profileLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -76,11 +158,6 @@ export default function PublicProfile() {
             <Skeleton className="w-32 h-32 rounded-full mx-auto" />
             <Skeleton className="h-10 w-64 mx-auto" />
             <Skeleton className="h-6 w-96 mx-auto" />
-            <div className="flex gap-4 justify-center">
-              <Skeleton className="h-20 w-32 rounded-xl" />
-              <Skeleton className="h-20 w-32 rounded-xl" />
-              <Skeleton className="h-20 w-32 rounded-xl" />
-            </div>
           </div>
         </div>
       </div>
@@ -103,166 +180,287 @@ export default function PublicProfile() {
     );
   }
 
+  const profileUrl = `${window.location.origin}/user/${profile.username}`;
+  const pageTitle = profile.seoTitle || `${profile.username} - Link Hub`;
+  const pageDescription = profile.seoDescription || profile.bio || `Check out all of ${profile.username}'s social media links and content`;
+
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-20 left-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl animate-float" />
-        <div className="absolute bottom-20 right-10 w-80 h-80 bg-cyan-500/5 rounded-full blur-3xl animate-float-delayed" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-500/3 rounded-full blur-3xl animate-pulse-slow" />
-      </div>
+    <>
+      <Helmet>
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="profile" />
+        <meta property="og:url" content={profileUrl} />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        {profile.ogImage && <meta property="og:image" content={profile.ogImage} />}
+        
+        {/* Twitter */}
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content={profileUrl} />
+        <meta property="twitter:title" content={pageTitle} />
+        <meta property="twitter:description" content={pageDescription} />
+        {profile.ogImage && <meta property="twitter:image" content={profile.ogImage} />}
+      </Helmet>
 
-      <div className="max-w-4xl mx-auto px-4 relative z-10">
-        {/* Hero Section */}
-        <div className="pt-16 pb-8 text-center animate-fade-in" data-testid="profile-header">
-          {/* Profile Avatar with Glow Effect */}
-          <div className="relative inline-block mb-6">
-            <div className="absolute inset-0 bg-gradient-to-r from-primary via-cyan-500 to-purple-500 rounded-full blur-xl opacity-50 animate-pulse-slow" />
-            <Avatar className="relative w-32 h-32 border-4 border-background shadow-2xl">
-              <AvatarImage src={profile.avatar} alt={profile.username} />
-              <AvatarFallback className="text-3xl font-bold bg-gradient-to-br from-primary to-cyan-500 text-white">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            {/* Status Indicator */}
-            <div className="absolute bottom-2 right-2 w-6 h-6 bg-emerald-400 border-4 border-background rounded-full shadow-lg animate-pulse" />
-          </div>
+      <div 
+        className="min-h-screen relative overflow-hidden"
+        style={{
+          ...getBackgroundStyle(),
+          fontFamily: profile.fontFamily || "DM Sans",
+          color: profile.primaryColor ? `${profile.primaryColor}22` : undefined,
+        }}
+      >
+        {/* Background Video if set */}
+        {profile.backgroundType === "video" && profile.backgroundVideo && (
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="fixed inset-0 w-full h-full object-cover -z-10 opacity-30"
+          >
+            <source src={profile.backgroundVideo} type="video/mp4" />
+          </video>
+        )}
 
-          {/* Username and Badge */}
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <h1 className="text-4xl font-black bg-gradient-to-r from-primary via-cyan-500 to-purple-500 bg-clip-text text-transparent" data-testid="text-username">
-              @{profile.username}
-            </h1>
-            <Badge className="px-3 py-1 bg-gradient-to-r from-primary/20 to-cyan-500/20 border-primary/40 neon-glow">
-              <Zap className="w-3 h-3 mr-1" />
-              PRO
-            </Badge>
-          </div>
+        {/* Dark overlay for better text readability */}
+        {(profile.backgroundType === "image" || profile.backgroundType === "video") && (
+          <div className="fixed inset-0 bg-black/40 -z-5" />
+        )}
 
-          {profile.bio && (
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto px-6 mb-6 leading-relaxed" data-testid="text-bio">
-              {profile.bio}
-            </p>
-          )}
+        {/* Custom CSS */}
+        {profile.customCSS && (
+          <style dangerouslySetInnerHTML={{ __html: profile.customCSS }} />
+        )}
 
-          {/* Elegant Separator */}
-          <div className="max-w-md mx-auto mb-12 relative">
-            <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-4 bg-background">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Connect With Me
-                </span>
-                <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" style={{ animationDelay: '0.5s' }} />
-              </div>
+        <div className={`max-w-4xl mx-auto px-4 relative z-10 ${profile.layout === "minimal" ? "max-w-2xl" : ""}`}>
+          {/* Hero Section */}
+          <div className="pt-16 pb-8 text-center animate-fade-in" data-testid="profile-header">
+            {/* Profile Avatar */}
+            <div className="relative inline-block mb-6">
+              <div 
+                className="absolute inset-0 rounded-full blur-xl opacity-50 animate-pulse-slow"
+                style={{
+                  background: `linear-gradient(to right, ${profile.primaryColor || "#8B5CF6"}, ${profile.backgroundColor || "#0A0A0F"})`,
+                }}
+              />
+              <Avatar className="relative w-32 h-32 border-4 border-background shadow-2xl">
+                <AvatarImage src={profile.avatar || undefined} alt={profile.username} />
+                <AvatarFallback 
+                  className="text-3xl font-bold text-white"
+                  style={{ background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}, ${profile.backgroundColor || "#0A0A0F"})` }}
+                >
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="absolute bottom-2 right-2 w-6 h-6 bg-emerald-400 border-4 border-background rounded-full shadow-lg animate-pulse" />
+            </div>
+
+            {/* Username and Badge */}
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <h1 
+                className="text-4xl font-black"
+                style={{ 
+                  background: `linear-gradient(to right, ${profile.primaryColor || "#8B5CF6"}, ${profile.backgroundColor || "#0A0A0F"})`,
+                  WebkitBackgroundClip: "text",
+                  backgroundClip: "text",
+                  color: "transparent",
+                }}
+                data-testid="text-username"
+              >
+                @{profile.username}
+              </h1>
+              <Badge 
+                className="px-3 py-1 neon-glow"
+                style={{
+                  backgroundColor: `${profile.primaryColor || "#8B5CF6"}20`,
+                  borderColor: `${profile.primaryColor || "#8B5CF6"}40`,
+                }}
+              >
+                <Zap className="w-3 h-3 mr-1" />
+                PRO
+              </Badge>
+            </div>
+
+            {profile.bio && (
+              <p className="text-lg max-w-2xl mx-auto px-6 mb-6 leading-relaxed text-foreground" data-testid="text-bio">
+                {profile.bio}
+              </p>
+            )}
+
+            {/* Separator */}
+            <div className="max-w-md mx-auto mb-12 relative">
+              <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
             </div>
           </div>
-        </div>
 
-        {/* Links Section with Advanced Grid */}
-        <div className="pb-12" data-testid="links-container">
-          {linksLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
-              {[1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} className="h-16 w-full rounded-xl" />
+          {/* Content Blocks */}
+          {sortedBlocks.length > 0 && (
+            <div className="pb-8 space-y-6">
+              {sortedBlocks.map((block) => (
+                <div key={block.id} className="animate-fade-in">
+                  {block.type === "video" && block.mediaUrl && (
+                    <Card className="p-6 glass-card neon-glow overflow-hidden">
+                      {block.title && <h3 className="text-xl font-bold mb-4">{block.title}</h3>}
+                      <div className="aspect-video rounded-lg overflow-hidden bg-black/20">
+                        <iframe
+                          src={block.mediaUrl.replace("watch?v=", "embed/")}
+                          className="w-full h-full"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                    </Card>
+                  )}
+
+                  {block.type === "image" && block.mediaUrl && (
+                    <Card className="p-6 glass-card neon-glow overflow-hidden">
+                      {block.title && <h3 className="text-xl font-bold mb-4">{block.title}</h3>}
+                      <img 
+                        src={block.mediaUrl} 
+                        alt={block.title || "Content"} 
+                        className="w-full rounded-lg"
+                      />
+                    </Card>
+                  )}
+
+                  {block.type === "gallery" && block.content && (
+                    <Card className="p-6 glass-card neon-glow">
+                      {block.title && <h3 className="text-xl font-bold mb-4">{block.title}</h3>}
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {block.content.split("\n").filter(url => url.trim()).map((url, idx) => (
+                          <img 
+                            key={idx}
+                            src={url.trim()} 
+                            alt={`Gallery ${idx + 1}`} 
+                            className="w-full aspect-square object-cover rounded-lg"
+                          />
+                        ))}
+                      </div>
+                    </Card>
+                  )}
+
+                  {block.type === "text" && block.content && (
+                    <Card className="p-6 glass-card neon-glow">
+                      {block.title && <h3 className="text-xl font-bold mb-4">{block.title}</h3>}
+                      <p className="text-foreground whitespace-pre-wrap">{block.content}</p>
+                    </Card>
+                  )}
+
+                  {block.type === "embed" && block.content && (
+                    <Card className="p-6 glass-card neon-glow overflow-hidden">
+                      {block.title && <h3 className="text-xl font-bold mb-4">{block.title}</h3>}
+                      <div dangerouslySetInnerHTML={{ __html: block.content }} />
+                    </Card>
+                  )}
+
+                  {block.type === "form" && (
+                    <Card className="p-6 glass-card neon-glow">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Mail className="w-6 h-6" style={{ color: profile.primaryColor || "#8B5CF6" }} />
+                        <h3 className="text-xl font-bold">{block.title || "Get in Touch"}</h3>
+                      </div>
+                      <form onSubmit={(e) => handleFormSubmit(e, block.id)} className="space-y-4">
+                        <Input
+                          placeholder="Your Name"
+                          value={emailFormData.name}
+                          onChange={(e) => setEmailFormData({ ...emailFormData, name: e.target.value })}
+                          required
+                          data-testid="input-form-name"
+                        />
+                        <Input
+                          type="email"
+                          placeholder="Your Email"
+                          value={emailFormData.email}
+                          onChange={(e) => setEmailFormData({ ...emailFormData, email: e.target.value })}
+                          required
+                          data-testid="input-form-email"
+                        />
+                        <Input
+                          placeholder="Your Message"
+                          value={emailFormData.message}
+                          onChange={(e) => setEmailFormData({ ...emailFormData, message: e.target.value })}
+                          required
+                          data-testid="input-form-message"
+                        />
+                        <Button
+                          type="submit"
+                          disabled={submitFormMutation.isPending}
+                          className={`w-full ${getButtonClass()}`}
+                          style={{
+                            backgroundColor: profile.primaryColor || "#8B5CF6",
+                            color: "#FFFFFF",
+                          }}
+                        >
+                          {submitFormMutation.isPending ? "Sending..." : "Send Message"}
+                        </Button>
+                      </form>
+                    </Card>
+                  )}
+                </div>
               ))}
             </div>
-          ) : sortedLinks.length === 0 ? (
-            <Card className="p-12 text-center max-w-2xl mx-auto glass-card neon-glow border-2 border-dashed relative overflow-hidden">
-              <div className="absolute inset-0 opacity-5">
-                <div className="absolute top-0 left-0 w-32 h-32 bg-primary rounded-full blur-3xl animate-float" />
-                <div className="absolute bottom-0 right-0 w-32 h-32 bg-cyan-500 rounded-full blur-3xl animate-float-delayed" />
-              </div>
-              <div className="relative">
-                <div className="w-20 h-20 mx-auto bg-gradient-to-br from-primary/20 to-cyan-500/10 rounded-2xl flex items-center justify-center border border-primary/30 shadow-lg mb-6">
-                  <Globe className="w-10 h-10 text-primary" />
-                </div>
+          )}
+
+          {/* Links Section */}
+          <div className="pb-12" data-testid="links-container">
+            {sortedLinks.length === 0 ? (
+              <Card className="p-12 text-center max-w-2xl mx-auto glass-card neon-glow border-2 border-dashed">
+                <Globe className="w-10 h-10 mx-auto mb-4" style={{ color: profile.primaryColor || "#8B5CF6" }} />
                 <h3 className="text-xl font-bold mb-2">No Platforms Yet</h3>
                 <p className="text-muted-foreground">
                   This user hasn't connected any platforms yet
                 </p>
-              </div>
-            </Card>
-          ) : (
-            <div className="space-y-4 max-w-3xl mx-auto">
-              {/* Featured Link (First one) */}
-              {sortedLinks[0] && (
-                <div className="mb-6 animate-fade-in">
-                  <div className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-semibold flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                    Featured Platform
+              </Card>
+            ) : (
+              <div className={`space-y-4 max-w-3xl mx-auto ${profile.layout === "grid" ? "md:grid md:grid-cols-2 md:gap-4 md:space-y-0" : ""}`}>
+                {sortedLinks.map((link, index) => (
+                  <div
+                    key={link.id}
+                    className="animate-fade-in"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <SocialLinkButton
+                      platformId={link.platform}
+                      url={link.url}
+                      customTitle={link.customTitle}
+                      onClick={() => handleLinkClick(link.id)}
+                    />
                   </div>
-                  <SocialLinkButton
-                    platformId={sortedLinks[0].platform}
-                    url={sortedLinks[0].url}
-                    customTitle={sortedLinks[0].customTitle}
-                    onClick={() => handleLinkClick(sortedLinks[0].id)}
-                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <footer className="py-12 text-center border-t border-border/50 mt-8">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <NeropageLogo size={40} />
+              <div className="text-left">
+                <div
+                  className="text-lg font-bold select-none"
+                  style={{
+                    background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}, #06B6D4, #EC4899, ${profile.primaryColor || "#8B5CF6"})`,
+                    backgroundSize: '300% 300%',
+                    WebkitBackgroundClip: 'text',
+                    backgroundClip: 'text',
+                    color: 'transparent',
+                    animation: 'shimmer 3s linear infinite',
+                  }}
+                >
+                  Neropage
                 </div>
-              )}
-
-              {/* Other Links in Grid */}
-              {sortedLinks.length > 1 && (
-                <>
-                  <div className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-semibold flex items-center gap-2 mt-8">
-                    <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
-                    All Connections
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {sortedLinks.slice(1).map((link, index) => (
-                      <div
-                        key={link.id}
-                        className="animate-fade-in"
-                        style={{ animationDelay: `${index * 50}ms` }}
-                      >
-                        <SocialLinkButton
-                          platformId={link.platform}
-                          url={link.url}
-                          customTitle={link.customTitle}
-                          onClick={() => handleLinkClick(link.id)}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
+                <div className="text-xs text-muted-foreground font-medium">
+                  Premium Link Platform
+                </div>
+              </div>
             </div>
-          )}
+          </footer>
         </div>
-
-        {/* Footer */}
-        <footer className="py-12 text-center border-t border-border/50 mt-8">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <NeropageLogo size={40} />
-            <div className="text-left">
-              <div
-                className="text-lg font-bold select-none"
-                style={{
-                  background: 'linear-gradient(135deg, #8B5CF6, #06B6D4, #EC4899, #8B5CF6)',
-                  backgroundSize: '300% 300%',
-                  WebkitBackgroundClip: 'text',
-                  backgroundClip: 'text',
-                  color: 'transparent',
-                  animation: 'shimmer 3s linear infinite',
-                }}
-              >
-                Neropage
-              </div>
-              <div className="text-xs text-muted-foreground font-medium">
-                Enterprise Link Platform
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">
-            <span>Powered by Advanced Analytics</span>
-            <span>•</span>
-            <span>Real-time Updates</span>
-            <span>•</span>
-            <span>Secured Connection</span>
-          </div>
-        </footer>
       </div>
-    </div>
+    </>
   );
 }
