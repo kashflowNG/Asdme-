@@ -5,6 +5,8 @@ import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import bcrypt from "bcrypt";
+import cookieParser from "cookie-parser";
+import csrf from "@dr.pogodin/csurf";
 import { storage } from "./storage";
 import type { User } from "@shared/schema";
 
@@ -25,6 +27,7 @@ declare global {
   }
 }
 
+app.use(cookieParser());
 app.use(express.json({
   verify: (req, _res, buf) => {
     req.rawBody = buf;
@@ -46,6 +49,9 @@ app.use(session({
 
 app.use(passport.initialize());
 app.use(passport.session());
+
+// CSRF Protection - session-based tokens
+export const csrfProtection = csrf({ cookie: false });
 
 passport.use(new LocalStrategy(async (username, password, done) => {
   try {

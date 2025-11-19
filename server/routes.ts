@@ -13,6 +13,7 @@ import { promises as fs } from "fs";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
 import passport from "passport";
+import { csrfProtection } from "./index";
 
 function requireAuth(req: any, res: any, next: any) {
   if (req.isAuthenticated()) {
@@ -22,7 +23,12 @@ function requireAuth(req: any, res: any, next: any) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  app.post("/api/auth/signup", async (req, res) => {
+  // CSRF token endpoint
+  app.get("/api/csrf-token", csrfProtection, (req, res) => {
+    res.json({ csrfToken: (req as any).csrfToken() });
+  });
+
+  app.post("/api/auth/signup", csrfProtection, async (req, res) => {
     try {
       const { username, password } = signupSchema.parse(req.body);
 
@@ -65,7 +71,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/auth/login", (req, res, next) => {
+  app.post("/api/auth/login", csrfProtection, (req, res, next) => {
     try {
       loginSchema.parse(req.body);
     } catch (error) {
@@ -90,7 +96,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     })(req, res, next);
   });
 
-  app.post("/api/auth/logout", (req, res) => {
+  app.post("/api/auth/logout", csrfProtection, (req, res) => {
     req.logout((err) => {
       if (err) {
         return res.status(500).json({ error: "Logout failed" });
