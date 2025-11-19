@@ -634,6 +634,13 @@ export default function Dashboard() {
                   }
                 }}
               />
+
+              {/* Ad Placement - Profile Tab */}
+              <div className="flex justify-center py-6">
+                <div className="w-full max-w-sm mx-auto">
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b" className="rounded-lg overflow-hidden"></div>
+                </div>
+              </div>
             </TabsContent>
 
             {/* Links Tab */}
@@ -733,6 +740,13 @@ export default function Dashboard() {
                 />
               )}
               <TemplateSelector />
+
+              {/* Ad Placement - Appearance Tab */}
+              <div className="flex justify-center py-6">
+                <div className="w-full max-w-sm mx-auto">
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b" className="rounded-lg overflow-hidden"></div>
+                </div>
+              </div>
             </TabsContent>
 
             {/* Advanced Tab */}
@@ -740,6 +754,13 @@ export default function Dashboard() {
               <ContentBlockManager />
               <CustomDomainManager />
               <ABTestManager />
+
+              {/* Ad Placement - Advanced Tab */}
+              <div className="flex justify-center py-6">
+                <div className="w-full max-w-sm mx-auto">
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b" className="rounded-lg overflow-hidden"></div>
+                </div>
+              </div>
             </TabsContent>
           </Tabs>
         </main>
