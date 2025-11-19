@@ -1,0 +1,42 @@
+# Development files
+.replit
+replit.nix
+.git
+.gitignore
+
+# Documentation
+*.md
+!README.md
+
+# Development dependencies  
+node_modules
+.env.local
+.env.development
+
+# Build artifacts that will be regenerated
+dist
+client/dist
+
+# Logs
+*.log
+logs
+
+# Testing
+coverage
+.nyc_output
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp
+temp
+*.tmp
