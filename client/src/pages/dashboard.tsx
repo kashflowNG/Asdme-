@@ -11,6 +11,9 @@ import { AddLinkDialog } from "@/components/AddLinkDialog";
 import { NeropageLogo } from "@/components/NeropageLogo";
 import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
 import { QRCodeGenerator } from "@/components/QRCodeGenerator";
+import { AppearanceEditor } from "@/components/AppearanceEditor";
+import { SEOEditor } from "@/components/SEOEditor";
+import { ContentBlockManager } from "@/components/ContentBlockManager";
 import { getPlatform } from "@/lib/platforms";
 import { GripVertical, Trash2, Plus, Eye, Upload, Copy, Check, ExternalLink, LogOut, QrCode, BarChart3 } from "lucide-react";
 import {
@@ -560,6 +563,33 @@ export default function Dashboard() {
             {saveProfileMutation.isPending ? "Saving..." : "Save Changes"}
           </Button>
         </Card>
+
+        {/* Appearance Customization */}
+        {profile && (
+          <AppearanceEditor 
+            profile={profile} 
+            onUpdate={(updates) => {
+              if (profile) {
+                updateProfileMutation.mutate(updates);
+              }
+            }}
+          />
+        )}
+
+        {/* SEO & Social Sharing */}
+        {profile && (
+          <SEOEditor 
+            profile={profile} 
+            onUpdate={(updates) => {
+              if (profile) {
+                updateProfileMutation.mutate(updates);
+              }
+            }}
+          />
+        )}
+
+        {/* Content Blocks Manager */}
+        <ContentBlockManager />
 
         <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-links-manager">
           <div className="flex items-center justify-between">
