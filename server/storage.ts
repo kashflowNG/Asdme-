@@ -61,31 +61,62 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   private db;
 
+  private memoryStore: {
+    profiles: Map<string, Profile>;
+    socialLinks: Map<string, SocialLink>;
+    linkGroups: Map<string, LinkGroup>;
+    contentBlocks: Map<string, ContentBlock>;
+    formSubmissions: Map<string, FormSubmission>;
+    linkClicks: any[];
+    profileViews: any[];
+  } | null = null;
+
   constructor() {
     const connectionString = process.env.DATABASE_URL;
     if (!connectionString) {
-      console.warn("DATABASE_URL not set - using in-memory storage");
-      // Create a mock neon client that stores data in memory
-      const memoryData = {
-        profiles: [],
-        socialLinks: [],
-        linkGroups: [],
-        contentBlocks: [],
-        formSubmissions: [],
+      console.log("✓ Using in-memory storage (no database required)");
+      // Initialize in-memory storage
+      this.memoryStore = {
+        profiles: new Map(),
+        socialLinks: new Map(),
+        linkGroups: new Map(),
+        contentBlocks: new Map(),
+        formSubmissions: new Map(),
         linkClicks: [],
         profileViews: []
       };
       
-      // Use a minimal in-memory implementation
-      const sql = neon("postgresql://placeholder");
-      this.db = drizzle(sql);
+      // Create default demo profile
+      const demoProfile: Profile = {
+        id: "demo-id",
+        username: "demo",
+        bio: "Welcome to my link hub! Find all my social profiles here.",
+        avatar: "",
+        theme: "neon",
+        primaryColor: "#8B5CF6",
+        backgroundColor: "#0A0A0F",
+        views: 0,
+        metaTitle: null,
+        metaDescription: null,
+        ogImage: null,
+        faviconUrl: null,
+        customCSS: null,
+        customJS: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      this.memoryStore.profiles.set(demoProfile.id, demoProfile);
+      this.memoryStore.profiles.set(demoProfile.username, demoProfile);
+      
+      // No database setup needed
+      this.db = null as any;
     } else {
       const sql = neon(connectionString);
       this.db = drizzle(sql);
+      this.initialize().catch(err => {
+        console.warn("Database initialization failed:", err.message);
+      });
     }
-    this.initialize().catch(err => {
-      console.warn("Database initialization failed, continuing anyway:", err.message);
-    });
   }
 
   private async initialize() {
@@ -108,6 +139,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getProfile(id: string): Promise<Profile | undefined> {
+    if (this.memoryStore) {
+      return this.memoryStore.profiles.get(id);
+    }
     try {
       const result = await this.db.select().from(profiles).where(eq(profiles.id, id)).limit(1);
       return result[0];
@@ -118,6 +152,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getProfileByUsername(username: string): Promise<Profile | undefined> {
+    if (this.memoryStore) {
+      return this.memoryStore.profiles.get(username);
+    }
     try {
       const result = await this.db.select().from(profiles).where(eq(profiles.username, username)).limit(1);
       return result[0];
@@ -128,30 +165,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getDefaultProfile(): Promise<Profile | undefined> {
+    if (this.memoryStore) {
+      return Array.from(this.memoryStore.profiles.values())[0];
+    }
     try {
       const result = await this.db.select().from(profiles).limit(1);
       return result[0];
     } catch (error) {
       console.error("getDefaultProfile error:", error);
-      // Return a default profile for demo purposes when DB is unavailable
-      return {
-        id: "demo-id",
-        username: "demo",
-        bio: "Welcome to my link hub! Find all my social profiles here.",
-        avatar: "",
-        theme: "neon",
-        primaryColor: "#8B5CF6",
-        backgroundColor: "#0A0A0F",
-        views: 0,
-        metaTitle: null,
-        metaDescription: null,
-        ogImage: null,
-        faviconUrl: null,
-        customCSS: null,
-        customJS: null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
+      return undefined;
     }
   }
 
@@ -166,21 +188,36 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateProfile(id: string, updates: Partial<Profile>): Promise<Profile | undefined> {
+    if (this.memoryStore) {
+      const current = this.memoryStore.profiles.get(id);
+      if (!current) return undefined;
+      
+      const updated = { ...current, ...updates, updatedAt: new Date().toISOString() };
+      this.memoryStore.profiles.set(id, updated);
+      
+      // Update username index if username changed
+      if (updates.username && updates.username !== current.username) {
+        this.memoryStore.profiles.delete(current.username);
+        this.memoryStore.profiles.set(updates.username, updated);
+      }
+      
+      return updated;
+    }
     try {
       const result = await this.db.update(profiles).set(updates).where(eq(profiles.id, id)).returning();
       return result[0];
     } catch (error) {
       console.error("updateProfile error:", error);
-      // Return updated profile with demo data merged
-      const current = await this.getDefaultProfile();
-      if (current) {
-        return { ...current, ...updates, updatedAt: new Date().toISOString() };
-      }
       return undefined;
     }
   }
 
   async getSocialLinks(profileId: string): Promise<SocialLink[]> {
+    if (this.memoryStore) {
+      return Array.from(this.memoryStore.socialLinks.values())
+        .filter(link => link.profileId === profileId)
+        .sort((a, b) => a.order - b.order);
+    }
     try {
       return await this.db.select().from(socialLinks).where(eq(socialLinks.profileId, profileId)).orderBy(socialLinks.order);
     } catch (error) {
@@ -190,26 +227,60 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSocialLink(id: string): Promise<SocialLink | undefined> {
+    if (this.memoryStore) {
+      return this.memoryStore.socialLinks.get(id);
+    }
     const result = await this.db.select().from(socialLinks).where(eq(socialLinks.id, id)).limit(1);
     return result[0];
   }
 
   async createSocialLink(insertLink: InsertSocialLink): Promise<SocialLink> {
+    if (this.memoryStore) {
+      const newLink: SocialLink = {
+        id: `link-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        ...insertLink,
+        clicks: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      } as SocialLink;
+      this.memoryStore.socialLinks.set(newLink.id, newLink);
+      return newLink;
+    }
     const result = await this.db.insert(socialLinks).values(insertLink).returning();
     return result[0];
   }
 
   async updateSocialLink(id: string, updates: Partial<SocialLink>): Promise<SocialLink | undefined> {
+    if (this.memoryStore) {
+      const current = this.memoryStore.socialLinks.get(id);
+      if (!current) return undefined;
+      const updated = { ...current, ...updates, updatedAt: new Date().toISOString() };
+      this.memoryStore.socialLinks.set(id, updated);
+      return updated;
+    }
     const result = await this.db.update(socialLinks).set(updates).where(eq(socialLinks.id, id)).returning();
     return result[0];
   }
 
   async deleteSocialLink(id: string): Promise<boolean> {
+    if (this.memoryStore) {
+      return this.memoryStore.socialLinks.delete(id);
+    }
     const result = await this.db.delete(socialLinks).where(eq(socialLinks.id, id)).returning();
     return result.length > 0;
   }
 
   async reorderSocialLinks(linksToReorder: Array<{ id: string; order: number }>): Promise<void> {
+    if (this.memoryStore) {
+      for (const { id, order } of linksToReorder) {
+        const link = this.memoryStore.socialLinks.get(id);
+        if (link) {
+          link.order = order;
+          this.memoryStore.socialLinks.set(id, link);
+        }
+      }
+      return;
+    }
     for (const { id, order } of linksToReorder) {
       await this.db.update(socialLinks).set({ order }).where(eq(socialLinks.id, id));
     }
