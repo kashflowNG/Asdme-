@@ -1,0 +1,139 @@
+
+Below is your full color + animation + UI prompt that you can paste directly into Replit AI to generate your UI theme.
+This includes:
+✔ Color palette
+✔ Gradients
+✔ Glows
+✔ Animations
+✔ Shadows
+✔ UI effects
+✔ Everything needed for your full visual identity
+
+⭐ FULL NEO-NEON FUTURISTIC COLOR + ANIMATION PROMPT FOR REPLIT AI
+
+**“Use a NEO-NEON FUTURISTIC design theme.
+The UI must be dark, sleek, minimal, but enhanced with neon glow colors and soft animations.
+Use these exact colors:
+
+Primary Neon Purple: #8B5CF6
+Electric Neon Blue: #3B82F6
+Cyber Cyan Glow: #06B6D4
+Soft Magenta: #EC4899
+
+Background Colors:
+Deep Midnight Black: #0A0F1F
+Carbon Slate Gray: #1E293B
+
+Text Colors:
+Pure White: #F8FAFC
+Soft Silver: #CBD5E1
+
+UI Style:
+– Use neon glow effects: shadow 0 0 15px using the primary colors.
+– Buttons should have 10–20px rounded corners with a soft neon outer glow.
+– Use blur-glass cards with background-opacity: 0.1 and blur: 20px.
+– Highlight elements with subtle neon borders (2px neon purple or cyan).
+– Add smooth gradients like: linear-gradient(135deg, #8B5CF6, #06B6D4).
+
+Animations to include:
+– Soft floating animations (5–10px slow up-down motion) for icons or decorative shapes.
+– Neon pulse effect on hover (slight brightness increase + glow).
+– Smooth fade-in for all components (0.4s).
+– Gradient shimmer animation on buttons.
+– Glow ripple effect when clicking a button.
+
+General Feel:
+Everything must look futuristic, cyber aesthetic, neon glow, clean, modern and viral-ready.
+Make sure the UI feels premium, dark, high-tech and eye-catching.”**
+
+🔥 Now here is the breakdown of animations you should add (in clear detail):
+
+⭐ 1. Neon Glow Animation (hover)
+	•	Increase brightness by 10–15%
+	•	Add glow: 0 0 15px neonColor
+	•	Smooth transition: 0.25s
+
+Effect: “Touching neon” feel.
+
+⭐ 2. Floating Animation (for profile picture or badges)
+	•	Slow up/down movement (3–4 seconds)
+	•	Very soft (only 5–10px)
+
+Effect: Futuristic hologram floating.
+
+⭐ 3. Gradient Shimmer Animation (on buttons)
+	•	A gradient slowly slides across the button
+	•	Use colors: purple → cyan → magenta
+
+Effect: Premium, alive, futuristic buttons.
+
+⭐ 4. Pulsing Glow (for active links)
+	•	Slight glow expansion and fade
+	•	1.8s infinite loop
+	•	Very subtle
+
+Effect: Cyber heartbeat effect.
+
+⭐ 5. Ripple Click Effect
+
+When tapping/clicking, a neon ripple expands from the click point.
+
+Effect: Feels like interacting with a holographic UI.
+
+⭐ 6. Soft Fade-In Animation
+
+Every element fades in gently when loaded.
+
+Effect: Smooth, premium, modern animations.
+
+⭐ 7. Neon Border Highlight
+
+When hovering over a card:
+	•	The border glows
+	•	Slight shadow expands outward
+	•	Color transitions between purple and cyan
+
+Effect: Makes your UI feel alive.
+
+🎨 Neon Gradient Options (For Backgrounds + Cards)
+
+Use these exact gradients:
+
+🔥 1. Cyber Nebula
+
+linear-gradient(135deg, #8B5CF6, #06B6D4)
+
+🔥 2. Neon Galaxy
+
+linear-gradient(160deg, #3B82F6, #EC4899)
+
+🔥 3. Hyperwave
+
+linear-gradient(135deg, #8B5CF6, #EC4899 60%, #06B6D4)
+
+⚡ Extra Glow Effects
+
+Use these:
+
+Soft Glow:
+
+0 0 15px rgba(139, 92, 246, 0.6)
+
+Strong Glow:
+
+0 0 25px rgba(6, 182, 212, 0.8)
+
+Pink Accent Glow:
+
+0 0 12px rgba(236, 72, 153, 0.6)
+
+🛸 Overall Vibe
+
+Your design should feel like:
+	•	Neon cyberpunk
+	•	Soft futuristic spaceship UI
+	•	Minimal but glowing
+	•	Smooth animations
+	•	High-end aesthetic
+
+This is EXACTLY the kind of design that goes viral on TikTok and teen markets.
