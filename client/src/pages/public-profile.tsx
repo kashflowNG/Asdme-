@@ -31,6 +31,18 @@ export default function PublicProfile() {
     [links]
   );
 
+  const initials = useMemo(() => 
+    (profile?.username || "U")
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2),
+    [profile?.username]
+  );
+
+  const totalConnections = sortedLinks.length;
+
   if (profileLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -65,18 +77,6 @@ export default function PublicProfile() {
       </div>
     );
   }
-
-  const initials = useMemo(() => 
-    (profile?.username || "U")
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2),
-    [profile?.username]
-  );
-
-  const totalConnections = sortedLinks.length;
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
