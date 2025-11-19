@@ -364,18 +364,26 @@ export default function Dashboard() {
     }
   };
 
-  const handleSignOut = () => {
-    // localStorage.clear(); // Removed local storage clear
-    // sessionStorage.clear(); // Removed session storage clear
+  const handleSignOut = async () => {
+    try {
+      await apiRequest("/api/auth/logout", {
+        method: "POST",
+      });
 
-    toast({
-      title: "Signed out",
-      description: "You have been signed out successfully",
-    });
+      toast({
+        title: "Signed out",
+        description: "You have been signed out successfully",
+      });
 
-    setTimeout(() => {
+      queryClient.clear();
       navigate("/");
-    }, 500);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to sign out",
+        variant: "destructive",
+      });
+    }
   };
 
   const initials = (profile?.username || "U")
