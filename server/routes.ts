@@ -6,8 +6,64 @@ import {
   insertLinkGroupSchema, insertContentBlockSchema, insertFormSubmissionSchema
 } from "@shared/schema";
 import { z } from "zod";
+import multer from "multer";
+import path from "path";
+import { promises as fs } from "fs";
+import crypto from "crypto";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Configure multer for image uploads
+  const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    fileFilter: (_req, file, cb) => {
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.'));
+      }
+    }
+  });
+
+  // Image upload endpoint
+  app.post("/api/upload-image", upload.single('image'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No image file provided" });
+      }
+
+      // Create uploads directory if it doesn't exist
+      const uploadsDir = path.join(process.cwd(), 'data', 'uploads');
+      await fs.mkdir(uploadsDir, { recursive: true });
+
+      // Generate unique filename
+      const fileExtension = path.extname(req.file.originalname);
+      const fileName = `${crypto.randomBytes(16).toString('hex')}${fileExtension}`;
+      const filePath = path.join(uploadsDir, fileName);
+
+      // Save file
+      await fs.writeFile(filePath, req.file.buffer);
+
+      // Return URL
+      const imageUrl = `/uploads/${fileName}`;
+      res.json({ url: imageUrl, success: true });
+    } catch (error) {
+      console.error("Image upload error:", error);
+      res.status(500).json({ error: "Failed to upload image" });
+    }
+  });
+
+  // Serve uploaded images
+  app.use('/uploads', (req, res, next) => {
+    const uploadsPath = path.join(process.cwd(), 'data', 'uploads');
+    res.sendFile(path.join(uploadsPath, req.path), (err) => {
+      if (err) {
+        res.status(404).json({ error: "Image not found" });
+      }
+    });
+  });
+
   // Get the default profile (for MVP, we use a single profile)
   app.get("/api/profiles/me", async (_req, res) => {
     try {

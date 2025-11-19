@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRoute } from "wouter";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SocialLinkButton } from "@/components/SocialLinkButton";
@@ -20,23 +20,25 @@ import { LiveVisitorCounter } from "@/components/LiveVisitorCounter";
 
 export default function PublicProfile() {
   const [, params] = useRoute("/user/:username");
-  const username = params?.username;
-  const { toast } = useToast();
-  const [emailFormData, setEmailFormData] = useState({ name: "", email: "", message: "" });
+  const username = params?.username || "";
+  const queryClient = useQueryClient();
 
   const { data: profile, isLoading: profileLoading } = useQuery<Profile>({
     queryKey: ["/api/profiles", username],
     enabled: !!username,
+    refetchInterval: 3000, // Auto-refresh every 3 seconds
   });
 
   const { data: links = [], isLoading: linksLoading } = useQuery<SocialLink[]>({
     queryKey: ["/api/profiles", username, "links"],
     enabled: !!username && !!profile,
+    refetchInterval: 3000,
   });
 
   const { data: contentBlocks = [] } = useQuery<ContentBlock[]>({
     queryKey: ["/api/profiles", username, "content-blocks"],
     enabled: !!username && !!profile,
+    refetchInterval: 3000,
   });
 
   const isLoading = profileLoading || linksLoading;
@@ -144,7 +146,7 @@ export default function PublicProfile() {
   // Get button class based on button style
   const getButtonClass = () => {
     if (!profile) return "";
-    
+
     switch (profile.buttonStyle) {
       case "pill":
         return "rounded-full";
@@ -194,14 +196,14 @@ export default function PublicProfile() {
       <Helmet>
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
-        
+
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="profile" />
         <meta property="og:url" content={profileUrl} />
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={pageDescription} />
         {profile.ogImage && <meta property="og:image" content={profile.ogImage} />}
-        
+
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
         <meta property="twitter:url" content={profileUrl} />

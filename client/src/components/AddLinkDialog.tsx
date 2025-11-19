@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +16,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Calendar } from "lucide-react";
+import { Calendar, Upload, Image as ImageIcon } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface AddLinkDialogProps {
   open: boolean;
@@ -46,6 +48,10 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
     scheduleEnd: "",
   });
   const [activeCategory, setActiveCategory] = useState<string>('social');
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const handleAdd = () => {
     if (formData.platform && formData.url) {
@@ -88,6 +94,83 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
     onOpenChange(false);
   };
 
+  const handleClose = () => {
+    setSelectedPlatform(null);
+    setFormData({
+      platform: "",
+      url: "",
+      customTitle: "",
+      badge: "",
+      description: "",
+      isScheduled: false,
+      scheduleStart: "",
+      scheduleEnd: "",
+    });
+    onOpenChange(false);
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const uploadFormData = new FormData();
+    uploadFormData.append('image', file);
+
+    try {
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        body: uploadFormData,
+      });
+
+      if (!response.ok) throw new Error('Upload failed');
+
+      const data = await response.json();
+      const fullUrl = `${window.location.origin}${data.url}`;
+
+      setFormData(prev => ({ ...prev, url: fullUrl }));
+      toast({
+        title: "Success",
+        description: "Image uploaded and URL generated",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to upload image",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const addLinkMutation = useMutation({
+    mutationFn: async (linkData: any) => {
+      const response = await fetch("/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(linkData),
+      });
+      if (!response.ok) throw new Error("Failed to add link");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/links"] });
+      toast({
+        title: "Success",
+        description: "Link added successfully",
+      });
+      handleClose();
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to add link",
+        variant: "destructive",
+      });
+    },
+  });
+
   const availablePlatforms = PLATFORMS.filter(
     (p) => !existingPlatforms.includes(p.id)
   );
@@ -95,6 +178,8 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
   const selectedPlatformData = selectedPlatform
     ? PLATFORMS.find((p) => p.id === selectedPlatform)
     : null;
+
+  const platform = selectedPlatformData;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -253,25 +338,43 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
                 </div>
               )}
 
-              <div className="space-y-3">
-                <Label htmlFor="url" className="text-base font-semibold">
+              <div className="space-y-2">
+                <Label htmlFor="url" className="text-sm font-semibold">
                   {selectedPlatform === 'custom' ? 'URL' : 'Profile URL'}
                 </Label>
-                <Input
-                  id="url"
-                  type="url"
-                  placeholder={selectedPlatformData?.placeholder}
-                  value={formData.url}
-                  onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                  autoFocus={selectedPlatform !== 'custom'}
-                  className="h-12 text-base"
-                  data-testid="input-url"
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="url"
+                    type="url"
+                    placeholder={platform?.placeholder || "https://example.com"}
+                    value={formData.url}
+                    onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                    className="h-12 text-base flex-1"
+                    data-testid="input-url"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="h-12 px-4"
+                  >
+                    {isUploading ? (
+                      <Upload className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <ImageIcon className="w-4 h-4" />
+                    )}
+                  </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  {selectedPlatform === 'custom'
-                    ? 'Enter the complete URL for this link'
-                    : 'Enter the complete URL to your profile on this platform'
-                  }
+                  Click the image icon to upload an image and auto-generate URL
                 </p>
               </div>
             </div>
@@ -298,11 +401,11 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
           {selectedPlatform && (
             <Button
               onClick={handleAdd}
-              disabled={!formData.url.trim()}
+              disabled={!formData.url.trim() || addLinkMutation.isPending}
               data-testid="button-add"
               className="bg-primary hover:bg-primary/90"
             >
-              Add Link
+              {addLinkMutation.isPending ? "Adding..." : "Add Link"}
             </Button>
           )}
         </DialogFooter>

@@ -1,13 +1,12 @@
-
 import { useState, useEffect, useRef } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { AddLinkDialog } from "@/components/AddLinkDialog";
 import { NeropageLogo } from "@/components/NeropageLogo";
@@ -174,6 +173,18 @@ export default function Dashboard() {
     };
   }, []);
 
+  // Auto-refresh data every 3 seconds for instant updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      queryClient.invalidateQueries({ queryKey: ["/api/profiles/me"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/links"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics/detailed"] });
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [queryClient]);
+
   const updateProfileMutation = useMutation({
     mutationFn: async (data: { username?: string; bio?: string; avatar?: string }) => {
       return await apiRequest("PATCH", "/api/profiles/me", data);
@@ -204,27 +215,29 @@ export default function Dashboard() {
   });
 
   const createLinkMutation = useMutation({
-    mutationFn: async (data: { 
-      platform: string; 
-      url: string; 
+    mutationFn: async (data: {
+      platform: string;
+      url: string;
       customTitle?: string;
       badge?: string;
       description?: string;
       isScheduled?: boolean;
       scheduleStart?: string;
       scheduleEnd?: string;
+      image?: File; // Added for image upload
     }) => {
-      return await apiRequest("POST", "/api/links", {
-        platform: data.platform,
-        url: data.url,
-        customTitle: data.customTitle,
-        badge: data.badge,
-        description: data.description,
-        isScheduled: data.isScheduled,
-        scheduleStart: data.scheduleStart,
-        scheduleEnd: data.scheduleEnd,
-        order: links.length,
-      });
+      const formData = new FormData();
+      formData.append("platform", data.platform);
+      formData.append("url", data.url);
+      if (data.customTitle) formData.append("customTitle", data.customTitle);
+      if (data.badge) formData.append("badge", data.badge);
+      if (data.description) formData.append("description", data.description);
+      if (data.isScheduled !== undefined) formData.append("isScheduled", String(data.isScheduled));
+      if (data.scheduleStart) formData.append("scheduleStart", data.scheduleStart);
+      if (data.scheduleEnd) formData.append("scheduleEnd", data.scheduleEnd);
+      if (data.image) formData.append("image", data.image); // Append image file
+
+      return await apiRequest("POST", "/api/links", formData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/links"] });
@@ -316,32 +329,34 @@ export default function Dashboard() {
   };
 
   const handleAddLink = (
-    platform: string, 
-    url: string, 
+    platform: string,
+    url: string,
     customTitle?: string,
     badge?: string,
     description?: string,
     isScheduled?: boolean,
     scheduleStart?: string,
-    scheduleEnd?: string
+    scheduleEnd?: string,
+    image?: File // Added for image upload
   ) => {
-    createLinkMutation.mutate({ 
-      platform, 
-      url, 
+    createLinkMutation.mutate({
+      platform,
+      url,
       customTitle,
       badge,
       description,
       isScheduled,
       scheduleStart,
       scheduleEnd,
+      image, // Pass image to mutation
     });
   };
 
   const handleCopyLink = async () => {
     if (!profile) return;
-    
+
     const url = `${window.location.origin}/user/${profile.username}`;
-    
+
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
@@ -360,14 +375,14 @@ export default function Dashboard() {
   };
 
   const handleSignOut = () => {
-    localStorage.clear();
-    sessionStorage.clear();
-    
+    // localStorage.clear(); // Removed local storage clear
+    // sessionStorage.clear(); // Removed session storage clear
+
     toast({
       title: "Signed out",
       description: "You have been signed out successfully",
     });
-    
+
     setTimeout(() => {
       navigate("/");
     }, 500);
@@ -483,11 +498,11 @@ export default function Dashboard() {
             <AnalyticsDashboard />
             <ClickHeatmap />
             <LinkScheduleVisualizer links={sortedLinks} />
-            <SmartRecommendations 
+            <SmartRecommendations
               existingPlatforms={links.map(l => l.platform)}
               onAddPlatform={() => setShowAddDialog(true)}
             />
-            
+
             {/* Ad Placement */}
             <div className="flex justify-center py-6">
               <div className="w-full max-w-sm mx-auto">
@@ -604,8 +619,8 @@ export default function Dashboard() {
               </div>
             </Card>
 
-            <SEOEditor 
-              profile={profile!} 
+            <SEOEditor
+              profile={profile!}
               onUpdate={async (updates) => {
                 if (profile) {
                   await updateProfileMutation.mutateAsync(updates);
@@ -689,8 +704,8 @@ export default function Dashboard() {
           {/* Appearance Tab */}
           <TabsContent value="appearance" className="space-y-6 mt-6">
             {profile && (
-              <AppearanceEditor 
-                profile={profile} 
+              <AppearanceEditor
+                profile={profile}
                 onUpdate={async (updates) => {
                   if (profile) {
                     await updateProfileMutation.mutateAsync(updates);
