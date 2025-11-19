@@ -164,14 +164,9 @@ export default function Dashboard() {
 
   const saveProfileMutation = useMutation({
     mutationFn: async () => {
-      const profile = await queryClient.getQueryData<Profile>(["/api/profiles/me"]);
       if (!profile) throw new Error("Profile not found");
 
-      const res = await apiRequest(`/api/profiles/${profile.id}`, {
-        method: "PATCH",
-        body: JSON.stringify(profileForm),
-      });
-      return await res.json();
+      return await apiRequest("PATCH", `/api/profiles/${profile.id}`, profileForm);
     },
     onSuccess: () => {
       toast({
@@ -182,37 +177,36 @@ export default function Dashboard() {
         window.location.reload();
       }, 500);
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: "Failed to save profile",
+        description: error.message || "Failed to save profile",
         variant: "destructive",
       });
     },
   });
 
   const createLinkMutation = useMutation({
-    mutationFn: async (newLink: { platform: string; url: string }) => {
-      const res = await apiRequest("/api/links", {
-        method: "POST",
-        body: JSON.stringify(newLink),
+    mutationFn: async (data: { platform: string; url: string }) => {
+      return await apiRequest("POST", "/api/links", {
+        platform: data.platform,
+        url: data.url,
+        order: links.length,
       });
-      return await res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/links"] });
       toast({
         title: "Link added",
-        description: "Your social link has been added",
+        description: "Your social link has been added successfully",
       });
       setTimeout(() => {
         window.location.reload();
       }, 500);
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: "Failed to add link",
+        description: error.message || "Failed to add link",
         variant: "destructive",
       });
     },
