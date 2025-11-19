@@ -4,16 +4,23 @@ import {
   type LinkGroup, type InsertLinkGroup,
   type ContentBlock, type InsertContentBlock,
   type FormSubmission, type InsertFormSubmission,
-  profiles, socialLinks, linkGroups, contentBlocks, formSubmissions, linkClicks, profileViews
+  type User, type InsertUser,
+  profiles, socialLinks, linkGroups, contentBlocks, formSubmissions, linkClicks, profileViews, users
 } from "@shared/schema";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { eq, sql as drizzleSql } from "drizzle-orm";
 
 export interface IStorage {
+  // User methods
+  createUser(user: InsertUser): Promise<User>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserById(id: string): Promise<User | undefined>;
+  
   // Profile methods
   getProfile(id: string): Promise<Profile | undefined>;
   getProfileByUsername(username: string): Promise<Profile | undefined>;
+  getProfileByUserId(userId: string): Promise<Profile | undefined>;
   getDefaultProfile(): Promise<Profile | undefined>;
   createProfile(profile: InsertProfile): Promise<Profile>;
   updateProfile(id: string, profile: Partial<Profile>): Promise<Profile | undefined>;
@@ -62,6 +69,7 @@ export class DatabaseStorage implements IStorage {
   private db;
 
   private memoryStore: {
+    users: Map<string, User>;
     profiles: Map<string, Profile>;
     socialLinks: Map<string, SocialLink>;
     linkGroups: Map<string, LinkGroup>;
@@ -77,6 +85,7 @@ export class DatabaseStorage implements IStorage {
       console.log("✓ Using in-memory storage (no database required)");
       // Initialize in-memory storage
       this.memoryStore = {
+        users: new Map(),
         profiles: new Map(),
         socialLinks: new Map(),
         linkGroups: new Map(),
@@ -85,33 +94,6 @@ export class DatabaseStorage implements IStorage {
         linkClicks: [],
         profileViews: []
       };
-      
-      // Create default demo profile
-      const demoProfile: Profile = {
-        id: "demo-id",
-        username: "demo",
-        bio: "Welcome to my link hub! Find all my social profiles here.",
-        avatar: "",
-        theme: "neon",
-        primaryColor: "#8B5CF6",
-        backgroundColor: "#0A0A0F",
-        views: 0,
-        backgroundImage: null,
-        backgroundVideo: null,
-        backgroundType: "color",
-        customCSS: null,
-        layout: "stacked",
-        fontFamily: "DM Sans",
-        buttonStyle: "rounded",
-        seoTitle: null,
-        seoDescription: null,
-        ogImage: null,
-        customDomain: null,
-        hideBranding: 0,
-        verificationBadge: 0,
-      };
-      this.memoryStore.profiles.set(demoProfile.id, demoProfile);
-      this.memoryStore.profiles.set(demoProfile.username, demoProfile);
       
       // No database setup needed
       this.db = null as any;
@@ -127,20 +109,55 @@ export class DatabaseStorage implements IStorage {
 
   private async initialize() {
     try {
-      const existingProfiles = await this.db.select().from(profiles).limit(1);
-      if (existingProfiles.length === 0) {
-        await this.db.insert(profiles).values({
-          username: "demo",
-          bio: "Welcome to my link hub! Find all my social profiles here.",
-          avatar: "",
-          theme: "neon",
-          primaryColor: "#8B5CF6",
-          backgroundColor: "#0A0A0F",
-        });
-      }
+      const existingUsers = await this.db.select().from(users).limit(1);
+      console.log("Database initialized successfully");
     } catch (error) {
       console.error("Failed to initialize database:", error);
-      // Continue anyway - methods will handle errors individually
+    }
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    if (this.memoryStore) {
+      const newUser: User = {
+        id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        ...insertUser,
+      };
+      this.memoryStore.users.set(newUser.id, newUser);
+      this.memoryStore.users.set(newUser.username, newUser);
+      return newUser;
+    }
+    try {
+      const result = await this.db.insert(users).values(insertUser).returning();
+      return result[0];
+    } catch (error) {
+      console.error("createUser error:", error);
+      throw new Error("Failed to create user");
+    }
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    if (this.memoryStore) {
+      return this.memoryStore.users.get(username);
+    }
+    try {
+      const result = await this.db.select().from(users).where(eq(users.username, username)).limit(1);
+      return result[0];
+    } catch (error) {
+      console.error("getUserByUsername error:", error);
+      return undefined;
+    }
+  }
+
+  async getUserById(id: string): Promise<User | undefined> {
+    if (this.memoryStore) {
+      return this.memoryStore.users.get(id);
+    }
+    try {
+      const result = await this.db.select().from(users).where(eq(users.id, id)).limit(1);
+      return result[0];
+    } catch (error) {
+      console.error("getUserById error:", error);
+      return undefined;
     }
   }
 
@@ -170,6 +187,19 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getProfileByUserId(userId: string): Promise<Profile | undefined> {
+    if (this.memoryStore) {
+      return Array.from(this.memoryStore.profiles.values()).find(p => p.userId === userId);
+    }
+    try {
+      const result = await this.db.select().from(profiles).where(eq(profiles.userId, userId)).limit(1);
+      return result[0];
+    } catch (error) {
+      console.error("getProfileByUserId error:", error);
+      return undefined;
+    }
+  }
+
   async getDefaultProfile(): Promise<Profile | undefined> {
     if (this.memoryStore) {
       return Array.from(this.memoryStore.profiles.values())[0];
@@ -184,12 +214,40 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createProfile(insertProfile: InsertProfile): Promise<Profile> {
+    if (this.memoryStore) {
+      const newProfile: Profile = {
+        id: `profile-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        ...insertProfile,
+        bio: insertProfile.bio || "",
+        avatar: insertProfile.avatar || "",
+        theme: insertProfile.theme || "neon",
+        primaryColor: insertProfile.primaryColor || "#8B5CF6",
+        backgroundColor: insertProfile.backgroundColor || "#0A0A0F",
+        views: 0,
+        backgroundImage: null,
+        backgroundVideo: null,
+        backgroundType: "color",
+        customCSS: null,
+        layout: "stacked",
+        fontFamily: "DM Sans",
+        buttonStyle: "rounded",
+        seoTitle: null,
+        seoDescription: null,
+        ogImage: null,
+        customDomain: null,
+        hideBranding: 0,
+        verificationBadge: 0,
+      } as Profile;
+      this.memoryStore.profiles.set(newProfile.id, newProfile);
+      this.memoryStore.profiles.set(newProfile.username, newProfile);
+      return newProfile;
+    }
     try {
       const result = await this.db.insert(profiles).values(insertProfile).returning();
       return result[0];
     } catch (error) {
       console.error("createProfile error:", error);
-      throw new Error("Failed to create profile - database unavailable");
+      throw new Error("Failed to create profile");
     }
   }
 
