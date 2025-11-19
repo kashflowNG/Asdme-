@@ -13,6 +13,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Landing} />
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/dash" component={Dashboard} />
       <Route path="/user/:username" component={PublicProfile} />
       <Route component={NotFound} />
     </Switch>
