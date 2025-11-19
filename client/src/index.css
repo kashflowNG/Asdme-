@@ -14,6 +14,14 @@
   .active-elevate-2:active {
     @apply translate-y-0;
   }
+
+  .animate-float-delayed {
+    animation: float 8s ease-in-out infinite 2s;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
 }
 
 /* NEO-NEON FUTURISTIC THEME - DARK MODE ONLY */
