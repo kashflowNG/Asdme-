@@ -153,8 +153,8 @@ export default function Dashboard() {
       return await apiRequest("PATCH", "/api/profiles/me", data);
     },
     onSuccess: (updatedProfile: Profile) => {
-      // Update cache and committed ref only
-      // Do NOT reset form state to allow in-flight edits
+      // Invalidate queries to force refetch
+      queryClient.invalidateQueries({ queryKey: ["/api/profiles/me"] });
       queryClient.setQueryData(["/api/profiles/me"], updatedProfile);
       lastCommittedProfile.current = updatedProfile;
 
