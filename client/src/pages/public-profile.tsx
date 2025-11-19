@@ -16,6 +16,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Helmet } from "react-helmet";
 import { SocialProofWidget } from "@/components/SocialProofWidget";
+import { LiveVisitorCounter } from "@/components/LiveVisitorCounter";
 
 export default function PublicProfile() {
   const [, params] = useRoute("/user/:username");
@@ -294,6 +295,11 @@ export default function PublicProfile() {
                 {profile.bio}
               </p>
             )}
+
+            {/* Live Visitor Counter */}
+            <div className="flex justify-center mb-6">
+              <LiveVisitorCounter username={profile.username} />
+            </div>
 
             {/* Separator */}
             <div className="max-w-md mx-auto mb-12 relative">

@@ -18,6 +18,10 @@ import { CustomDomainManager } from "@/components/CustomDomainManager";
 import { LinkGroupManager } from "@/components/LinkGroupManager";
 import { TemplateSelector } from "@/components/TemplateSelector";
 import { ABTestManager } from "@/components/ABTestManager";
+import { SmartRecommendations } from "@/components/SmartRecommendations";
+import { ClickHeatmap } from "@/components/ClickHeatmap";
+import { LinkScheduleVisualizer } from "@/components/LinkScheduleVisualizer";
+import { EngagementAlerts } from "@/components/EngagementAlerts";
 import { getPlatform } from "@/lib/platforms";
 import { GripVertical, Trash2, Plus, Eye, Upload, Copy, Check, ExternalLink, LogOut, QrCode, BarChart3 } from "lucide-react";
 import {
@@ -476,6 +480,9 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-6 space-y-8 animate-fade-in">
+        {/* Engagement Alerts */}
+        <EngagementAlerts />
+
         {/* Analytics Dashboard */}
         <div className="space-y-4">
           <div className="flex items-center gap-3">
@@ -483,6 +490,12 @@ export default function Dashboard() {
             <h2 className="text-2xl font-bold">Analytics Overview</h2>
           </div>
           <AnalyticsDashboard />
+          
+          {/* Click Heatmap */}
+          <ClickHeatmap />
+          
+          {/* Schedule Visualizer */}
+          <LinkScheduleVisualizer links={sortedLinks} />
         </div>
 
         <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-profile-editor">
@@ -646,6 +659,15 @@ export default function Dashboard() {
 
         {/* A/B Testing */}
         <ABTestManager />
+
+        {/* Smart Recommendations */}
+        <SmartRecommendations 
+          existingPlatforms={links.map(l => l.platform)}
+          onAddPlatform={(platformId) => {
+            setShowAddDialog(true);
+            // Pre-select the platform - would need to enhance AddLinkDialog to accept this
+          }}
+        />
 
         <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-links-manager">
           <div className="flex items-center justify-between">
