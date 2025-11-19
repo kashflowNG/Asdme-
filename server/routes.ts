@@ -1,7 +1,10 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertProfileSchema, updateProfileSchema, insertSocialLinkSchema } from "@shared/schema";
+import { 
+  insertProfileSchema, updateProfileSchema, insertSocialLinkSchema,
+  insertLinkGroupSchema, insertContentBlockSchema, insertFormSubmissionSchema
+} from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -218,6 +221,303 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(analytics);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch analytics" });
+    }
+  });
+
+  // Get detailed analytics
+  app.get("/api/analytics/detailed", async (_req, res) => {
+    try {
+      const profile = await storage.getDefaultProfile();
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+
+      const analytics = await storage.getDetailedAnalytics(profile.id);
+      res.json(analytics);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch detailed analytics" });
+    }
+  });
+
+  // Update specific profile (by ID)
+  app.patch("/api/profiles/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = updateProfileSchema.parse(req.body);
+      
+      // Check username uniqueness if updating username
+      if (updates.username) {
+        const existing = await storage.getProfileByUsername(updates.username);
+        if (existing && existing.id !== id) {
+          return res.status(409).json({ error: "Username already taken" });
+        }
+      }
+
+      const updatedProfile = await storage.updateProfile(id, updates);
+      
+      if (!updatedProfile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+
+      res.json(updatedProfile);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid profile data", details: error.errors });
+      }
+      res.status(500).json({ error: "Failed to update profile" });
+    }
+  });
+
+  // Update a social link
+  app.patch("/api/links/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const profile = await storage.getDefaultProfile();
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+
+      // Verify link belongs to profile
+      const link = await storage.getSocialLink(id);
+      if (!link || link.profileId !== profile.id) {
+        return res.status(404).json({ error: "Link not found" });
+      }
+
+      const updatedLink = await storage.updateSocialLink(id, req.body);
+      res.json(updatedLink);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update link" });
+    }
+  });
+
+  // ===== Link Groups Routes =====
+  
+  // Get link groups
+  app.get("/api/link-groups", async (_req, res) => {
+    try {
+      const profile = await storage.getDefaultProfile();
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+
+      const groups = await storage.getLinkGroups(profile.id);
+      res.json(groups);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch link groups" });
+    }
+  });
+
+  // Create link group
+  app.post("/api/link-groups", async (req, res) => {
+    try {
+      const profile = await storage.getDefaultProfile();
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+
+      const groupData = { ...req.body, profileId: profile.id };
+      const validatedData = insertLinkGroupSchema.parse(groupData);
+      const group = await storage.createLinkGroup(validatedData);
+      res.status(201).json(group);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid group data", details: error.errors });
+      }
+      res.status(500).json({ error: "Failed to create link group" });
+    }
+  });
+
+  // Delete link group
+  app.delete("/api/link-groups/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deleteLinkGroup(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Group not found" });
+      }
+
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete link group" });
+    }
+  });
+
+  // ===== Content Blocks Routes =====
+  
+  // Get content blocks
+  app.get("/api/content-blocks", async (_req, res) => {
+    try {
+      const profile = await storage.getDefaultProfile();
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+
+      const blocks = await storage.getContentBlocks(profile.id);
+      res.json(blocks);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch content blocks" });
+    }
+  });
+
+  // Get content blocks for a specific profile
+  app.get("/api/profiles/:username/content-blocks", async (req, res) => {
+    try {
+      const { username } = req.params;
+      const profile = await storage.getProfileByUsername(username);
+      
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+
+      const blocks = await storage.getContentBlocks(profile.id);
+      res.json(blocks);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch content blocks" });
+    }
+  });
+
+  // Create content block
+  app.post("/api/content-blocks", async (req, res) => {
+    try {
+      const profile = await storage.getDefaultProfile();
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+
+      const blockData = { ...req.body, profileId: profile.id };
+      const validatedData = insertContentBlockSchema.parse(blockData);
+      const block = await storage.createContentBlock(validatedData);
+      res.status(201).json(block);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid block data", details: error.errors });
+      }
+      res.status(500).json({ error: "Failed to create content block" });
+    }
+  });
+
+  // Update content block
+  app.patch("/api/content-blocks/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const profile = await storage.getDefaultProfile();
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+
+      const updatedBlock = await storage.updateContentBlock(id, req.body);
+      
+      if (!updatedBlock) {
+        return res.status(404).json({ error: "Block not found" });
+      }
+
+      res.json(updatedBlock);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update content block" });
+    }
+  });
+
+  // Delete content block
+  app.delete("/api/content-blocks/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deleteContentBlock(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Block not found" });
+      }
+
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete content block" });
+    }
+  });
+
+  // Reorder content blocks
+  app.post("/api/content-blocks/reorder", async (req, res) => {
+    try {
+      const profile = await storage.getDefaultProfile();
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+
+      const reorderSchema = z.object({
+        blocks: z.array(z.object({
+          id: z.string(),
+          order: z.number(),
+        })),
+      });
+
+      const { blocks } = reorderSchema.parse(req.body);
+      await storage.reorderContentBlocks(blocks);
+      res.status(200).json({ success: true });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid reorder data", details: error.errors });
+      }
+      res.status(500).json({ error: "Failed to reorder blocks" });
+    }
+  });
+
+  // ===== Form Submissions Routes =====
+  
+  // Get form submissions
+  app.get("/api/form-submissions", async (_req, res) => {
+    try {
+      const profile = await storage.getDefaultProfile();
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+
+      const submissions = await storage.getFormSubmissions(profile.id);
+      res.json(submissions);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch form submissions" });
+    }
+  });
+
+  // Create form submission (public endpoint)
+  app.post("/api/profiles/:username/submit-form", async (req, res) => {
+    try {
+      const { username } = req.params;
+      const profile = await storage.getProfileByUsername(username);
+      
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+
+      const submissionData = {
+        ...req.body,
+        profileId: profile.id,
+        timestamp: new Date().toISOString(),
+        userAgent: req.headers['user-agent'],
+      };
+
+      const validatedData = insertFormSubmissionSchema.parse(submissionData);
+      const submission = await storage.createFormSubmission(validatedData);
+      res.status(201).json({ success: true, id: submission.id });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid submission data", details: error.errors });
+      }
+      res.status(500).json({ error: "Failed to submit form" });
+    }
+  });
+
+  // Delete form submission
+  app.delete("/api/form-submissions/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deleteFormSubmission(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Submission not found" });
+      }
+
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete submission" });
     }
   });
 
