@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
@@ -6,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { AddLinkDialog } from "@/components/AddLinkDialog";
 import { NeropageLogo } from "@/components/NeropageLogo";
@@ -23,7 +25,7 @@ import { ClickHeatmap } from "@/components/ClickHeatmap";
 import { LinkScheduleVisualizer } from "@/components/LinkScheduleVisualizer";
 import { EngagementAlerts } from "@/components/EngagementAlerts";
 import { getPlatform } from "@/lib/platforms";
-import { GripVertical, Trash2, Plus, Eye, Upload, Copy, Check, ExternalLink, LogOut, QrCode, BarChart3 } from "lucide-react";
+import { GripVertical, Trash2, Plus, Eye, Upload, Copy, Check, ExternalLink, LogOut, QrCode, BarChart3, Link2, Palette, Settings, Zap } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -123,13 +125,13 @@ export default function Dashboard() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showQRDialog, setShowQRDialog] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
   const [profileForm, setProfileForm] = useState({
     username: "",
     bio: "",
     avatar: "",
   });
 
-  // Track the last committed profile to prevent stale comparisons
   const lastCommittedProfile = useRef<Profile | null>(null);
 
   const { data: profile } = useQuery<Profile>({
@@ -146,8 +148,6 @@ export default function Dashboard() {
     refetchOnWindowFocus: true,
   });
 
-  // Hydrate form state and update committed ref from fetched profile
-  // Only sync when profile changes from what we last committed
   useEffect(() => {
     if (profile && profile.id !== lastCommittedProfile.current?.id) {
       const profileData = {
@@ -165,20 +165,15 @@ export default function Dashboard() {
       return await apiRequest("PATCH", "/api/profiles/me", data);
     },
     onSuccess: async (updatedProfile: Profile) => {
-      // Set the new data immediately
       queryClient.setQueryData(["/api/profiles/me"], updatedProfile);
       lastCommittedProfile.current = updatedProfile;
-
-      // Force a refetch to ensure we have the latest data
       await queryClient.refetchQueries({ queryKey: ["/api/profiles/me"] });
-
       toast({
         title: "Profile updated",
         description: "Your profile has been saved successfully.",
       });
     },
     onError: (error: Error) => {
-      // Reset form to last committed profile on error
       if (lastCommittedProfile.current) {
         setProfileForm({
           username: lastCommittedProfile.current.username,
@@ -189,30 +184,6 @@ export default function Dashboard() {
       toast({
         title: "Error",
         description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const saveProfileMutation = useMutation({
-    mutationFn: async () => {
-      if (!profile) throw new Error("Profile not found");
-
-      return await apiRequest("PATCH", `/api/profiles/${profile.id}`, profileForm);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Profile saved",
-        description: "Your changes have been saved successfully",
-      });
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to save profile",
         variant: "destructive",
       });
     },
@@ -242,13 +213,11 @@ export default function Dashboard() {
       });
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/links"] });
       toast({
         title: "Link added",
         description: "Your social link has been added successfully",
       });
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
     },
     onError: (error: Error) => {
       toast({
@@ -309,27 +278,22 @@ export default function Dashboard() {
   const handleUpdateProfile = (field: "username" | "bio" | "avatar") => {
     const value = profileForm[field];
 
-    // Don't update if profile hasn't loaded yet
     if (!lastCommittedProfile.current) {
       return;
     }
 
-    // Get the last committed value for this field
     const committedValue = (lastCommittedProfile.current[field] || "") as string;
 
-    // Don't update if value is unchanged from last committed
     if (value === committedValue) {
       return;
     }
 
-    // Don't allow empty username
     if (field === "username" && value.trim() === "") {
       toast({
         title: "Error",
         description: "Username cannot be empty",
         variant: "destructive",
       });
-      // Reset to committed value
       setProfileForm({ ...profileForm, username: committedValue });
       return;
     }
@@ -359,10 +323,6 @@ export default function Dashboard() {
     });
   };
 
-  const handleSaveProfile = () => {
-    saveProfileMutation.mutate();
-  };
-
   const handleCopyLink = async () => {
     if (!profile) return;
     
@@ -386,7 +346,6 @@ export default function Dashboard() {
   };
 
   const handleSignOut = () => {
-    // Clear any stored auth data
     localStorage.clear();
     sessionStorage.clear();
     
@@ -395,7 +354,6 @@ export default function Dashboard() {
       description: "You have been signed out successfully",
     });
     
-    // Navigate to landing page
     setTimeout(() => {
       navigate("/");
     }, 500);
@@ -413,7 +371,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 h-16 px-4 border-b border-glow-animate bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
-        <div className="max-w-2xl mx-auto h-full flex items-center justify-between">
+        <div className="max-w-6xl mx-auto h-full flex items-center justify-between">
           <div className="flex items-center gap-2">
             <NeropageLogo size={32} />
             <h1
@@ -479,261 +437,257 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-6 space-y-8 animate-fade-in">
-        {/* Engagement Alerts */}
+      <main className="max-w-6xl mx-auto px-4 py-6 animate-fade-in">
         <EngagementAlerts />
 
-        {/* Analytics Dashboard */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <BarChart3 className="w-6 h-6 text-primary" />
-            <h2 className="text-2xl font-bold">Analytics Overview</h2>
-          </div>
-          <AnalyticsDashboard />
-          
-          {/* Click Heatmap */}
-          <ClickHeatmap />
-          
-          {/* Schedule Visualizer */}
-          <LinkScheduleVisualizer links={sortedLinks} />
-        </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
+          <TabsList className="grid w-full grid-cols-5 h-auto p-1">
+            <TabsTrigger value="overview" className="gap-2 py-3">
+              <BarChart3 className="w-4 h-4" />
+              <span className="hidden sm:inline">Overview</span>
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="gap-2 py-3">
+              <Settings className="w-4 h-4" />
+              <span className="hidden sm:inline">Profile</span>
+            </TabsTrigger>
+            <TabsTrigger value="links" className="gap-2 py-3">
+              <Link2 className="w-4 h-4" />
+              <span className="hidden sm:inline">Links</span>
+            </TabsTrigger>
+            <TabsTrigger value="appearance" className="gap-2 py-3">
+              <Palette className="w-4 h-4" />
+              <span className="hidden sm:inline">Appearance</span>
+            </TabsTrigger>
+            <TabsTrigger value="advanced" className="gap-2 py-3">
+              <Zap className="w-4 h-4" />
+              <span className="hidden sm:inline">Advanced</span>
+            </TabsTrigger>
+          </TabsList>
 
-        <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-profile-editor">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <h2 className="text-2xl font-bold">Profile Configuration</h2>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)] animate-pulse" />
-                <span className="text-xs text-muted-foreground font-medium">Active</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs px-3 py-1.5 bg-gradient-to-r from-primary/20 to-cyan-500/20 text-primary rounded-lg font-semibold border border-primary/30 shadow-sm">
-                PRO
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <Avatar className="w-20 h-20 border-2 border-border">
-              <AvatarImage src={profile?.avatar || profileForm.avatar} alt={profile?.username} />
-              <AvatarFallback className="text-xl font-bold bg-primary text-primary-foreground">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <Label htmlFor="avatar" className="text-sm font-medium">Avatar URL</Label>
-              <div className="flex gap-2 mt-1">
-                <Input
-                  id="avatar"
-                  type="url"
-                  placeholder="https://example.com/avatar.jpg"
-                  value={profileForm.avatar}
-                  onChange={(e) => setProfileForm({ ...profileForm, avatar: e.target.value })}
-                  onBlur={() => handleUpdateProfile("avatar")}
-                  disabled={!profile}
-                  data-testid="input-avatar"
-                />
-                <Button size="icon" variant="outline" data-testid="button-upload-avatar">
-                  <Upload className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">@</span>
-              <Input
-                id="username"
-                type="text"
-                placeholder="yourname"
-                value={profileForm.username}
-                onChange={(e) => setProfileForm({ ...profileForm, username: e.target.value })}
-                onBlur={() => handleUpdateProfile("username")}
-                disabled={!profile}
-                data-testid="input-username"
-              />
-            </div>
-          </div>
-
-          {profile && (
-            <div className="grid grid-cols-3 gap-2">
-              <Button
-                variant="outline"
-                onClick={() => window.open(`/user/${profile.username}`, '_blank')}
-                className="h-10 gap-2"
-              >
-                <ExternalLink className="w-4 h-4" />
-                <span className="hidden sm:inline">Preview</span>
-              </Button>
-              <Button
-                onClick={handleCopyLink}
-                className="h-10 gap-2"
-                data-testid="button-copy-link"
-              >
-                {copied ? (
-                  <>
-                    <Check className="w-4 h-4" />
-                    <span className="hidden sm:inline">Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4" />
-                    <span className="hidden sm:inline">Copy</span>
-                  </>
-                )}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setShowQRDialog(true)}
-                className="h-10 gap-2"
-              >
-                <QrCode className="w-4 h-4" />
-                <span className="hidden sm:inline">QR Code</span>
-              </Button>
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <Label htmlFor="bio">Bio</Label>
-            <Textarea
-              id="bio"
-              placeholder="Tell people about yourself..."
-              value={profileForm.bio}
-              onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
-              onBlur={() => handleUpdateProfile("bio")}
-              disabled={!profile}
-              className="min-h-24 resize-none"
-              data-testid="input-bio"
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6 mt-6">
+            <AnalyticsDashboard />
+            <ClickHeatmap />
+            <LinkScheduleVisualizer links={sortedLinks} />
+            <SmartRecommendations 
+              existingPlatforms={links.map(l => l.platform)}
+              onAddPlatform={() => setShowAddDialog(true)}
             />
-          </div>
-          <Button
-            onClick={handleSaveProfile}
-            disabled={saveProfileMutation.isPending}
-            className="w-full h-12 text-base font-semibold gradient-shimmer hover-neon-glow"
-            data-testid="button-save-profile"
-          >
-            {saveProfileMutation.isPending ? "Saving..." : "Save Changes"}
-          </Button>
-        </Card>
+          </TabsContent>
 
-        {/* Appearance Customization */}
-        {profile && (
-          <AppearanceEditor 
-            profile={profile} 
-            onUpdate={async (updates) => {
-              if (profile) {
-                await updateProfileMutation.mutateAsync(updates);
-                await queryClient.refetchQueries({ queryKey: ["/api/profiles/me"] });
-              }
-            }}
-          />
-        )}
-
-        {/* SEO & Social Sharing */}
-        {profile && (
-          <SEOEditor 
-            profile={profile} 
-            onUpdate={async (updates) => {
-              if (profile) {
-                await updateProfileMutation.mutateAsync(updates);
-                await queryClient.refetchQueries({ queryKey: ["/api/profiles/me"] });
-              }
-            }}
-          />
-        )}
-
-        {/* Content Blocks Manager */}
-        <ContentBlockManager />
-
-        {/* Template Selector */}
-        <TemplateSelector />
-
-        {/* Link Groups */}
-        <LinkGroupManager />
-
-        {/* Custom Domain */}
-        <CustomDomainManager />
-
-        {/* A/B Testing */}
-        <ABTestManager />
-
-        {/* Smart Recommendations */}
-        <SmartRecommendations 
-          existingPlatforms={links.map(l => l.platform)}
-          onAddPlatform={(platformId) => {
-            setShowAddDialog(true);
-            // Pre-select the platform - would need to enhance AddLinkDialog to accept this
-          }}
-        />
-
-        <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-links-manager">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-1">
-                <h2 className="text-2xl font-bold">Platform Links</h2>
-                <span className="text-xs px-2.5 py-1 bg-muted/50 text-muted-foreground rounded-md font-medium border border-border/50">
-                  {sortedLinks.length} Connected
-                </span>
-              </div>
-              <p className="text-sm text-muted-foreground">Manage your digital presence across 25+ platforms</p>
-            </div>
-          </div>
-          <Button
-            onClick={() => setShowAddDialog(true)}
-            disabled={!profile}
-            data-testid="button-add-link"
-            className="w-full h-12 text-base font-semibold gradient-shimmer hover-neon-glow"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Add Platform Link
-          </Button>
-
-          {sortedLinks.length === 0 ? (
-            <div className="relative text-center py-16 space-y-4 bg-gradient-to-b from-primary/5 to-transparent rounded-xl border-2 border-dashed overflow-hidden">
-              <div className="absolute inset-0 opacity-5">
-                <div className="absolute top-4 left-4 w-32 h-32 bg-primary rounded-full blur-3xl" />
-                <div className="absolute bottom-4 right-4 w-32 h-32 bg-cyan-500 rounded-full blur-3xl" />
-              </div>
-              <div className="relative">
-                <div className="w-20 h-20 mx-auto bg-gradient-to-br from-primary/20 to-cyan-500/10 rounded-2xl flex items-center justify-center border border-primary/30 shadow-lg">
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" className="text-primary">
-                    <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                  </svg>
-                </div>
-                <div className="mt-6">
-                  <p className="text-lg font-semibold">No platforms connected yet</p>
-                  <p className="text-sm text-muted-foreground mt-2 max-w-sm mx-auto">
-                    Connect your social platforms to create a unified digital presence
-                  </p>
+          {/* Profile Tab */}
+          <TabsContent value="profile" className="space-y-6 mt-6">
+            <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-profile-editor">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold">Profile Settings</h2>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)] animate-pulse" />
+                  <span className="text-xs text-muted-foreground font-medium">Active</span>
                 </div>
               </div>
-            </div>
-          ) : (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={sortedLinks.map((link) => link.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                <div className="space-y-3">
-                  {sortedLinks.map((link) => (
-                    <SortableLinkItem
-                      key={link.id}
-                      link={link}
-                      onDelete={deleteLinkMutation.mutate}
+
+              <div className="flex items-center gap-4">
+                <Avatar className="w-20 h-20 border-2 border-border">
+                  <AvatarImage src={profile?.avatar || profileForm.avatar} alt={profile?.username} />
+                  <AvatarFallback className="text-xl font-bold bg-primary text-primary-foreground">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <Label htmlFor="avatar" className="text-sm font-medium">Avatar URL</Label>
+                  <div className="flex gap-2 mt-1">
+                    <Input
+                      id="avatar"
+                      type="url"
+                      placeholder="https://example.com/avatar.jpg"
+                      value={profileForm.avatar}
+                      onChange={(e) => setProfileForm({ ...profileForm, avatar: e.target.value })}
+                      onBlur={() => handleUpdateProfile("avatar")}
+                      disabled={!profile}
+                      data-testid="input-avatar"
                     />
-                  ))}
+                    <Button size="icon" variant="outline" data-testid="button-upload-avatar">
+                      <Upload className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
-              </SortableContext>
-            </DndContext>
-          )}
-        </Card>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">@</span>
+                  <Input
+                    id="username"
+                    type="text"
+                    placeholder="yourname"
+                    value={profileForm.username}
+                    onChange={(e) => setProfileForm({ ...profileForm, username: e.target.value })}
+                    onBlur={() => handleUpdateProfile("username")}
+                    disabled={!profile}
+                    data-testid="input-username"
+                  />
+                </div>
+              </div>
+
+              {profile && (
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => window.open(`/user/${profile.username}`, '_blank')}
+                    className="h-10 gap-2"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    <span className="hidden sm:inline">Preview</span>
+                  </Button>
+                  <Button
+                    onClick={handleCopyLink}
+                    className="h-10 gap-2"
+                    data-testid="button-copy-link"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-4 h-4" />
+                        <span className="hidden sm:inline">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4" />
+                        <span className="hidden sm:inline">Copy</span>
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowQRDialog(true)}
+                    className="h-10 gap-2"
+                  >
+                    <QrCode className="w-4 h-4" />
+                    <span className="hidden sm:inline">QR Code</span>
+                  </Button>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="bio">Bio</Label>
+                <Textarea
+                  id="bio"
+                  placeholder="Tell people about yourself..."
+                  value={profileForm.bio}
+                  onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
+                  onBlur={() => handleUpdateProfile("bio")}
+                  disabled={!profile}
+                  className="min-h-24 resize-none"
+                  data-testid="input-bio"
+                />
+              </div>
+            </Card>
+
+            <SEOEditor 
+              profile={profile!} 
+              onUpdate={async (updates) => {
+                if (profile) {
+                  await updateProfileMutation.mutateAsync(updates);
+                  await queryClient.refetchQueries({ queryKey: ["/api/profiles/me"] });
+                }
+              }}
+            />
+          </TabsContent>
+
+          {/* Links Tab */}
+          <TabsContent value="links" className="space-y-6 mt-6">
+            <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-links-manager">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-1">
+                    <h2 className="text-2xl font-bold">Platform Links</h2>
+                    <span className="text-xs px-2.5 py-1 bg-muted/50 text-muted-foreground rounded-md font-medium border border-border/50">
+                      {sortedLinks.length} Connected
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Manage your digital presence across 25+ platforms</p>
+                </div>
+              </div>
+              <Button
+                onClick={() => setShowAddDialog(true)}
+                disabled={!profile}
+                data-testid="button-add-link"
+                className="w-full h-12 text-base font-semibold gradient-shimmer hover-neon-glow"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Add Platform Link
+              </Button>
+
+              {sortedLinks.length === 0 ? (
+                <div className="relative text-center py-16 space-y-4 bg-gradient-to-b from-primary/5 to-transparent rounded-xl border-2 border-dashed overflow-hidden">
+                  <div className="absolute inset-0 opacity-5">
+                    <div className="absolute top-4 left-4 w-32 h-32 bg-primary rounded-full blur-3xl" />
+                    <div className="absolute bottom-4 right-4 w-32 h-32 bg-cyan-500 rounded-full blur-3xl" />
+                  </div>
+                  <div className="relative">
+                    <div className="w-20 h-20 mx-auto bg-gradient-to-br from-primary/20 to-cyan-500/10 rounded-2xl flex items-center justify-center border border-primary/30 shadow-lg">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" className="text-primary">
+                        <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                      </svg>
+                    </div>
+                    <div className="mt-6">
+                      <p className="text-lg font-semibold">No platforms connected yet</p>
+                      <p className="text-sm text-muted-foreground mt-2 max-w-sm mx-auto">
+                        Connect your social platforms to create a unified digital presence
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={sortedLinks.map((link) => link.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-3">
+                      {sortedLinks.map((link) => (
+                        <SortableLinkItem
+                          key={link.id}
+                          link={link}
+                          onDelete={deleteLinkMutation.mutate}
+                        />
+                      ))}
+                    </div>
+                  </SortableContext>
+                </DndContext>
+              )}
+            </Card>
+
+            <LinkGroupManager />
+          </TabsContent>
+
+          {/* Appearance Tab */}
+          <TabsContent value="appearance" className="space-y-6 mt-6">
+            {profile && (
+              <AppearanceEditor 
+                profile={profile} 
+                onUpdate={async (updates) => {
+                  if (profile) {
+                    await updateProfileMutation.mutateAsync(updates);
+                    await queryClient.refetchQueries({ queryKey: ["/api/profiles/me"] });
+                  }
+                }}
+              />
+            )}
+            <TemplateSelector />
+          </TabsContent>
+
+          {/* Advanced Tab */}
+          <TabsContent value="advanced" className="space-y-6 mt-6">
+            <ContentBlockManager />
+            <CustomDomainManager />
+            <ABTestManager />
+          </TabsContent>
+        </Tabs>
       </main>
 
       <AddLinkDialog
@@ -743,7 +697,6 @@ export default function Dashboard() {
         existingPlatforms={links.map((link) => link.platform)}
       />
 
-      {/* QR Code Dialog */}
       {profile && (
         <AlertDialog open={showQRDialog} onOpenChange={setShowQRDialog}>
           <AlertDialogContent className="max-w-md">
