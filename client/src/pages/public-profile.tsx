@@ -106,57 +106,23 @@ export default function PublicProfile() {
           </div>
 
           {profile.bio && (
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto px-6 mb-8 leading-relaxed" data-testid="text-bio">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto px-6 mb-6 leading-relaxed" data-testid="text-bio">
               {profile.bio}
             </p>
           )}
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto mb-12">
-            <Card className="p-6 glass-card neon-glow border-2 hover:border-primary/50 transition-all group cursor-pointer">
-              <div className="flex items-center justify-between mb-2">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Globe className="w-6 h-6 text-primary" />
-                </div>
-                <TrendingUp className="w-5 h-5 text-emerald-400" />
+          {/* Elegant Separator */}
+          <div className="max-w-md mx-auto mb-12 relative">
+            <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-4 bg-background">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Connect With Me
+                </span>
+                <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" style={{ animationDelay: '0.5s' }} />
               </div>
-              <div className="text-3xl font-bold bg-gradient-to-r from-primary to-cyan-500 bg-clip-text text-transparent">
-                {totalConnections}
-              </div>
-              <div className="text-sm text-muted-foreground font-medium mt-1">
-                Platforms Connected
-              </div>
-            </Card>
-
-            <Card className="p-6 glass-card neon-glow border-2 hover:border-cyan-500/50 transition-all group cursor-pointer">
-              <div className="flex items-center justify-between mb-2">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-cyan-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Users className="w-6 h-6 text-cyan-500" />
-                </div>
-                <TrendingUp className="w-5 h-5 text-emerald-400" />
-              </div>
-              <div className="text-3xl font-bold bg-gradient-to-r from-cyan-500 to-purple-500 bg-clip-text text-transparent">
-                100%
-              </div>
-              <div className="text-sm text-muted-foreground font-medium mt-1">
-                Profile Complete
-              </div>
-            </Card>
-
-            <Card className="p-6 glass-card neon-glow border-2 hover:border-purple-500/50 transition-all group cursor-pointer">
-              <div className="flex items-center justify-between mb-2">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Zap className="w-6 h-6 text-purple-500" />
-                </div>
-                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              </div>
-              <div className="text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-                Active
-              </div>
-              <div className="text-sm text-muted-foreground font-medium mt-1">
-                Status Online
-              </div>
-            </Card>
+            </div>
           </div>
         </div>
 
