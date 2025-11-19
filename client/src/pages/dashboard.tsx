@@ -279,11 +279,11 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 h-16 px-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
+      <header className="sticky top-0 z-50 h-16 px-4 border-b border-glow-animate bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
         <div className="max-w-2xl mx-auto h-full flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <NeropageLogo className="w-8 h-8" />
-            <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">Neropage</h1>
+          <div className="flex items-center gap-2 animate-float">
+            <NeropageLogo size={32} />
+            <h1 className="text-xl font-bold gradient-shimmer bg-clip-text text-transparent">Neropage</h1>
           </div>
           {profile && (
             <Button
@@ -300,8 +300,8 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-6 space-y-8">
-        <Card className="p-6 space-y-6 shadow-lg border-2" data-testid="card-profile-editor">
+      <main className="max-w-2xl mx-auto px-4 py-6 space-y-8 animate-fade-in">
+        <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-profile-editor">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold">Profile Configuration</h2>
             <span className="text-xs px-3 py-1 bg-primary/10 text-primary rounded-full font-semibold">PRO</span>
@@ -366,7 +366,7 @@ export default function Dashboard() {
           </div>
         </Card>
 
-        <Card className="p-6 space-y-6 shadow-lg border-2" data-testid="card-links-manager">
+        <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-links-manager">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold">Platform Links</h2>
@@ -377,7 +377,7 @@ export default function Dashboard() {
             onClick={() => setShowAddDialog(true)}
             disabled={!profile}
             data-testid="button-add-link"
-            className="w-full h-12 text-base font-semibold bg-primary hover:bg-primary/90"
+            className="w-full h-12 text-base font-semibold gradient-shimmer hover-neon-glow"
           >
             <Plus className="w-5 h-5 mr-2" />
             Add Platform Link
