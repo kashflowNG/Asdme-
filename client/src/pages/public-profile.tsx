@@ -101,6 +101,20 @@ export default function PublicProfile() {
     }
   }, [profile?.id]);
 
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = '//pl28091865.effectivegatecpm.com/d3086215aaf6d1aac4a8cf2c4eda801b/invoke.js';
+    script.async = true;
+    script.setAttribute('data-cfasync', 'false');
+    document.body.appendChild(script);
+
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
+
   const handleLinkClick = (linkId: string) => {
     trackClickMutation.mutate(linkId);
   };
@@ -466,6 +480,13 @@ export default function PublicProfile() {
               ))}
             </div>
           )}
+
+          {/* Ad Placement */}
+          <div className="pb-8 flex justify-center">
+            <div className="w-full max-w-sm mx-auto">
+              <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b" className="rounded-lg overflow-hidden"></div>
+            </div>
+          </div>
 
           {/* Links Section */}
           <div className="pb-12" data-testid="links-container">
