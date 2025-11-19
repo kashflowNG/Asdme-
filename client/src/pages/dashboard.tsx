@@ -351,8 +351,18 @@ export default function Dashboard() {
       <main className="max-w-2xl mx-auto px-4 py-6 space-y-8 animate-fade-in">
         <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-profile-editor">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">Profile Configuration</h2>
-            <span className="text-xs px-3 py-1 bg-primary/10 text-primary rounded-full font-semibold">PRO</span>
+            <div className="flex items-center gap-3">
+              <h2 className="text-2xl font-bold">Profile Configuration</h2>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)] animate-pulse" />
+                <span className="text-xs text-muted-foreground font-medium">Active</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs px-3 py-1.5 bg-gradient-to-r from-primary/20 to-cyan-500/20 text-primary rounded-lg font-semibold border border-primary/30 shadow-sm">
+                PRO
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center gap-4">
@@ -424,9 +434,14 @@ export default function Dashboard() {
 
         <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-links-manager">
           <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold">Platform Links</h2>
-              <p className="text-sm text-muted-foreground mt-1">Manage your digital presence across 25+ platforms</p>
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-1">
+                <h2 className="text-2xl font-bold">Platform Links</h2>
+                <span className="text-xs px-2.5 py-1 bg-muted/50 text-muted-foreground rounded-md font-medium border border-border/50">
+                  {sortedLinks.length} Connected
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground">Manage your digital presence across 25+ platforms</p>
             </div>
           </div>
           <Button
@@ -440,13 +455,23 @@ export default function Dashboard() {
           </Button>
 
           {sortedLinks.length === 0 ? (
-            <div className="text-center py-16 space-y-4 bg-gradient-to-b from-primary/5 to-transparent rounded-xl border-2 border-dashed">
-              <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
-                <Plus className="w-8 h-8 text-primary" />
+            <div className="relative text-center py-16 space-y-4 bg-gradient-to-b from-primary/5 to-transparent rounded-xl border-2 border-dashed overflow-hidden">
+              <div className="absolute inset-0 opacity-5">
+                <div className="absolute top-4 left-4 w-32 h-32 bg-primary rounded-full blur-3xl" />
+                <div className="absolute bottom-4 right-4 w-32 h-32 bg-cyan-500 rounded-full blur-3xl" />
               </div>
-              <div>
-                <p className="text-lg font-semibold">No platforms connected yet</p>
-                <p className="text-sm text-muted-foreground mt-1">Start building your unified digital presence</p>
+              <div className="relative">
+                <div className="w-20 h-20 mx-auto bg-gradient-to-br from-primary/20 to-cyan-500/10 rounded-2xl flex items-center justify-center border border-primary/30 shadow-lg">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" className="text-primary">
+                    <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                  </svg>
+                </div>
+                <div className="mt-6">
+                  <p className="text-lg font-semibold">No platforms connected yet</p>
+                  <p className="text-sm text-muted-foreground mt-2 max-w-sm mx-auto">
+                    Connect your social platforms to create a unified digital presence
+                  </p>
+                </div>
               </div>
             </div>
           ) : (
