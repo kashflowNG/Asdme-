@@ -351,18 +351,20 @@ export default function Dashboard() {
               Neropage
             </h1>
           </div>
-          {profile && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate(`/user/${profile.username}`)}
-              data-testid="button-preview"
-              className="gap-2"
-            >
-              <Eye className="w-4 h-4" />
-              Preview
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {profile && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate(`/user/${profile.username}`)}
+                data-testid="button-preview"
+                className="gap-2"
+              >
+                <Eye className="w-4 h-4" />
+                Preview
+              </Button>
+            )}
+          </div>
         </div>
       </header>
 
