@@ -96,14 +96,19 @@ export class DatabaseStorage implements IStorage {
         primaryColor: "#8B5CF6",
         backgroundColor: "#0A0A0F",
         views: 0,
-        metaTitle: null,
-        metaDescription: null,
-        ogImage: null,
-        faviconUrl: null,
+        backgroundImage: null,
+        backgroundVideo: null,
+        backgroundType: "color",
         customCSS: null,
-        customJS: null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        layout: "stacked",
+        fontFamily: "DM Sans",
+        buttonStyle: "rounded",
+        seoTitle: null,
+        seoDescription: null,
+        ogImage: null,
+        customDomain: null,
+        hideBranding: 0,
+        verificationBadge: 0,
       };
       this.memoryStore.profiles.set(demoProfile.id, demoProfile);
       this.memoryStore.profiles.set(demoProfile.username, demoProfile);
@@ -193,7 +198,7 @@ export class DatabaseStorage implements IStorage {
       const current = this.memoryStore.profiles.get(id);
       if (!current) return undefined;
       
-      const updated = { ...current, ...updates, updatedAt: new Date().toISOString() };
+      const updated = { ...current, ...updates };
       this.memoryStore.profiles.set(id, updated);
       
       // Update username index if username changed
@@ -241,8 +246,6 @@ export class DatabaseStorage implements IStorage {
         id: `link-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         ...insertLink,
         clicks: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
       } as SocialLink;
       this.memoryStore.socialLinks.set(newLink.id, newLink);
       return newLink;
@@ -255,7 +258,7 @@ export class DatabaseStorage implements IStorage {
     if (this.memoryStore) {
       const current = this.memoryStore.socialLinks.get(id);
       if (!current) return undefined;
-      const updated = { ...current, ...updates, updatedAt: new Date().toISOString() };
+      const updated = { ...current, ...updates };
       this.memoryStore.socialLinks.set(id, updated);
       return updated;
     }
