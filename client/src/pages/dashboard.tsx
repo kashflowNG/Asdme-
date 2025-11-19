@@ -160,6 +160,20 @@ export default function Dashboard() {
     }
   }, [profile]);
 
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = '//pl28091865.effectivegatecpm.com/d3086215aaf6d1aac4a8cf2c4eda801b/invoke.js';
+    script.async = true;
+    script.setAttribute('data-cfasync', 'false');
+    document.body.appendChild(script);
+
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
+
   const updateProfileMutation = useMutation({
     mutationFn: async (data: { username?: string; bio?: string; avatar?: string }) => {
       return await apiRequest("PATCH", "/api/profiles/me", data);
@@ -473,6 +487,13 @@ export default function Dashboard() {
               existingPlatforms={links.map(l => l.platform)}
               onAddPlatform={() => setShowAddDialog(true)}
             />
+            
+            {/* Ad Placement */}
+            <div className="flex justify-center py-6">
+              <div className="w-full max-w-sm mx-auto">
+                <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b" className="rounded-lg overflow-hidden"></div>
+              </div>
+            </div>
           </TabsContent>
 
           {/* Profile Tab */}
