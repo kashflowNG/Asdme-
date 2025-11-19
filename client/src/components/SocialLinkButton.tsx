@@ -1,18 +1,17 @@
-
 import { getPlatform } from "@/lib/platforms";
 import { ExternalLink, Link2 } from "lucide-react";
 
 interface SocialLinkButtonProps {
-  platform: string;
+  platformId: string;
   url: string;
   customTitle?: string | null;
 }
 
-export function SocialLinkButton({ platform, url, customTitle }: SocialLinkButtonProps) {
-  const platformData = getPlatform(platform);
-  
+export function SocialLinkButton({ platformId, url, customTitle }: SocialLinkButtonProps) {
+  const platform = getPlatform(platformId);
+
   // Handle custom links or unknown platforms
-  if (!platformData) {
+  if (!platform) {
     return (
       <a
         href={url}
@@ -43,8 +42,8 @@ export function SocialLinkButton({ platform, url, customTitle }: SocialLinkButto
     );
   }
 
-  const Icon = platformData.icon;
-  const displayName = customTitle || platformData.name;
+  const Icon = platform.icon;
+  const displayName = customTitle || platform.name;
 
   return (
     <a
@@ -52,13 +51,13 @@ export function SocialLinkButton({ platform, url, customTitle }: SocialLinkButto
       target="_blank"
       rel="noopener noreferrer"
       className="group relative block w-full h-16 px-6 rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-gradient-to-r from-card to-card/80 border-2 border-border hover:border-primary/50 shadow-lg hover:shadow-xl"
-      data-testid={`social-link-${platform}`}
+      data-testid={`social-link-${platformId}`}
     >
       {/* Animated gradient background on hover */}
       <div 
         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
         style={{
-          background: `linear-gradient(135deg, ${platformData.color}15, ${platformData.color}05)`,
+          background: `linear-gradient(135deg, ${platform.color}15, ${platform.color}05)`,
         }}
       />
 
@@ -70,10 +69,10 @@ export function SocialLinkButton({ platform, url, customTitle }: SocialLinkButto
         <div 
           className="w-10 h-10 rounded-lg flex items-center justify-center transition-transform duration-300 group-hover:scale-110"
           style={{
-            backgroundColor: `${platformData.color}20`,
+            backgroundColor: `${platform.color}20`,
           }}
         >
-          <Icon className="w-6 h-6" style={{ color: platformData.color }} />
+          <Icon className="w-6 h-6" style={{ color: platform.color }} />
         </div>
 
         {/* Platform name */}

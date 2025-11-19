@@ -169,7 +169,7 @@ export default function PublicProfile() {
                     Featured Platform
                   </div>
                   <SocialLinkButton
-                    platform={sortedLinks[0].platform}
+                    platformId={sortedLinks[0].platform}
                     url={sortedLinks[0].url}
                     customTitle={sortedLinks[0].customTitle}
                   />
@@ -191,7 +191,7 @@ export default function PublicProfile() {
                         style={{ animationDelay: `${index * 50}ms` }}
                       >
                         <SocialLinkButton
-                          platform={link.platform}
+                          platformId={link.platform}
                           url={link.url}
                           customTitle={link.customTitle}
                         />
