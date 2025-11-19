@@ -1,4 +1,6 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { persistQueryClient } from "@tanstack/react-query-persist-client";
+import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -49,9 +51,27 @@ export const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       staleTime: Infinity,
       retry: false,
+      gcTime: 1000 * 60 * 60 * 24 * 7,
     },
     mutations: {
       retry: false,
     },
   },
 });
+
+if (typeof window !== 'undefined') {
+  const persister = createSyncStoragePersister({
+    storage: window.localStorage,
+  });
+
+  persistQueryClient({
+    queryClient,
+    persister,
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+    dehydrateOptions: {
+      shouldDehydrateQuery: (query) => {
+        return query.state.status === 'success';
+      },
+    },
+  });
+}

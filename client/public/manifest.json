@@ -1,0 +1,26 @@
+{
+  "name": "Neropage - Social Link Platform",
+  "short_name": "Neropage",
+  "description": "Create your personalized social media link landing page",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#18212f",
+  "theme_color": "#8B5CF6",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["social", "utilities"],
+  "screenshots": []
+}
