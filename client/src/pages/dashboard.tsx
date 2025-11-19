@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { AddLinkDialog } from "@/components/AddLinkDialog";
 import { NeropageLogo } from "@/components/NeropageLogo";
 import { getPlatform } from "@/lib/platforms";
-import { GripVertical, Trash2, Plus, Eye, Upload } from "lucide-react";
+import { GripVertical, Trash2, Plus, Eye, Upload, Copy, Check, ExternalLink } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Profile, SocialLink } from "@shared/schema";
 import {
@@ -97,6 +97,7 @@ export default function Dashboard() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [profileForm, setProfileForm] = useState({
     username: "",
     bio: "",
@@ -299,6 +300,28 @@ export default function Dashboard() {
     saveProfileMutation.mutate();
   };
 
+  const handleCopyLink = async () => {
+    if (!profile) return;
+    
+    const url = `${window.location.origin}/user/${profile.username}`;
+    
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      toast({
+        title: "Link copied!",
+        description: "Your profile link has been copied to clipboard",
+      });
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to copy link",
+        variant: "destructive",
+      });
+    }
+  };
+
   const initials = (profile?.username || "U")
     .split(" ")
     .map((n) => n[0])
@@ -403,6 +426,46 @@ export default function Dashboard() {
               />
             </div>
           </div>
+
+          {profile && (
+            <div className="space-y-3 p-4 bg-gradient-to-br from-primary/5 to-cyan-500/5 rounded-xl border border-primary/20">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-semibold">Your Profile Link</Label>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => window.open(`/user/${profile.username}`, '_blank')}
+                    className="h-8 gap-2"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    Visit
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleCopyLink}
+                    className="h-8 gap-2"
+                    data-testid="button-copy-link"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-3 h-3" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" />
+                        Copy Link
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+              <div className="p-3 bg-background/80 rounded-lg border border-border/50 font-mono text-sm break-all">
+                {window.location.origin}/user/{profile.username}
+              </div>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="bio">Bio</Label>
