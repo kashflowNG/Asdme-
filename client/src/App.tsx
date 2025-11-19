@@ -7,13 +7,26 @@ import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import PublicProfile from "@/pages/public-profile";
 import Landing from "@/pages/landing";
+import Login from "@/pages/login";
+import Signup from "@/pages/signup";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Landing} />
-      <Route path="/dashboard" component={Dashboard} />
-      <Route path="/dash" component={Dashboard} />
+      <Route path="/login" component={Login} />
+      <Route path="/signup" component={Signup} />
+      <Route path="/dashboard">
+        <ProtectedRoute>
+          <Dashboard />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/dash">
+        <ProtectedRoute>
+          <Dashboard />
+        </ProtectedRoute>
+      </Route>
       <Route path="/user/:username" component={PublicProfile} />
       <Route component={NotFound} />
     </Switch>

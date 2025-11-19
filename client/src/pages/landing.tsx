@@ -2,8 +2,11 @@
 import { Button } from "@/components/ui/button";
 import { NeropageLogo } from "@/components/NeropageLogo";
 import { ArrowRight, Sparkles, Zap, Shield } from "lucide-react";
+import { useLocation } from "wouter";
 
 export default function Landing() {
+  const [, navigate] = useLocation();
+
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       {/* Galaxy Background Animation */}
@@ -119,7 +122,8 @@ export default function Landing() {
           <Button 
             size="lg" 
             className="text-lg px-8 py-6 shadow-lg neon-glow hover:neon-glow-strong transition-all"
-            onClick={() => window.location.href = '/dashboard'}
+            onClick={() => navigate('/signup')}
+            data-testid="button-get-started"
           >
             Get Started
             <ArrowRight className="ml-2 w-5 h-5" />
@@ -128,7 +132,8 @@ export default function Landing() {
             size="lg" 
             variant="outline"
             className="text-lg px-8 py-6"
-            onClick={() => window.location.href = '/dashboard'}
+            onClick={() => navigate('/login')}
+            data-testid="button-sign-in"
           >
             Sign In
           </Button>
