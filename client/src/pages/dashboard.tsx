@@ -10,7 +10,18 @@ import { useToast } from "@/hooks/use-toast";
 import { AddLinkDialog } from "@/components/AddLinkDialog";
 import { NeropageLogo } from "@/components/NeropageLogo";
 import { getPlatform } from "@/lib/platforms";
-import { GripVertical, Trash2, Plus, Eye, Upload, Copy, Check, ExternalLink } from "lucide-react";
+import { GripVertical, Trash2, Plus, Eye, Upload, Copy, Check, ExternalLink, LogOut } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Profile, SocialLink } from "@shared/schema";
 import {
@@ -322,6 +333,22 @@ export default function Dashboard() {
     }
   };
 
+  const handleSignOut = () => {
+    // Clear any stored auth data
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    toast({
+      title: "Signed out",
+      description: "You have been signed out successfully",
+    });
+    
+    // Navigate to landing page
+    setTimeout(() => {
+      navigate("/");
+    }, 500);
+  };
+
   const initials = (profile?.username || "U")
     .split(" ")
     .map((n) => n[0])
@@ -353,16 +380,48 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-2">
             {profile && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate(`/user/${profile.username}`)}
-                data-testid="button-preview"
-                className="gap-2"
-              >
-                <Eye className="w-4 h-4" />
-                Preview
-              </Button>
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate(`/user/${profile.username}`)}
+                  data-testid="button-preview"
+                  className="gap-2"
+                >
+                  <Eye className="w-4 h-4" />
+                  Preview
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      data-testid="button-sign-out"
+                      className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sign Out
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure you want to sign out?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        You will need to sign in again to access your dashboard and manage your profile.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleSignOut}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Sign Out
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </>
             )}
           </div>
         </div>
