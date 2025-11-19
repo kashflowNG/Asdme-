@@ -3,8 +3,15 @@ import { pgTable, text, varchar, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+export const users = pgTable("users", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  username: text("username").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+});
+
 export const profiles = pgTable("profiles", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().unique(),
   username: text("username").notNull().unique(),
   bio: text("bio").default(""),
   avatar: text("avatar").default(""),
@@ -160,6 +167,24 @@ export const insertFormSubmissionSchema = createInsertSchema(formSubmissions).om
   id: true,
 });
 
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+});
+
+export const signupSchema = z.object({
+  username: z.string().trim().min(3, "Username must be at least 3 characters").max(30, "Username must be at most 30 characters").regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
+
+export const loginSchema = z.object({
+  username: z.string().trim().min(1, "Username is required"),
+  password: z.string().min(1, "Password is required"),
+});
+
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type SignupData = z.infer<typeof signupSchema>;
+export type LoginData = z.infer<typeof loginSchema>;
+export type User = typeof users.$inferSelect;
 export type InsertProfile = z.infer<typeof insertProfileSchema>;
 export type UpdateProfile = z.infer<typeof updateProfileSchema>;
 export type Profile = typeof profiles.$inferSelect;
