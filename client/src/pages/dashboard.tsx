@@ -281,9 +281,21 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 h-16 px-4 border-b border-glow-animate bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
         <div className="max-w-2xl mx-auto h-full flex items-center justify-between">
-          <div className="flex items-center gap-2 animate-float">
+          <div className="flex items-center gap-2">
             <NeropageLogo size={32} />
-            <h1 className="text-xl font-bold gradient-shimmer bg-clip-text text-transparent">Neropage</h1>
+            <h1 
+              className="text-xl font-bold select-none"
+              style={{
+                background: 'linear-gradient(135deg, #8B5CF6, #06B6D4, #EC4899, #8B5CF6)',
+                backgroundSize: '300% 300%',
+                WebkitBackgroundClip: 'text',
+                backgroundClip: 'text',
+                color: 'transparent',
+                animation: 'shimmer 3s linear infinite',
+              }}
+            >
+              Neropage
+            </h1>
           </div>
           {profile && (
             <Button

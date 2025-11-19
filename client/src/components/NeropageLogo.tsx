@@ -10,36 +10,48 @@ interface NeropageLogoProps {
 export function NeropageLogo({ size = 32, className = '', animate = true }: NeropageLogoProps) {
   return (
     <div
-      className={`relative flex items-center justify-center ${className} ${animate ? 'animate-float' : ''}`}
-      style={{ width: size, height: size }}
+      className={`relative flex items-center justify-center ${className}`}
+      style={{ 
+        width: size, 
+        height: size,
+        animation: animate ? 'float 4s ease-in-out infinite' : 'none'
+      }}
     >
-      {/* Outer glow circle */}
+      {/* Outer glow */}
       <div
-        className="absolute inset-0 rounded-lg neon-glow opacity-60 blur-sm"
+        className="absolute inset-0 rounded-lg opacity-60 blur-sm"
         style={{
           background: 'linear-gradient(135deg, #8B5CF6, #06B6D4)',
+          boxShadow: '0 0 15px rgba(139, 92, 246, 0.6)',
         }}
       />
       
       {/* Main logo container */}
       <div
-        className="relative flex items-center justify-center font-black rounded-lg border-2 border-primary/40"
+        className="relative flex items-center justify-center font-black rounded-lg border-2"
         style={{
           width: '100%',
           height: '100%',
           background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(6, 182, 212, 0.1))',
           backdropFilter: 'blur(10px)',
+          borderColor: 'rgba(139, 92, 246, 0.4)',
         }}
       >
         {/* NP Text */}
         <span
-          className="gradient-shimmer bg-clip-text text-transparent select-none"
+          className="select-none"
           style={{
             fontSize: size * 0.5,
             fontWeight: 900,
             letterSpacing: '-0.05em',
             lineHeight: 1,
-            textShadow: '0 0 15px rgba(139, 92, 246, 0.5), 0 0 30px rgba(6, 182, 212, 0.3)',
+            background: 'linear-gradient(135deg, #8B5CF6, #06B6D4, #EC4899, #8B5CF6)',
+            backgroundSize: '300% 300%',
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
+            color: 'transparent',
+            textShadow: '0 0 15px rgba(139, 92, 246, 0.5)',
+            animation: 'shimmer 3s linear infinite',
           }}
         >
           NP
@@ -56,12 +68,22 @@ export function NeropageLogo({ size = 32, className = '', animate = true }: Nero
       
       {/* Corner accents */}
       <div
-        className="absolute top-0 right-0 w-1 h-1 bg-cyan-400 rounded-full neon-glow-strong"
-        style={{ width: size * 0.08, height: size * 0.08 }}
+        className="absolute top-0 right-0 rounded-full"
+        style={{ 
+          width: size * 0.08, 
+          height: size * 0.08,
+          background: '#06B6D4',
+          boxShadow: '0 0 10px rgba(6, 182, 212, 0.8)',
+        }}
       />
       <div
-        className="absolute bottom-0 left-0 w-1 h-1 bg-purple-400 rounded-full neon-glow"
-        style={{ width: size * 0.08, height: size * 0.08 }}
+        className="absolute bottom-0 left-0 rounded-full"
+        style={{ 
+          width: size * 0.08, 
+          height: size * 0.08,
+          background: '#8B5CF6',
+          boxShadow: '0 0 10px rgba(139, 92, 246, 0.6)',
+        }}
       />
     </div>
   );
