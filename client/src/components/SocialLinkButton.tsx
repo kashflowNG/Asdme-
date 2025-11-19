@@ -1,36 +1,79 @@
+
 import { getPlatform } from "@/lib/platforms";
 import { ExternalLink, Link2 } from "lucide-react";
 
 interface SocialLinkButtonProps {
   platform: string;
   url: string;
-  customTitle?: string;
+  customTitle?: string | null;
 }
 
 export function SocialLinkButton({ platform, url, customTitle }: SocialLinkButtonProps) {
   const platformData = getPlatform(platform);
+  
+  // Handle custom links or unknown platforms
+  if (!platformData) {
+    return (
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="group relative block w-full h-16 px-6 rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-gradient-to-r from-card to-card/80 border-2 border-border hover:border-primary/50 shadow-lg hover:shadow-xl"
+        data-testid={`social-link-custom`}
+      >
+        <div className="relative z-10 flex items-center gap-4 h-full">
+          {/* Custom link icon */}
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/10">
+            <Link2 className="w-6 h-6 text-primary" />
+          </div>
 
-  // Handle custom links that don't match any platform
-  const isCustom = !platformData || platform === 'custom';
-  const Icon = platformData?.icon || Link2;
-  const displayName = customTitle || platformData?.name || 'Custom Link';
-  const iconColor = platformData?.color || '#8B5CF6';
+          {/* Custom title or URL */}
+          <div className="relative z-10 flex-1">
+            <p className="text-sm font-semibold group-hover:text-primary transition-colors duration-300">
+              {customTitle || "Custom Link"}
+            </p>
+          </div>
+
+          {/* External link indicator */}
+          <div className="relative z-10 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300">
+            <ExternalLink className="w-5 h-5" />
+          </div>
+        </div>
+      </a>
+    );
+  }
+
+  const Icon = platformData.icon;
+  const displayName = customTitle || platformData.name;
 
   return (
     <a
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group relative block w-full overflow-hidden"
-      data-testid={`link-${platform}`}
+      className="group relative block w-full h-16 px-6 rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-gradient-to-r from-card to-card/80 border-2 border-border hover:border-primary/50 shadow-lg hover:shadow-xl"
+      data-testid={`social-link-${platform}`}
     >
-      <div className="relative flex items-center gap-4 h-16 px-6 rounded-xl bg-card border-2 border-card-border hover:border-primary/50 shadow-sm hover:shadow-xl transition-all duration-300 hover-elevate active-elevate-2">
-        {/* Animated background gradient on hover */}
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-cyan-500/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      {/* Animated gradient background on hover */}
+      <div 
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+        style={{
+          background: `linear-gradient(135deg, ${platformData.color}15, ${platformData.color}05)`,
+        }}
+      />
 
-        {/* Platform icon with subtle glow */}
-        <div className="relative z-10 w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5 group-hover:scale-110 transition-transform duration-300">
-          <Icon className="w-6 h-6" style={{ color: iconColor }} />
+      {/* Shimmer effect */}
+      <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+      <div className="relative z-10 flex items-center gap-4 h-full">
+        {/* Platform icon with color */}
+        <div 
+          className="w-10 h-10 rounded-lg flex items-center justify-center transition-transform duration-300 group-hover:scale-110"
+          style={{
+            backgroundColor: `${platformData.color}20`,
+          }}
+        >
+          <Icon className="w-6 h-6" style={{ color: platformData.color }} />
         </div>
 
         {/* Platform name */}
