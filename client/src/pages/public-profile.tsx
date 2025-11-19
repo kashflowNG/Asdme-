@@ -114,12 +114,13 @@ export default function PublicProfile() {
 
     const baseStyle: React.CSSProperties = {
       backgroundColor: profile.backgroundColor || "#0A0A0F",
+      position: "relative",
     };
 
     if (profile.backgroundType === "image" && profile.backgroundImage) {
       return {
         ...baseStyle,
-        backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${profile.backgroundImage})`,
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${profile.backgroundImage})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundAttachment: "fixed",
@@ -129,7 +130,9 @@ export default function PublicProfile() {
     if (profile.backgroundType === "gradient") {
       return {
         ...baseStyle,
-        background: `linear-gradient(135deg, ${profile.backgroundColor || "#0A0A0F"}, ${profile.primaryColor || "#8B5CF6"})`,
+        background: `linear-gradient(135deg, ${profile.backgroundColor || "#0A0A0F"}, ${profile.primaryColor || "#8B5CF6"}, ${profile.backgroundColor || "#0A0A0F"})`,
+        backgroundSize: "200% 200%",
+        animation: "gradient-shift 15s ease infinite",
       };
     }
 
@@ -400,6 +403,58 @@ export default function PublicProfile() {
                       </form>
                     </Card>
                   )}
+
+                  {(block.type === "music" || block.type === "podcast") && block.mediaUrl && (
+                    <Card className="p-6 glass-card neon-glow overflow-hidden">
+                      {block.title && <h3 className="text-xl font-bold mb-4">{block.title}</h3>}
+                      <div className="aspect-video rounded-lg overflow-hidden bg-black/20">
+                        <iframe
+                          src={block.mediaUrl}
+                          className="w-full h-full"
+                          allow="encrypted-media"
+                          allowFullScreen
+                        />
+                      </div>
+                    </Card>
+                  )}
+
+                  {block.type === "testimonial" && block.content && (
+                    <Card className="p-6 glass-card neon-glow">
+                      <div className="flex items-start gap-4">
+                        <div className="text-4xl text-primary/30">"</div>
+                        <div className="flex-1">
+                          {block.title && <p className="font-semibold mb-2">{block.title}</p>}
+                          <p className="text-foreground italic mb-3">{block.content}</p>
+                          {block.mediaUrl && (
+                            <div className="flex items-center gap-3">
+                              <img 
+                                src={block.mediaUrl} 
+                                alt="Author" 
+                                className="w-10 h-10 rounded-full object-cover"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  )}
+
+                  {block.type === "faq" && block.content && (
+                    <Card className="p-6 glass-card neon-glow">
+                      {block.title && <h3 className="text-xl font-bold mb-4">{block.title}</h3>}
+                      <div className="space-y-4">
+                        {block.content.split("\n\n").map((qa, idx) => {
+                          const [question, answer] = qa.split("\n");
+                          return (
+                            <div key={idx} className="border-b border-border/30 pb-4 last:border-0">
+                              <p className="font-semibold mb-2">{question}</p>
+                              <p className="text-sm text-muted-foreground">{answer}</p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </Card>
+                  )}
                 </div>
               ))}
             </div>
@@ -417,20 +472,43 @@ export default function PublicProfile() {
               </Card>
             ) : (
               <div className={`space-y-4 max-w-3xl mx-auto ${profile.layout === "grid" ? "md:grid md:grid-cols-2 md:gap-4 md:space-y-0" : ""}`}>
-                {sortedLinks.map((link, index) => (
-                  <div
-                    key={link.id}
-                    className="animate-fade-in"
-                    style={{ animationDelay: `${index * 50}ms` }}
-                  >
-                    <SocialLinkButton
-                      platformId={link.platform}
-                      url={link.url}
-                      customTitle={link.customTitle}
-                      onClick={() => handleLinkClick(link.id)}
-                    />
-                  </div>
-                ))}
+                {sortedLinks.map((link, index) => {
+                  // Check if link is scheduled
+                  const now = new Date();
+                  const isScheduled = link.isScheduled && link.scheduleStart && link.scheduleEnd;
+                  const scheduleStart = link.scheduleStart ? new Date(link.scheduleStart) : null;
+                  const scheduleEnd = link.scheduleEnd ? new Date(link.scheduleEnd) : null;
+                  const isActive = !isScheduled || (scheduleStart && scheduleEnd && now >= scheduleStart && now <= scheduleEnd);
+
+                  if (!isActive) return null;
+
+                  return (
+                    <div
+                      key={link.id}
+                      className="animate-fade-in relative"
+                      style={{ animationDelay: `${index * 50}ms` }}
+                    >
+                      {link.badge && (
+                        <div className="absolute -top-2 -right-2 z-10">
+                          <Badge className="bg-gradient-to-r from-pink-500 to-purple-500 text-white border-0 shadow-lg">
+                            {link.badge.toUpperCase()}
+                          </Badge>
+                        </div>
+                      )}
+                      <SocialLinkButton
+                        platformId={link.platform}
+                        url={link.url}
+                        customTitle={link.customTitle}
+                        onClick={() => handleLinkClick(link.id)}
+                      />
+                      {link.description && (
+                        <p className="text-xs text-muted-foreground mt-2 px-4">
+                          {link.description}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { 
+import {
   insertProfileSchema, updateProfileSchema, insertSocialLinkSchema,
   insertLinkGroupSchema, insertContentBlockSchema, insertFormSubmissionSchema
 } from "@shared/schema";
@@ -45,7 +45,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Validate partial profile data
       const updates = updateProfileSchema.parse(req.body);
-      
+
       // Check username uniqueness if updating username
       if (updates.username && updates.username !== profile.username) {
         const existing = await storage.getProfileByUsername(updates.username);
@@ -55,7 +55,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const updatedProfile = await storage.updateProfile(profile.id, updates);
-      
+
       if (!updatedProfile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -89,7 +89,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { username } = req.params;
       const profile = await storage.getProfileByUsername(username);
-      
+
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -127,7 +127,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const deleted = await storage.deleteSocialLink(id);
-      
+
       if (!deleted) {
         return res.status(404).json({ error: "Link not found" });
       }
@@ -154,11 +154,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const { links } = reorderSchema.parse(req.body);
-      
+
       // Verify all links belong to this profile
       const profileLinks = await storage.getSocialLinks(profile.id);
       const profileLinkIds = new Set(profileLinks.map(l => l.id));
-      
+
       for (const link of links) {
         if (!profileLinkIds.has(link.id)) {
           return res.status(403).json({ error: "Cannot reorder links from another profile" });
@@ -181,7 +181,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const userAgent = req.headers['user-agent'];
       const referrer = req.headers['referer'];
-      
+
       await storage.trackLinkClick(id, userAgent, referrer);
       res.status(200).json({ success: true });
     } catch (error) {
@@ -194,14 +194,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { username } = req.params;
       const profile = await storage.getProfileByUsername(username);
-      
+
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
 
       const userAgent = req.headers['user-agent'];
       const referrer = req.headers['referer'];
-      
+
       await storage.trackProfileView(profile.id, userAgent, referrer);
       res.status(200).json({ success: true });
     } catch (error) {
@@ -209,42 +209,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get analytics
-  app.get("/api/analytics", async (_req, res) => {
+  // Analytics endpoint
+  app.get("/api/analytics", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).send("Not authenticated");
+    }
+
     try {
-      const profile = await storage.getDefaultProfile();
+      const profile = await storage.getMyProfile(req.user!.id);
       if (!profile) {
-        return res.status(404).json({ error: "Profile not found" });
+        return res.status(404).send("Profile not found");
       }
 
       const analytics = await storage.getProfileAnalytics(profile.id);
       res.json(analytics);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to fetch analytics" });
+    } catch (error: any) {
+      res.status(500).send(error.message);
     }
   });
 
-  // Get detailed analytics
-  app.get("/api/analytics/detailed", async (_req, res) => {
+  // Detailed analytics endpoint
+  app.get("/api/analytics/detailed", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).send("Not authenticated");
+    }
+
     try {
-      const profile = await storage.getDefaultProfile();
+      const profile = await storage.getMyProfile(req.user!.id);
       if (!profile) {
-        return res.status(404).json({ error: "Profile not found" });
+        return res.status(404).send("Profile not found");
       }
 
       const analytics = await storage.getDetailedAnalytics(profile.id);
       res.json(analytics);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to fetch detailed analytics" });
+    } catch (error: any) {
+      res.status(500).send(error.message);
     }
   });
+
 
   // Update specific profile (by ID)
   app.patch("/api/profiles/:id", async (req, res) => {
     try {
       const { id } = req.params;
       const updates = updateProfileSchema.parse(req.body);
-      
+
       // Check username uniqueness if updating username
       if (updates.username) {
         const existing = await storage.getProfileByUsername(updates.username);
@@ -254,7 +263,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const updatedProfile = await storage.updateProfile(id, updates);
-      
+
       if (!updatedProfile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -291,7 +300,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ===== Link Groups Routes =====
-  
+
   // Get link groups
   app.get("/api/link-groups", async (_req, res) => {
     try {
@@ -332,7 +341,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const deleted = await storage.deleteLinkGroup(id);
-      
+
       if (!deleted) {
         return res.status(404).json({ error: "Group not found" });
       }
@@ -344,7 +353,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ===== Content Blocks Routes =====
-  
+
   // Get content blocks
   app.get("/api/content-blocks", async (_req, res) => {
     try {
@@ -365,7 +374,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { username } = req.params;
       const profile = await storage.getProfileByUsername(username);
-      
+
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -407,7 +416,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const updatedBlock = await storage.updateContentBlock(id, req.body);
-      
+
       if (!updatedBlock) {
         return res.status(404).json({ error: "Block not found" });
       }
@@ -423,7 +432,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const deleted = await storage.deleteContentBlock(id);
-      
+
       if (!deleted) {
         return res.status(404).json({ error: "Block not found" });
       }
@@ -461,7 +470,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ===== Form Submissions Routes =====
-  
+
   // Get form submissions
   app.get("/api/form-submissions", async (_req, res) => {
     try {
@@ -482,7 +491,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { username } = req.params;
       const profile = await storage.getProfileByUsername(username);
-      
+
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -510,7 +519,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const deleted = await storage.deleteFormSubmission(id);
-      
+
       if (!deleted) {
         return res.status(404).json({ error: "Submission not found" });
       }

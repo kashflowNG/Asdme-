@@ -32,6 +32,10 @@ const blockTypes = [
   { id: "text", name: "Text Block", icon: FileText, description: "Rich text content" },
   { id: "embed", name: "Custom Embed", icon: Code, description: "HTML embed code" },
   { id: "form", name: "Email Form", icon: Mail, description: "Lead collection" },
+  { id: "music", name: "Music Player", icon: Video, description: "Spotify, SoundCloud" },
+  { id: "podcast", name: "Podcast Episode", icon: Video, description: "Audio podcast embed" },
+  { id: "testimonial", name: "Testimonial", icon: FileText, description: "Customer reviews" },
+  { id: "faq", name: "FAQ Section", icon: FileText, description: "Questions & Answers" },
 ];
 
 export function ContentBlockManager() {

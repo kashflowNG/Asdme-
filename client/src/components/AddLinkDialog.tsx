@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -8,33 +7,82 @@ import { PLATFORMS, PLATFORM_CATEGORIES, getPlatformsByCategory } from "@/lib/pl
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface AddLinkDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAdd: (platform: string, url: string) => void;
+  onAdd: (
+    platform: string,
+    url: string,
+    customTitle?: string,
+    badge?: string,
+    description?: string,
+    isScheduled?: boolean,
+    scheduleStart?: string,
+    scheduleEnd?: string
+  ) => void;
   existingPlatforms: string[];
 }
 
 export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: AddLinkDialogProps) {
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
-  const [url, setUrl] = useState("");
-  const [customTitle, setCustomTitle] = useState("");
+  const [formData, setFormData] = useState({
+    platform: "",
+    url: "",
+    customTitle: "",
+    badge: "",
+    description: "",
+    isScheduled: false,
+    scheduleStart: "",
+    scheduleEnd: "",
+  });
   const [activeCategory, setActiveCategory] = useState<string>('social');
 
   const handleAdd = () => {
-    if (selectedPlatform && url.trim()) {
-      onAdd(selectedPlatform, url.trim(), customTitle.trim() || undefined);
-      setSelectedPlatform(null);
-      setUrl("");
-      setCustomTitle("");
+    if (formData.platform && formData.url) {
+      onAdd(
+        formData.platform,
+        formData.url,
+        formData.customTitle || undefined,
+        formData.badge || undefined,
+        formData.description || undefined,
+        formData.isScheduled,
+        formData.scheduleStart || undefined,
+        formData.scheduleEnd || undefined
+      );
+      setFormData({
+        platform: "",
+        url: "",
+        customTitle: "",
+        badge: "",
+        description: "",
+        isScheduled: false,
+        scheduleStart: "",
+        scheduleEnd: "",
+      });
       onOpenChange(false);
     }
   };
 
   const handleCancel = () => {
     setSelectedPlatform(null);
-    setUrl("");
+    setFormData({
+      platform: "",
+      url: "",
+      customTitle: "",
+      badge: "",
+      description: "",
+      isScheduled: false,
+      scheduleStart: "",
+      scheduleEnd: "",
+    });
     onOpenChange(false);
   };
 
@@ -66,7 +114,7 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
                 </TabsTrigger>
               ))}
             </TabsList>
-            
+
             {PLATFORM_CATEGORIES.map((category) => (
               <TabsContent key={category.id} value={category.id} className="mt-4">
                 <ScrollArea className="h-[400px] pr-4">
@@ -79,7 +127,10 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
                           <Card
                             key={platform.id}
                             className="aspect-square flex flex-col items-center justify-center gap-2 cursor-pointer hover-elevate active-elevate-2 p-3 transition-all hover:shadow-lg"
-                            onClick={() => setSelectedPlatform(platform.id)}
+                            onClick={() => {
+                              setSelectedPlatform(platform.id);
+                              setFormData({ ...formData, platform: platform.id });
+                            }}
                             data-testid={`platform-${platform.id}`}
                           >
                             <Icon className="w-8 h-8" style={{ color: platform.color }} />
@@ -124,8 +175,8 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
                     id="customTitle"
                     type="text"
                     placeholder="e.g., My Portfolio, My Blog, etc."
-                    value={customTitle}
-                    onChange={(e) => setCustomTitle(e.target.value)}
+                    value={formData.customTitle}
+                    onChange={(e) => setFormData({ ...formData, customTitle: e.target.value })}
                     autoFocus
                     className="h-12 text-base"
                     data-testid="input-custom-title"
@@ -135,6 +186,65 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
                   </p>
                 </div>
               )}
+
+              <div className="space-y-2">
+                <Label>Badge (Optional)</Label>
+                <Select value={formData.badge} onValueChange={(value) => setFormData({ ...formData, badge: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="No badge" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No badge</SelectItem>
+                    <SelectItem value="new">NEW</SelectItem>
+                    <SelectItem value="hot">HOT</SelectItem>
+                    <SelectItem value="popular">POPULAR</SelectItem>
+                    <SelectItem value="limited">LIMITED</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Description (Optional)</Label>
+                <Input
+                  type="text"
+                  placeholder="Short description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="scheduled"
+                  checked={formData.isScheduled}
+                  onChange={(e) => setFormData({ ...formData, isScheduled: e.target.checked })}
+                  className="w-4 h-4"
+                />
+                <Label htmlFor="scheduled" className="cursor-pointer">Schedule this link</Label>
+              </div>
+
+              {formData.isScheduled && (
+                <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg">
+                  <div className="space-y-2">
+                    <Label>Start Date</Label>
+                    <Input
+                      type="datetime-local"
+                      value={formData.scheduleStart}
+                      onChange={(e) => setFormData({ ...formData, scheduleStart: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>End Date</Label>
+                    <Input
+                      type="datetime-local"
+                      value={formData.scheduleEnd}
+                      onChange={(e) => setFormData({ ...formData, scheduleEnd: e.target.value })}
+                    />
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-3">
                 <Label htmlFor="url" className="text-base font-semibold">
                   {selectedPlatform === 'custom' ? 'URL' : 'Profile URL'}
@@ -143,14 +253,14 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
                   id="url"
                   type="url"
                   placeholder={selectedPlatformData?.placeholder}
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
+                  value={formData.url}
+                  onChange={(e) => setFormData({ ...formData, url: e.target.value })}
                   autoFocus={selectedPlatform !== 'custom'}
                   className="h-12 text-base"
                   data-testid="input-url"
                 />
                 <p className="text-xs text-muted-foreground">
-                  {selectedPlatform === 'custom' 
+                  {selectedPlatform === 'custom'
                     ? 'Enter the complete URL for this link'
                     : 'Enter the complete URL to your profile on this platform'
                   }
@@ -180,7 +290,7 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
           {selectedPlatform && (
             <Button
               onClick={handleAdd}
-              disabled={!url.trim()}
+              disabled={!formData.url.trim()}
               data-testid="button-add"
               className="bg-primary hover:bg-primary/90"
             >

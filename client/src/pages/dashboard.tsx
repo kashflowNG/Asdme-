@@ -205,11 +205,25 @@ export default function Dashboard() {
   });
 
   const createLinkMutation = useMutation({
-    mutationFn: async (data: { platform: string; url: string; customTitle?: string }) => {
+    mutationFn: async (data: { 
+      platform: string; 
+      url: string; 
+      customTitle?: string;
+      badge?: string;
+      description?: string;
+      isScheduled?: boolean;
+      scheduleStart?: string;
+      scheduleEnd?: string;
+    }) => {
       return await apiRequest("POST", "/api/links", {
         platform: data.platform,
         url: data.url,
         customTitle: data.customTitle,
+        badge: data.badge,
+        description: data.description,
+        isScheduled: data.isScheduled,
+        scheduleStart: data.scheduleStart,
+        scheduleEnd: data.scheduleEnd,
         order: links.length,
       });
     },
@@ -309,8 +323,26 @@ export default function Dashboard() {
     updateProfileMutation.mutate({ [field]: value });
   };
 
-  const handleAddLink = (platform: string, url: string, customTitle?: string) => {
-    createLinkMutation.mutate({ platform, url, customTitle });
+  const handleAddLink = (
+    platform: string, 
+    url: string, 
+    customTitle?: string,
+    badge?: string,
+    description?: string,
+    isScheduled?: boolean,
+    scheduleStart?: string,
+    scheduleEnd?: string
+  ) => {
+    createLinkMutation.mutate({ 
+      platform, 
+      url, 
+      customTitle,
+      badge,
+      description,
+      isScheduled,
+      scheduleStart,
+      scheduleEnd,
+    });
   };
 
   const handleSaveProfile = () => {
