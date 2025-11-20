@@ -3,121 +3,33 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import {
   insertProfileSchema, updateProfileSchema, insertSocialLinkSchema,
-  insertLinkGroupSchema, insertContentBlockSchema, insertFormSubmissionSchema,
-  signupSchema, loginSchema
+  insertLinkGroupSchema, insertContentBlockSchema, insertFormSubmissionSchema
 } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
 import path from "path";
 import { promises as fs } from "fs";
 import crypto from "crypto";
-import bcrypt from "bcrypt";
-import passport from "passport";
-import { csrfProtection } from "./index";
-
-function requireAuth(req: any, res: any, next: any) {
-  if (req.isAuthenticated()) {
-    return next();
-  }
-  res.status(401).json({ error: "Unauthorized - please log in" });
-}
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // CSRF token endpoint
-  app.get("/api/csrf-token", csrfProtection, (req, res) => {
-    res.json({ csrfToken: (req as any).csrfToken() });
-  });
-
-  app.post("/api/auth/signup", csrfProtection, async (req, res) => {
-    try {
-      const { username, password } = signupSchema.parse(req.body);
-
-      const existingUser = await storage.getUserByUsername(username);
-      if (existingUser) {
-        return res.status(409).json({ error: "Username already taken" });
-      }
-
-      const existingProfile = await storage.getProfileByUsername(username);
-      if (existingProfile) {
-        return res.status(409).json({ error: "Username already taken" });
-      }
-
-      const passwordHash = await bcrypt.hash(password, 10);
-      const user = await storage.createUser({ username, passwordHash });
-
-      const profile = await storage.createProfile({
+  // Get or create default profile for anonymous access
+  app.get("/api/auth/me", async (_req, res) => {
+    let profile = await storage.getDefaultProfile();
+    if (!profile) {
+      // Create a default profile if it doesn't exist
+      const user = await storage.createUser({ username: "anonymous", passwordHash: "" });
+      profile = await storage.createProfile({
         userId: user.id,
-        username: user.username,
+        username: "anonymous",
         bio: `Welcome to my link hub!`,
         avatar: "",
         theme: "neon",
         primaryColor: "#8B5CF6",
         backgroundColor: "#0A0A0F",
       });
-
-      req.login({ id: user.id, username: user.username }, (err) => {
-        if (err) {
-          console.error("Login after signup error:", err);
-          return res.status(500).json({ error: "Failed to log in after signup" });
-        }
-        res.status(201).json({ user: { id: user.id, username: user.username }, profile });
-      });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Invalid signup data", details: error.errors });
-      }
-      console.error("Signup error:", error);
-      res.status(500).json({ error: "Failed to create account" });
     }
-  });
-
-  app.post("/api/auth/login", csrfProtection, (req, res, next) => {
-    try {
-      loginSchema.parse(req.body);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Invalid login data", details: error.errors });
-      }
-    }
-
-    passport.authenticate("local", (err: any, user: any, info: any) => {
-      if (err) {
-        return res.status(500).json({ error: "Authentication failed" });
-      }
-      if (!user) {
-        return res.status(401).json({ error: info?.message || "Invalid username or password" });
-      }
-      req.login(user, (err) => {
-        if (err) {
-          return res.status(500).json({ error: "Login failed" });
-        }
-        res.json({ user: { id: user.id, username: user.username } });
-      });
-    })(req, res, next);
-  });
-
-  app.post("/api/auth/logout", csrfProtection, (req, res) => {
-    req.logout((err) => {
-      if (err) {
-        return res.status(500).json({ error: "Logout failed" });
-      }
-      req.session.destroy((destroyErr) => {
-        if (destroyErr) {
-          console.error("Session destroy error:", destroyErr);
-        }
-        res.clearCookie('connect.sid');
-        res.json({ success: true });
-      });
-    });
-  });
-
-  app.get("/api/auth/me", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: "Not authenticated" });
-    }
-    const profile = await storage.getProfileByUserId(req.user!.id);
     res.json({ 
-      user: { id: req.user!.id, username: req.user!.username },
+      user: { id: profile.userId, username: profile.username },
       profile 
     });
   });
@@ -175,9 +87,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get the current user's profile
-  app.get("/api/profiles/me", requireAuth, async (req, res) => {
+  app.get("/api/profiles/me", async (_req, res) => {
     try {
-      const profile = await storage.getProfileByUserId(req.user!.id);
+      let profile = await storage.getDefaultProfile();
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -202,15 +114,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update profile
-  app.patch("/api/profiles/me", requireAuth, async (req, res) => {
+  app.patch("/api/profiles/me", async (_req, res) => {
     try {
-      const profile = await storage.getProfileByUserId(req.user!.id);
+      const profile = await storage.getDefaultProfile();
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
 
       // Validate partial profile data
-      const updates = updateProfileSchema.parse(req.body);
+      const updates = updateProfileSchema.parse(_req.body);
 
       // Check username uniqueness if updating username
       if (updates.username && updates.username !== profile.username) {
@@ -236,9 +148,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get social links for current user's profile
-  app.get("/api/links", requireAuth, async (req, res) => {
+  app.get("/api/links", async (_req, res) => {
     try {
-      const profile = await storage.getProfileByUserId(req.user!.id);
+      const profile = await storage.getDefaultProfile();
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -268,9 +180,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create a new social link
-  app.post("/api/links", requireAuth, async (req, res) => {
+  app.post("/api/links", async (req, res) => {
     try {
-      const profile = await storage.getProfileByUserId(req.user!.id);
+      const profile = await storage.getDefaultProfile();
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -289,7 +201,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Delete a social link
-  app.delete("/api/links/:id", requireAuth, async (req, res) => {
+  app.delete("/api/links/:id", async (req, res) => {
     try {
       const { id } = req.params;
       const deleted = await storage.deleteSocialLink(id);
@@ -305,9 +217,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Reorder social links
-  app.post("/api/links/reorder", requireAuth, async (req, res) => {
+  app.post("/api/links/reorder", async (req, res) => {
     try {
-      const profile = await storage.getProfileByUserId(req.user!.id);
+      const profile = await storage.getDefaultProfile();
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -376,9 +288,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Analytics endpoint
-  app.get("/api/analytics", requireAuth, async (req, res) => {
+  app.get("/api/analytics", async (_req, res) => {
     try {
-      const profile = await storage.getProfileByUserId(req.user!.id);
+      const profile = await storage.getDefaultProfile();
       if (!profile) {
         return res.status(404).send("Profile not found");
       }
@@ -391,9 +303,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Detailed analytics endpoint
-  app.get("/api/analytics/detailed", requireAuth, async (req, res) => {
+  app.get("/api/analytics/detailed", async (_req, res) => {
     try {
-      const profile = await storage.getProfileByUserId(req.user!.id);
+      const profile = await storage.getDefaultProfile();
       if (!profile) {
         return res.status(404).send("Profile not found");
       }

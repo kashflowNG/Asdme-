@@ -9,26 +9,6 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-let cachedCsrfToken: string | null = null;
-
-async function getCsrfToken(): Promise<string> {
-  if (cachedCsrfToken) {
-    return cachedCsrfToken;
-  }
-
-  const res = await fetch("/api/csrf-token", {
-    credentials: "include",
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch CSRF token");
-  }
-
-  const data = await res.json();
-  cachedCsrfToken = data.csrfToken;
-  return cachedCsrfToken;
-}
-
 export async function apiRequest(
   method: string,
   url: string,
@@ -38,27 +18,12 @@ export async function apiRequest(
     "Content-Type": "application/json",
   };
 
-  // Get CSRF token for state-changing operations and add it to the header
-  if (method !== "GET" && method !== "HEAD") {
-    try {
-      const csrfToken = await getCsrfToken();
-      headers["X-CSRF-Token"] = csrfToken;
-    } catch (error) {
-      console.warn("Failed to fetch CSRF token:", error);
-    }
-  }
-
   const res = await fetch(url, {
     method,
     headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
-
-  // Clear cached CSRF token if we get a 403 (invalid token)
-  if (res.status === 403) {
-    cachedCsrfToken = null;
-  }
 
   await throwIfResNotOk(res);
   return res;
