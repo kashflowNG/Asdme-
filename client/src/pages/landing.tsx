@@ -3,12 +3,18 @@ import { Button } from "@/components/ui/button";
 import { NeropageLogo } from "@/components/NeropageLogo";
 import { ArrowRight, Sparkles, Zap, Shield } from "lucide-react";
 import { useLocation } from "wouter";
+import { Helmet } from "react-helmet";
 
 export default function Landing() {
   const [, navigate] = useLocation();
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    <>
+      <Helmet>
+        <script async data-cfasync="false" src="//pl28091865.effectivegatecpm.com/d3086215aaf6d1aac4a8cf2c4eda801b/invoke.js"></script>
+      </Helmet>
+
+      <div className="min-h-screen bg-background relative overflow-hidden">
       {/* Galaxy Background Animation */}
       <div className="fixed inset-0 pointer-events-none">
         {/* Animated stars/particles */}
@@ -191,7 +197,15 @@ export default function Landing() {
         <p className="text-sm text-muted-foreground mt-16 text-center">
           Join thousands of creators in the neon revolution
         </p>
+
+        {/* Ad Placement */}
+        <div className="flex justify-center py-6 mt-8">
+          <div className="w-full max-w-sm mx-auto">
+            <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b" className="rounded-lg overflow-hidden"></div>
+          </div>
+        </div>
       </div>
     </div>
+    </>
   );
 }

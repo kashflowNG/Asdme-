@@ -71,6 +71,7 @@ export default function Signup() {
       <Helmet>
         <title>Sign Up - Neropage</title>
         <meta name="description" content="Create your Neropage account and start sharing your links" />
+        <script async data-cfasync="false" src="//pl28091865.effectivegatecpm.com/d3086215aaf6d1aac4a8cf2c4eda801b/invoke.js"></script>
       </Helmet>
 
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -164,6 +165,13 @@ export default function Signup() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Ad Placement */}
+          <div className="flex justify-center py-6">
+            <div className="w-full max-w-sm mx-auto">
+              <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b" className="rounded-lg overflow-hidden"></div>
+            </div>
+          </div>
         </div>
       </div>
     </>
