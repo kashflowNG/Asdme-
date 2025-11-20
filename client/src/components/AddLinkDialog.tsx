@@ -266,12 +266,12 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
 
               <div className="space-y-2">
                 <Label>Badge (Optional)</Label>
-                <Select value={formData.badge} onValueChange={(value) => setFormData({ ...formData, badge: value })}>
+                <Select value={formData.badge || "none"} onValueChange={(value) => setFormData({ ...formData, badge: value === "none" ? "" : value })}>
                   <SelectTrigger>
                     <SelectValue placeholder="No badge" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No badge</SelectItem>
+                    <SelectItem value="none">No badge</SelectItem>
                     <SelectItem value="new">NEW</SelectItem>
                     <SelectItem value="hot">HOT</SelectItem>
                     <SelectItem value="popular">POPULAR</SelectItem>
