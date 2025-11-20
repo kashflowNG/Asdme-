@@ -38,14 +38,11 @@ export async function apiRequest(
     "Content-Type": "application/json",
   };
 
-  let bodyData = data;
-
-  // Get CSRF token for state-changing operations and add it to the body
+  // Get CSRF token for state-changing operations and add it to the header
   if (method !== "GET" && method !== "HEAD") {
     try {
       const csrfToken = await getCsrfToken();
-      // Add CSRF token to the request body
-      bodyData = { ...data as any, _csrf: csrfToken };
+      headers["csrf-token"] = csrfToken;
     } catch (error) {
       console.warn("Failed to fetch CSRF token:", error);
     }
@@ -54,7 +51,7 @@ export async function apiRequest(
   const res = await fetch(url, {
     method,
     headers,
-    body: bodyData ? JSON.stringify(bodyData) : undefined,
+    body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
 
