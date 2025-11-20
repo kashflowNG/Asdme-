@@ -42,7 +42,7 @@ export async function apiRequest(
   if (method !== "GET" && method !== "HEAD") {
     try {
       const csrfToken = await getCsrfToken();
-      headers["csrf-token"] = csrfToken;
+      headers["X-CSRF-Token"] = csrfToken;
     } catch (error) {
       console.warn("Failed to fetch CSRF token:", error);
     }
