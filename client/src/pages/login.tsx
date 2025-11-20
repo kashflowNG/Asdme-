@@ -14,6 +14,7 @@ import { apiRequest } from "@/lib/queryClient";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
+  password: z.string().min(1, "Password is required"),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -27,6 +28,7 @@ export default function Login() {
     resolver: zodResolver(loginSchema),
     defaultValues: {
       username: "",
+      password: "",
     },
   });
 
@@ -48,7 +50,7 @@ export default function Login() {
     } catch (error: any) {
       toast({
         title: "Login failed",
-        description: error.message || "User not found",
+        description: error.message || "Invalid username or password",
         variant: "destructive",
       });
     } finally {
@@ -93,6 +95,23 @@ export default function Login() {
                   {form.formState.errors.username && (
                     <p className="text-sm text-destructive" data-testid="text-error-username">
                       {form.formState.errors.username.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    data-testid="input-password"
+                    placeholder="Enter your password"
+                    {...form.register("password")}
+                    disabled={isLoading}
+                  />
+                  {form.formState.errors.password && (
+                    <p className="text-sm text-destructive" data-testid="text-error-password">
+                      {form.formState.errors.password.message}
                     </p>
                   )}
                 </div>
