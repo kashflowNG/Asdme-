@@ -227,24 +227,25 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
             ))}
           </Tabs>
         ) : (
-          <div className="space-y-6">
-            <div className="flex items-center gap-4 p-6 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl border-2 border-primary/20">
-              {selectedPlatformData && (
-                <>
-                  <div className="p-3 bg-background rounded-lg shadow-sm">
-                    <selectedPlatformData.icon
-                      className="w-8 h-8"
-                      style={{ color: selectedPlatformData.color }}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-lg">{selectedPlatformData.name}</p>
-                    <p className="text-xs text-muted-foreground capitalize">{selectedPlatformData.category}</p>
-                  </div>
-                </>
-              )}
-            </div>
-            <div className="space-y-4">
+          <ScrollArea className="max-h-[60vh] pr-4">
+            <div className="space-y-6">
+              <div className="flex items-center gap-4 p-6 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl border-2 border-primary/20">
+                {selectedPlatformData && (
+                  <>
+                    <div className="p-3 bg-background rounded-lg shadow-sm">
+                      <selectedPlatformData.icon
+                        className="w-8 h-8"
+                        style={{ color: selectedPlatformData.color }}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-lg">{selectedPlatformData.name}</p>
+                      <p className="text-xs text-muted-foreground capitalize">{selectedPlatformData.category}</p>
+                    </div>
+                  </>
+                )}
+              </div>
+              <div className="space-y-4">
               {selectedPlatform === 'custom' && (
                 <div className="space-y-3">
                   <Label htmlFor="customTitle" className="text-base font-semibold">Link Title</Label>
@@ -368,7 +369,8 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
                 </p>
               </div>
             </div>
-          </div>
+            </div>
+          </ScrollArea>
         )}
 
         <DialogFooter className="gap-2 sm:gap-0">
