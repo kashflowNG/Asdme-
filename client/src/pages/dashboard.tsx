@@ -126,6 +126,24 @@ export default function Dashboard() {
   const [showQRDialog, setShowQRDialog] = useState(false);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
+  
+  // Reload ads when tab changes
+  useEffect(() => {
+    // Wait for tab content to render, then reload ad script
+    const timer = setTimeout(() => {
+      const adScript = document.createElement('script');
+      adScript.async = true;
+      adScript.setAttribute('data-cfasync', 'false');
+      adScript.src = '//pl28091865.effectivegatecpm.com/d3086215aaf6d1aac4a8cf2c4eda801b/invoke.js';
+      document.body.appendChild(adScript);
+      
+      return () => {
+        document.body.removeChild(adScript);
+      };
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [activeTab]);
   const [profileForm, setProfileForm] = useState({
     username: "",
     bio: "",
@@ -520,7 +538,7 @@ export default function Dashboard() {
               {/* Ad Placement - Overview Tab */}
               <div className="flex justify-center py-6">
                 <div className="w-full max-w-sm mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b" className="rounded-lg overflow-hidden"></div>
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-overview" className="rounded-lg overflow-hidden"></div>
                 </div>
               </div>
             </TabsContent>
@@ -646,7 +664,7 @@ export default function Dashboard() {
               {/* Ad Placement - Profile Tab */}
               <div className="flex justify-center py-6">
                 <div className="w-full max-w-sm mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b" className="rounded-lg overflow-hidden"></div>
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-profile" className="rounded-lg overflow-hidden"></div>
                 </div>
               </div>
             </TabsContent>
@@ -720,13 +738,11 @@ export default function Dashboard() {
                     </DndContext>
 
                     {/* Ad Placement - Bottom of links section */}
-                    {sortedLinks.length > 3 && (
-                      <div className="flex justify-center py-6 mt-6">
-                        <div className="w-full max-w-md mx-auto">
-                          <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-2" className="rounded-lg overflow-hidden"></div>
-                        </div>
+                    <div className="flex justify-center py-6 mt-6">
+                      <div className="w-full max-w-md mx-auto">
+                        <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-links" className="rounded-lg overflow-hidden"></div>
                       </div>
-                    )}
+                    </div>
                   </>
                 )}
               </Card>
@@ -752,7 +768,7 @@ export default function Dashboard() {
               {/* Ad Placement - Appearance Tab */}
               <div className="flex justify-center py-6">
                 <div className="w-full max-w-sm mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b" className="rounded-lg overflow-hidden"></div>
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-appearance" className="rounded-lg overflow-hidden"></div>
                 </div>
               </div>
             </TabsContent>
@@ -766,7 +782,7 @@ export default function Dashboard() {
               {/* Ad Placement - Advanced Tab */}
               <div className="flex justify-center py-6">
                 <div className="w-full max-w-sm mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b" className="rounded-lg overflow-hidden"></div>
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-advanced" className="rounded-lg overflow-hidden"></div>
                 </div>
               </div>
             </TabsContent>
