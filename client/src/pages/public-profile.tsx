@@ -516,7 +516,7 @@ export default function PublicProfile() {
                       className="animate-fade-in relative"
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
-                      {link.badge && (
+                      {link.badge && link.badge !== "none" && (
                         <div className="absolute -top-2 -right-2 z-10">
                           <Badge className="bg-gradient-to-r from-pink-500 to-purple-500 text-white border-0 shadow-lg">
                             {link.badge.toUpperCase()}

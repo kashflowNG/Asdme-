@@ -41,7 +41,7 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
     platform: "",
     url: "",
     customTitle: "",
-    badge: "",
+    badge: "none",
     description: "",
     isScheduled: false,
     scheduleStart: "",
@@ -59,7 +59,7 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
         platform: formData.platform,
         url: formData.url,
         customTitle: formData.customTitle || undefined,
-        badge: formData.badge || undefined,
+        badge: formData.badge === "none" ? undefined : formData.badge,
         description: formData.description || undefined,
         isScheduled: formData.isScheduled,
         scheduleStart: formData.scheduleStart || undefined,
@@ -75,7 +75,7 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
       platform: "",
       url: "",
       customTitle: "",
-      badge: "",
+      badge: "none",
       description: "",
       isScheduled: false,
       scheduleStart: "",
@@ -90,7 +90,7 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
       platform: "",
       url: "",
       customTitle: "",
-      badge: "",
+      badge: "none",
       description: "",
       isScheduled: false,
       scheduleStart: "",
@@ -266,7 +266,7 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
 
               <div className="space-y-2">
                 <Label>Badge (Optional)</Label>
-                <Select value={formData.badge || "none"} onValueChange={(value) => setFormData({ ...formData, badge: value === "none" ? "" : value })}>
+                <Select value={formData.badge} onValueChange={(value) => setFormData({ ...formData, badge: value })}>
                   <SelectTrigger>
                     <SelectValue placeholder="No badge" />
                   </SelectTrigger>
