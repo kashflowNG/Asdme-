@@ -71,29 +71,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/auth/login", csrfProtection, (req, res, next) => {
+  app.post("/api/auth/login", csrfProtection, async (req, res) => {
     try {
-      loginSchema.parse(req.body);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Invalid login data", details: error.errors });
-      }
-    }
-
-    passport.authenticate("local", (err: any, user: any, info: any) => {
-      if (err) {
-        return res.status(500).json({ error: "Authentication failed" });
-      }
+      const { username } = loginSchema.parse(req.body);
+      
+      const user = await storage.getUserByUsername(username);
       if (!user) {
-        return res.status(401).json({ error: info?.message || "Invalid username or password" });
+        return res.status(401).json({ error: "User not found" });
       }
-      req.login(user, (err) => {
+
+      req.login({ id: user.id, username: user.username }, (err) => {
         if (err) {
           return res.status(500).json({ error: "Login failed" });
         }
         res.json({ user: { id: user.id, username: user.username } });
       });
-    })(req, res, next);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid login data", details: error.errors });
+      }
+      res.status(500).json({ error: "Authentication failed" });
+    }
   });
 
   app.post("/api/auth/logout", csrfProtection, (req, res) => {
