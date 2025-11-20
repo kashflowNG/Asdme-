@@ -1,5 +1,5 @@
-import { 
-  type Profile, type InsertProfile, 
+import {
+  type Profile, type InsertProfile,
   type SocialLink, type InsertSocialLink,
   type LinkGroup, type InsertLinkGroup,
   type ContentBlock, type InsertContentBlock,
@@ -16,7 +16,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserById(id: string): Promise<User | undefined>;
-  
+
   // Profile methods
   getProfile(id: string): Promise<Profile | undefined>;
   getProfileByUsername(username: string): Promise<Profile | undefined>;
@@ -94,7 +94,7 @@ export class DatabaseStorage implements IStorage {
         linkClicks: [],
         profileViews: []
       };
-      
+
       // No database setup needed
       this.db = null as any;
     } else {
@@ -255,16 +255,16 @@ export class DatabaseStorage implements IStorage {
     if (this.memoryStore) {
       const current = this.memoryStore.profiles.get(id);
       if (!current) return undefined;
-      
+
       const updated = { ...current, ...updates };
       this.memoryStore.profiles.set(id, updated);
-      
+
       // Update username index if username changed
       if (updates.username && updates.username !== current.username) {
         this.memoryStore.profiles.delete(current.username);
         this.memoryStore.profiles.set(updates.username, updated);
       }
-      
+
       return updated;
     }
     try {
@@ -349,63 +349,147 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getLinkGroups(profileId: string): Promise<LinkGroup[]> {
-    return await this.db.select().from(linkGroups).where(eq(linkGroups.profileId, profileId)).orderBy(linkGroups.order);
+    if (this.memoryStore) {
+      return Array.from(this.memoryStore.linkGroups.values())
+        .filter(group => group.profileId === profileId)
+        .sort((a, b) => a.order - b.order);
+    }
+    try {
+      return await this.db.select().from(linkGroups).where(eq(linkGroups.profileId, profileId)).orderBy(linkGroups.order);
+    } catch (error) {
+      console.error("getLinkGroups error:", error);
+      return [];
+    }
   }
 
   async createLinkGroup(group: InsertLinkGroup): Promise<LinkGroup> {
+    if (this.memoryStore) {
+      const newGroup: LinkGroup = {
+        id: `group-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        ...group,
+      } as LinkGroup;
+      this.memoryStore.linkGroups.set(newGroup.id, newGroup);
+      return newGroup;
+    }
     const result = await this.db.insert(linkGroups).values(group).returning();
     return result[0];
   }
 
   async deleteLinkGroup(id: string): Promise<boolean> {
+    if (this.memoryStore) {
+      return this.memoryStore.linkGroups.delete(id);
+    }
     const result = await this.db.delete(linkGroups).where(eq(linkGroups.id, id)).returning();
     return result.length > 0;
   }
 
   async getContentBlocks(profileId: string): Promise<ContentBlock[]> {
-    return await this.db.select().from(contentBlocks).where(eq(contentBlocks.profileId, profileId)).orderBy(contentBlocks.order);
+    if (this.memoryStore) {
+      return Array.from(this.memoryStore.contentBlocks.values())
+        .filter(block => block.profileId === profileId)
+        .sort((a, b) => a.order - b.order);
+    }
+    try {
+      return await this.db.select().from(contentBlocks).where(eq(contentBlocks.profileId, profileId)).orderBy(contentBlocks.order);
+    } catch (error) {
+      console.error("getContentBlocks error:", error);
+      return [];
+    }
   }
 
   async createContentBlock(block: InsertContentBlock): Promise<ContentBlock> {
+    if (this.memoryStore) {
+      const newBlock: ContentBlock = {
+        id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        ...block,
+      } as ContentBlock;
+      this.memoryStore.contentBlocks.set(newBlock.id, newBlock);
+      return newBlock;
+    }
     const result = await this.db.insert(contentBlocks).values(block).returning();
     return result[0];
   }
 
   async updateContentBlock(id: string, updates: Partial<ContentBlock>): Promise<ContentBlock | undefined> {
+    if (this.memoryStore) {
+      const current = this.memoryStore.contentBlocks.get(id);
+      if (!current) return undefined;
+      const updated = { ...current, ...updates };
+      this.memoryStore.contentBlocks.set(id, updated);
+      return updated;
+    }
     const result = await this.db.update(contentBlocks).set(updates).where(eq(contentBlocks.id, id)).returning();
     return result[0];
   }
 
   async deleteContentBlock(id: string): Promise<boolean> {
+    if (this.memoryStore) {
+      return this.memoryStore.contentBlocks.delete(id);
+    }
     const result = await this.db.delete(contentBlocks).where(eq(contentBlocks.id, id)).returning();
     return result.length > 0;
   }
 
   async reorderContentBlocks(blocksToReorder: Array<{ id: string; order: number }>): Promise<void> {
+    if (this.memoryStore) {
+      for (const { id, order } of blocksToReorder) {
+        const block = this.memoryStore.contentBlocks.get(id);
+        if (block) {
+          block.order = order;
+          this.memoryStore.contentBlocks.set(id, block);
+        }
+      }
+      return;
+    }
     for (const { id, order } of blocksToReorder) {
       await this.db.update(contentBlocks).set({ order }).where(eq(contentBlocks.id, id));
     }
   }
 
   async getFormSubmissions(profileId: string): Promise<FormSubmission[]> {
-    return await this.db.select().from(formSubmissions).where(eq(formSubmissions.profileId, profileId));
+    if (this.memoryStore) {
+      return Array.from(this.memoryStore.formSubmissions.values())
+        .filter(submission => submission.profileId === profileId);
+    }
+    try {
+      return await this.db.select().from(formSubmissions).where(eq(formSubmissions.profileId, profileId));
+    } catch (error) {
+      console.error("getFormSubmissions error:", error);
+      return [];
+    }
   }
 
   async createFormSubmission(submission: InsertFormSubmission): Promise<FormSubmission> {
+    if (this.memoryStore) {
+      const newSubmission: FormSubmission = {
+        id: `submission-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        ...submission,
+      } as FormSubmission;
+      this.memoryStore.formSubmissions.set(newSubmission.id, newSubmission);
+      return newSubmission;
+    }
     const result = await this.db.insert(formSubmissions).values(submission).returning();
     return result[0];
   }
 
   async deleteFormSubmission(id: string): Promise<boolean> {
+    if (this.memoryStore) {
+      return this.memoryStore.formSubmissions.delete(id);
+    }
     const result = await this.db.delete(formSubmissions).where(eq(formSubmissions.id, id)).returning();
     return result.length > 0;
   }
 
   async trackLinkClick(linkId: string, userAgent?: string, referrer?: string): Promise<void> {
-    await this.db.update(socialLinks).set({ 
-      clicks: drizzleSql`${socialLinks.clicks} + 1` 
+    if (this.memoryStore) {
+      // In-memory tracking for link clicks
+      this.memoryStore.linkClicks.push({ linkId, timestamp: new Date().toISOString(), userAgent, referrer });
+      return;
+    }
+    await this.db.update(socialLinks).set({
+      clicks: drizzleSql`${socialLinks.clicks} + 1`
     }).where(eq(socialLinks.id, linkId));
-    
+
     await this.db.insert(linkClicks).values({
       linkId,
       timestamp: new Date().toISOString(),
@@ -415,10 +499,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async trackProfileView(profileId: string, userAgent?: string, referrer?: string): Promise<void> {
-    await this.db.update(profiles).set({ 
-      views: drizzleSql`${profiles.views} + 1` 
+    if (this.memoryStore) {
+      // In-memory tracking for profile views
+      this.memoryStore.profileViews.push({ profileId, timestamp: new Date().toISOString(), userAgent, referrer });
+      return;
+    }
+    await this.db.update(profiles).set({
+      views: drizzleSql`${profiles.views} + 1`
     }).where(eq(profiles.id, profileId));
-    
+
     await this.db.insert(profileViews).values({
       profileId,
       timestamp: new Date().toISOString(),
@@ -428,11 +517,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getLinkAnalytics(linkId: string): Promise<{ clicks: number }> {
+    if (this.memoryStore) {
+      const clicks = this.memoryStore.linkClicks.filter(click => click.linkId === linkId).length;
+      return { clicks };
+    }
     const link = await this.getSocialLink(linkId);
     return { clicks: link?.clicks || 0 };
   }
 
   async getProfileAnalytics(profileId: string): Promise<{ views: number; totalClicks: number; linkCount: number }> {
+    if (this.memoryStore) {
+      const views = this.memoryStore.profileViews.filter(view => view.profileId === profileId).length;
+      const links = await this.getSocialLinks(profileId); // This will fetch links from memory if in-memory is used
+      const totalClicks = links.reduce((sum, link) => sum + link.clicks, 0);
+      return {
+        views,
+        totalClicks,
+        linkCount: links.length,
+      };
+    }
     const profile = await this.getProfile(profileId);
     const links = await this.getSocialLinks(profileId);
     const totalClicks = links.reduce((sum, link) => sum + link.clicks, 0);
@@ -452,6 +555,30 @@ export class DatabaseStorage implements IStorage {
     topLinks: Array<{ platform: string; url: string; clicks: number }>;
     recentViews: Array<{ timestamp: string; userAgent?: string; referrer?: string }>;
   }> {
+    if (this.memoryStore) {
+      const views = this.memoryStore.profileViews.filter(view => view.profileId === profileId);
+      const links = await this.getSocialLinks(profileId); // This will fetch links from memory if in-memory is used
+      const submissions = await this.getFormSubmissions(profileId); // This will fetch submissions from memory if in-memory is used
+
+      const totalClicks = links.reduce((sum, link) => sum + link.clicks, 0);
+      const topLinks = links
+        .sort((a, b) => b.clicks - a.clicks)
+        .slice(0, 5)
+        .map(link => ({ platform: link.platform, url: link.url, clicks: link.clicks }));
+
+      return {
+        totalViews: views.length,
+        totalClicks,
+        linkCount: links.length,
+        formSubmissions: submissions.length,
+        topLinks,
+        recentViews: views.map(v => ({
+          timestamp: v.timestamp,
+          userAgent: v.userAgent || undefined,
+          referrer: v.referrer || undefined,
+        })),
+      };
+    }
     const profile = await this.getProfile(profileId);
     const links = await this.getSocialLinks(profileId);
     const submissions = await this.getFormSubmissions(profileId);

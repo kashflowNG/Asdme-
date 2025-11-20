@@ -12,8 +12,76 @@ import { promises as fs } from "fs";
 import crypto from "crypto";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Get or create default profile for anonymous access
+  // Login endpoint
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ error: "Username and password are required" });
+      }
+
+      // For now, auto-login with any credentials (simplified auth)
+      // In production, you would verify password hash
+      let profile = await storage.getProfileByUsername(username);
+      
+      if (!profile) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      res.json({ 
+        user: { id: profile.userId, username: profile.username },
+        profile 
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Login failed" });
+    }
+  });
+
+  // Signup endpoint
+  app.post("/api/auth/signup", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ error: "Username and password are required" });
+      }
+
+      // Check if username already exists
+      const existing = await storage.getProfileByUsername(username);
+      if (existing) {
+        return res.status(409).json({ error: "Username already taken" });
+      }
+
+      // Create user and profile
+      const user = await storage.createUser({ 
+        username, 
+        passwordHash: password // In production, hash this with bcrypt
+      });
+      
+      const profile = await storage.createProfile({
+        userId: user.id,
+        username,
+        bio: `Welcome to my link hub!`,
+        avatar: "",
+        theme: "neon",
+        primaryColor: "#8B5CF6",
+        backgroundColor: "#0A0A0F",
+      });
+
+      res.status(201).json({ 
+        user: { id: user.id, username: user.username },
+        profile 
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Signup failed" });
+    }
+  });
+
+  // Get authenticated user
   app.get("/api/auth/me", async (_req, res) => {
+    // For now, return the default profile
+    // In production, you would verify session/token
     let profile = await storage.getDefaultProfile();
     if (!profile) {
       // Create a default profile if it doesn't exist

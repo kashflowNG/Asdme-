@@ -12,7 +12,7 @@ export function SocialLinkButton({ platformId, url, customTitle, onClick }: Soci
   const platform = getPlatform(platformId);
 
   // Handle custom links or unknown platforms
-  if (!platform) {
+  if (!platform || platformId === 'custom') {
     return (
       <a
         href={url}
