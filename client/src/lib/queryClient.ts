@@ -12,21 +12,46 @@ async function throwIfResNotOk(res: Response) {
 export async function apiRequest(
   method: string,
   url: string,
-  data?: unknown | undefined,
-): Promise<Response> {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
+  data?: any
+): Promise<any> {
+  const options: RequestInit = {
+    method,
+    headers: data instanceof FormData ? {} : {
+      "Content-Type": "application/json",
+    },
+    credentials: "include", // Important: include cookies in requests
   };
 
-  const res = await fetch(url, {
-    method,
-    headers,
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
+  if (data) {
+    options.body = data instanceof FormData ? data : JSON.stringify(data);
+  }
 
-  await throwIfResNotOk(res);
-  return res;
+  const response = await fetch(url, options);
+
+  if (!response.ok) {
+    if (response.status >= 500) {
+      throw new Error(`Server error: ${response.statusText}`);
+    }
+
+    let errorMessage = `Request failed: ${response.statusText}`;
+    try {
+      const errorData = await response.json();
+      if (errorData.error) {
+        errorMessage = errorData.error;
+      }
+    } catch {
+      // If parsing fails, use the default error message
+    }
+
+    throw new Error(errorMessage);
+  }
+
+  // Handle 204 No Content
+  if (response.status === 204) {
+    return null;
+  }
+
+  return response.json();
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";

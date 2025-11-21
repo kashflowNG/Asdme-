@@ -140,7 +140,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get authenticated user
   app.get("/api/auth/me", async (req, res) => {
     try {
-      console.log('Session check - userId:', req.session.userId, 'username:', req.session.username);
+      console.log('Session check - sessionID:', req.sessionID, 'userId:', req.session.userId, 'username:', req.session.username);
+      console.log('Cookies:', req.headers.cookie);
       
       // Check if user is logged in via session
       if (req.session.userId && req.session.username) {
@@ -155,7 +156,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log('Profile not found for username:', req.session.username);
         }
       } else {
-        console.log('No session data found');
+        console.log('No session data found - sessionID:', req.sessionID);
       }
 
       // No session - return 401
