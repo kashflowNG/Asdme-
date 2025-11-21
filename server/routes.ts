@@ -10,8 +10,28 @@ import multer from "multer";
 import path from "path";
 import { promises as fs } from "fs";
 import crypto from "crypto";
+import session from "express-session";
+
+declare module 'express-session' {
+  interface SessionData {
+    userId?: string;
+    username?: string;
+  }
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Configure session middleware
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'neropage-secret-key-change-in-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    }
+  }));
+
   // Login endpoint
   app.post("/api/auth/login", async (req, res) => {
     try {
@@ -28,6 +48,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!profile) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
+
+      // Set session
+      req.session.userId = profile.userId;
+      req.session.username = profile.username;
 
       res.json({ 
         user: { id: profile.userId, username: profile.username },
@@ -69,6 +93,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         backgroundColor: "#0A0A0F",
       });
 
+      // Set session for newly created user
+      req.session.userId = user.id;
+      req.session.username = user.username;
+
       res.status(201).json({ 
         user: { id: user.id, username: user.username },
         profile 
@@ -79,33 +107,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get authenticated user
-  app.get("/api/auth/me", async (_req, res) => {
-    // For now, return the default profile
-    // In production, you would verify session/token
-    let profile = await storage.getDefaultProfile();
-    if (!profile) {
-      // Create a default profile if it doesn't exist
-      const user = await storage.createUser({ username: "anonymous", passwordHash: "" });
-      profile = await storage.createProfile({
-        userId: user.id,
-        username: "anonymous",
-        bio: `Welcome to my link hub!`,
-        avatar: "",
-        theme: "neon",
-        primaryColor: "#8B5CF6",
-        backgroundColor: "#0A0A0F",
-      });
+  app.get("/api/auth/me", async (req, res) => {
+    try {
+      // Check if user is logged in via session
+      if (req.session.userId && req.session.username) {
+        const profile = await storage.getProfileByUsername(req.session.username);
+        if (profile) {
+          return res.json({ 
+            user: { id: profile.userId, username: profile.username },
+            profile 
+          });
+        }
+      }
+
+      // No session - return 401
+      return res.status(401).json({ error: "Not authenticated" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get user" });
     }
-    res.json({ 
-      user: { id: profile.userId, username: profile.username },
-      profile 
-    });
   });
 
   // Logout endpoint
-  app.post("/api/auth/logout", async (_req, res) => {
+  app.post("/api/auth/logout", async (req, res) => {
     try {
-      res.json({ success: true, message: "Logged out successfully" });
+      req.session.destroy((err) => {
+        if (err) {
+          return res.status(500).json({ error: "Logout failed" });
+        }
+        res.clearCookie('connect.sid');
+        res.json({ success: true, message: "Logged out successfully" });
+      });
     } catch (error) {
       res.status(500).json({ error: "Logout failed" });
     }
@@ -164,9 +195,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get the current user's profile
-  app.get("/api/profiles/me", async (_req, res) => {
+  app.get("/api/profiles/me", async (req, res) => {
     try {
-      let profile = await storage.getDefaultProfile();
+      if (!req.session.username) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      let profile = await storage.getProfileByUsername(req.session.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -225,9 +260,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get social links for current user's profile
-  app.get("/api/links", async (_req, res) => {
+  app.get("/api/links", async (req, res) => {
     try {
-      const profile = await storage.getDefaultProfile();
+      if (!req.session.username) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const profile = await storage.getProfileByUsername(req.session.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
