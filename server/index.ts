@@ -1,6 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
+import cors from "cors";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { connectDB } from "./storage";
 
 const app = express();
 app.set('trust proxy', 1); // Trust first proxy (Vite dev server)
@@ -10,6 +12,14 @@ declare module 'http' {
     rawBody: unknown
   }
 }
+
+// Enable CORS with credentials
+app.use(cors({
+  origin: true, // Allow all origins in development
+  credentials: true, // Allow cookies to be sent
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
 app.use(express.json({
   verify: (req, _res, buf) => {
