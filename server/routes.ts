@@ -26,14 +26,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     secret: process.env.SESSION_SECRET || 'neropage-secret-key-change-in-production',
     resave: false,
     saveUninitialized: false,
-    name: 'connect.sid',
-    proxy: true,
+    name: 'neropage.sid',
+    proxy: false, // Disable proxy mode since we're in dev
     cookie: {
       secure: false,
       httpOnly: true,
       maxAge: 30 * 24 * 60 * 60 * 1000,
       sameSite: 'lax',
-      path: '/'
+      path: '/',
+      domain: undefined // Let browser handle domain
     },
     rolling: true
   }));
@@ -233,7 +234,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (err) {
           return res.status(500).json({ error: "Logout failed" });
         }
-        res.clearCookie('connect.sid');
+        res.clearCookie('neropage.sid');
         res.json({ success: true, message: "Logged out successfully" });
       });
     } catch (error) {
