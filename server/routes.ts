@@ -25,13 +25,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     secret: process.env.SESSION_SECRET || 'neropage-secret-key-change-in-production',
     resave: false,
     saveUninitialized: false,
-    name: 'sessionId', // Use a specific cookie name
+    name: 'connect.sid', // Use default connect.sid name
+    proxy: true, // Trust the reverse proxy
     cookie: {
       secure: false, // Set to false for development
       httpOnly: true,
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       sameSite: 'lax',
-      path: '/' // Ensure cookie is available for all paths
+      path: '/',
+      domain: undefined // Let the browser set the domain
     },
     rolling: true // Extend session on each request
   }));
