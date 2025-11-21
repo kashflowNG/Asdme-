@@ -8,6 +8,26 @@ Neropage is a modern, neon-themed platform for creating personalized social medi
 
 **Target Use Case**: Content creators, influencers, and professionals who need a simple way to share multiple links through a single, visually appealing page.
 
+## Recent Changes (November 21, 2025)
+
+### Authentication System Overhaul
+- **Fixed Critical Issue**: Replaced all `getDefaultProfile()` calls with proper session-based authentication
+  - Previously, all logged-in users were modifying the same default profile
+  - Now each user only accesses and modifies their own profile data
+- **Session-Based Authorization**: All protected endpoints now verify `req.session.username` before allowing access
+- **Ownership Verification**: Added ownership checks to all destructive operations (delete/update) to prevent cross-account modifications
+- **Affected Endpoints**: Profile management, links, link groups, content blocks, form submissions, analytics, and file uploads
+
+### SEO Improvements
+- Updated meta title to: "Neropage - Your Ultimate Link-in-Bio Solution | All Your Links, One Page"
+- Enhanced meta description with better keywords and value proposition
+- Added additional Open Graph metadata (image dimensions, locale)
+- Improved Twitter Card metadata with creator and site tags
+
+### Known Limitations
+- Password verification is currently simplified (accepts any password) - this is by design for development
+- For production use, implement proper password hashing (bcrypt) and verification in the login endpoint
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.

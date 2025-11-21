@@ -196,8 +196,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Image upload endpoint
-  app.post("/api/upload-image", upload.single('image'), async (req, res) => {
+  // Image upload endpoint (with inline authentication before multer processes)
+  app.post("/api/upload-image", async (req, res, next) => {
+    // Check authentication before allowing file upload
+    if (!req.session.username) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    const profile = await storage.getProfileByUsername(req.session.username);
+    if (!profile) {
+      return res.status(404).json({ error: "Profile not found" });
+    }
+    // Authentication successful, proceed with file upload
+    next();
+  }, upload.single('image'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No image file provided" });
@@ -268,7 +279,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update profile
   app.patch("/api/profiles/me", async (_req, res) => {
     try {
-      const profile = await storage.getDefaultProfile();
+      if (!_req.session.username) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const profile = await storage.getProfileByUsername(_req.session.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -288,6 +303,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!updatedProfile) {
         return res.status(404).json({ error: "Profile not found" });
+      }
+
+      // Update session username if username was changed
+      if (updates.username) {
+        _req.session.username = updates.username;
       }
 
       res.json(updatedProfile);
@@ -338,7 +358,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create a new social link
   app.post("/api/links", async (req, res) => {
     try {
-      const profile = await storage.getDefaultProfile();
+      if (!req.session.username) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const profile = await storage.getProfileByUsername(req.session.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -371,7 +395,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete a social link
   app.delete("/api/links/:id", async (req, res) => {
     try {
+      if (!req.session.username) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
       const { id } = req.params;
+      const profile = await storage.getProfileByUsername(req.session.username);
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+
+      // Verify link belongs to profile
+      const link = await storage.getSocialLink(id);
+      if (!link || link.profileId !== profile.id) {
+        return res.status(404).json({ error: "Link not found" });
+      }
+
       const deleted = await storage.deleteSocialLink(id);
 
       if (!deleted) {
@@ -387,7 +426,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Reorder social links
   app.post("/api/links/reorder", async (req, res) => {
     try {
-      const profile = await storage.getDefaultProfile();
+      if (!req.session.username) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const profile = await storage.getProfileByUsername(req.session.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -458,7 +501,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Analytics endpoint
   app.get("/api/analytics", async (_req, res) => {
     try {
-      const profile = await storage.getDefaultProfile();
+      if (!_req.session.username) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const profile = await storage.getProfileByUsername(_req.session.username);
       if (!profile) {
         return res.status(404).send("Profile not found");
       }
@@ -473,7 +520,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Detailed analytics endpoint
   app.get("/api/analytics/detailed", async (_req, res) => {
     try {
-      const profile = await storage.getDefaultProfile();
+      if (!_req.session.username) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const profile = await storage.getProfileByUsername(_req.session.username);
       if (!profile) {
         return res.status(404).send("Profile not found");
       }
@@ -486,16 +537,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
 
-  // Update specific profile (by ID)
+  // Update specific profile (by ID) - deprecated, use /api/profiles/me instead
   app.patch("/api/profiles/:id", async (req, res) => {
     try {
+      if (!req.session.username) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
       const { id } = req.params;
+      const profile = await storage.getProfileByUsername(req.session.username);
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+
+      // Verify user can only update their own profile
+      if (profile.id !== id) {
+        return res.status(403).json({ error: "Cannot update another user's profile" });
+      }
+
       const updates = updateProfileSchema.parse(req.body);
 
       // Check username uniqueness if updating username
-      if (updates.username) {
+      if (updates.username && updates.username !== profile.username) {
         const existing = await storage.getProfileByUsername(updates.username);
-        if (existing && existing.id !== id) {
+        if (existing) {
           return res.status(409).json({ error: "Username already taken" });
         }
       }
@@ -504,6 +569,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!updatedProfile) {
         return res.status(404).json({ error: "Profile not found" });
+      }
+
+      // Update session username if username was changed
+      if (updates.username) {
+        req.session.username = updates.username;
       }
 
       res.json(updatedProfile);
@@ -518,8 +588,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update a social link
   app.patch("/api/links/:id", async (req, res) => {
     try {
+      if (!req.session.username) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
       const { id } = req.params;
-      const profile = await storage.getDefaultProfile();
+      const profile = await storage.getProfileByUsername(req.session.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -542,7 +616,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get link groups
   app.get("/api/link-groups", async (_req, res) => {
     try {
-      const profile = await storage.getDefaultProfile();
+      if (!_req.session.username) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const profile = await storage.getProfileByUsername(_req.session.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -557,7 +635,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create link group
   app.post("/api/link-groups", async (req, res) => {
     try {
-      const profile = await storage.getDefaultProfile();
+      if (!req.session.username) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const profile = await storage.getProfileByUsername(req.session.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -577,7 +659,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete link group
   app.delete("/api/link-groups/:id", async (req, res) => {
     try {
+      if (!req.session.username) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
       const { id } = req.params;
+      const profile = await storage.getProfileByUsername(req.session.username);
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+
+      // Verify ownership by checking if group belongs to this profile
+      const groups = await storage.getLinkGroups(profile.id);
+      const ownsGroup = groups.some(g => g.id === id);
+      if (!ownsGroup) {
+        return res.status(404).json({ error: "Group not found" });
+      }
+
       const deleted = await storage.deleteLinkGroup(id);
 
       if (!deleted) {
@@ -595,7 +693,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get content blocks
   app.get("/api/content-blocks", async (_req, res) => {
     try {
-      const profile = await storage.getDefaultProfile();
+      if (!_req.session.username) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const profile = await storage.getProfileByUsername(_req.session.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -627,7 +729,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create content block
   app.post("/api/content-blocks", async (req, res) => {
     try {
-      const profile = await storage.getDefaultProfile();
+      if (!req.session.username) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const profile = await storage.getProfileByUsername(req.session.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -647,10 +753,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update content block
   app.patch("/api/content-blocks/:id", async (req, res) => {
     try {
+      if (!req.session.username) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
       const { id } = req.params;
-      const profile = await storage.getDefaultProfile();
+      const profile = await storage.getProfileByUsername(req.session.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
+      }
+
+      // Verify ownership by checking if block belongs to this profile
+      const blocks = await storage.getContentBlocks(profile.id);
+      const ownsBlock = blocks.some(b => b.id === id);
+      if (!ownsBlock) {
+        return res.status(404).json({ error: "Block not found" });
       }
 
       const updatedBlock = await storage.updateContentBlock(id, req.body);
@@ -668,7 +785,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete content block
   app.delete("/api/content-blocks/:id", async (req, res) => {
     try {
+      if (!req.session.username) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
       const { id } = req.params;
+      const profile = await storage.getProfileByUsername(req.session.username);
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+
+      // Verify ownership by checking if block belongs to this profile
+      const blocks = await storage.getContentBlocks(profile.id);
+      const ownsBlock = blocks.some(b => b.id === id);
+      if (!ownsBlock) {
+        return res.status(404).json({ error: "Block not found" });
+      }
+
       const deleted = await storage.deleteContentBlock(id);
 
       if (!deleted) {
@@ -684,7 +817,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Reorder content blocks
   app.post("/api/content-blocks/reorder", async (req, res) => {
     try {
-      const profile = await storage.getDefaultProfile();
+      if (!req.session.username) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const profile = await storage.getProfileByUsername(req.session.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -697,6 +834,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const { blocks } = reorderSchema.parse(req.body);
+
+      // Verify all blocks belong to this profile
+      const profileBlocks = await storage.getContentBlocks(profile.id);
+      const profileBlockIds = new Set(profileBlocks.map(b => b.id));
+
+      for (const block of blocks) {
+        if (!profileBlockIds.has(block.id)) {
+          return res.status(403).json({ error: "Cannot reorder blocks from another profile" });
+        }
+      }
+
       await storage.reorderContentBlocks(blocks);
       res.status(200).json({ success: true });
     } catch (error) {
@@ -712,7 +860,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get form submissions
   app.get("/api/form-submissions", async (_req, res) => {
     try {
-      const profile = await storage.getDefaultProfile();
+      if (!_req.session.username) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const profile = await storage.getProfileByUsername(_req.session.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -727,7 +879,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Webhook configuration
   app.post("/api/webhooks/configure", async (req, res) => {
     try {
-      const profile = await storage.getDefaultProfile();
+      if (!req.session.username) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const profile = await storage.getProfileByUsername(req.session.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -773,7 +929,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete form submission
   app.delete("/api/form-submissions/:id", async (req, res) => {
     try {
+      if (!req.session.username) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
       const { id } = req.params;
+      const profile = await storage.getProfileByUsername(req.session.username);
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+
+      // Verify ownership by checking if submission belongs to this profile
+      const submissions = await storage.getFormSubmissions(profile.id);
+      const ownsSubmission = submissions.some(s => s.id === id);
+      if (!ownsSubmission) {
+        return res.status(404).json({ error: "Submission not found" });
+      }
+
       const deleted = await storage.deleteFormSubmission(id);
 
       if (!deleted) {
