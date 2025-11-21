@@ -6,11 +6,15 @@ import { Search, Share2, Eye } from "lucide-react";
 import type { Profile } from "@shared/schema";
 
 interface SEOEditorProps {
-  profile: Profile;
+  profile: Profile | null;
   onUpdate: (updates: Partial<Profile>) => void;
 }
 
 export function SEOEditor({ profile, onUpdate }: SEOEditorProps) {
+  if (!profile) {
+    return null;
+  }
+
   const profileUrl = `${window.location.origin}/user/${profile.username}`;
 
   return (

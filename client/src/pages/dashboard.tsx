@@ -632,7 +632,7 @@ export default function Dashboard() {
               </Card>
 
               <SEOEditor
-                profile={profile!}
+                profile={profile || null}
                 onUpdate={async (updates) => {
                   if (profile) {
                     await updateProfileMutation.mutateAsync(updates);

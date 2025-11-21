@@ -23,27 +23,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Configure session middleware
   app.use(session({
     secret: process.env.SESSION_SECRET || 'neropage-secret-key-change-in-production',
-    resave: false,
+    resave: true, // Changed to true to ensure session is saved
     saveUninitialized: false,
-    name: 'connect.sid', // Use default connect.sid name
-    proxy: true, // Trust the reverse proxy
+    name: 'connect.sid',
+    proxy: true,
     cookie: {
-      secure: false, // Set to false for development
-      httpOnly: true,
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-      sameSite: 'lax',
-      path: '/',
-      domain: undefined // Let the browser set the domain
+      secure: false,
+      httpOnly: false, // Changed to false for development debugging
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+      sameSite: 'none', // Changed to 'none' to work with cross-origin requests
+      path: '/'
     },
-    rolling: true // Extend session on each request
+    rolling: true
   }));
-
-  // Debug middleware to check session
-  app.use((req, res, next) => {
-    console.log('Session ID:', req.sessionID);
-    console.log('Session data:', req.session);
-    next();
-  });
 
   // Login endpoint
   app.post("/api/auth/login", async (req, res) => {
