@@ -6,23 +6,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import PublicProfile from "@/pages/public-profile";
-import { useEffect } from "react";
-import { useLocation } from "wouter";
+import Landing from "@/pages/landing";
 
 function Router() {
-  const [location, setLocation] = useLocation();
-
-  useEffect(() => {
-    // Redirect root to dashboard
-    if (location === "/") {
-      setLocation("/dashboard");
-    }
-  }, [location, setLocation]);
-
   return (
     <Switch>
+      <Route path="/" component={Landing} />
       <Route path="/dashboard" component={Dashboard} />
-      <Route path="/:username" component={PublicProfile} />
+      <Route path="/user/:username" component={PublicProfile} />
       <Route component={NotFound} />
     </Switch>
   );
