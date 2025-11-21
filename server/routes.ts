@@ -268,10 +268,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const linkData = { 
         ...req.body, 
         profileId: profile.id,
-        isScheduled: req.body.isScheduled ? 1 : 0,
-        isPriority: req.body.isPriority ? 1 : 0,
-        clicks: req.body.clicks ?? 0,
       };
+      
+      // Only convert if the value is a boolean type
+      if (typeof req.body.isScheduled === 'boolean') {
+        linkData.isScheduled = req.body.isScheduled ? 1 : 0;
+      }
+      if (typeof req.body.isPriority === 'boolean') {
+        linkData.isPriority = req.body.isPriority ? 1 : 0;
+      }
+      
       const validatedData = insertSocialLinkSchema.parse(linkData);
       const link = await storage.createSocialLink(validatedData);
       res.status(201).json(link);
