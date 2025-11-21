@@ -102,6 +102,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Logout endpoint
+  app.post("/api/auth/logout", async (_req, res) => {
+    try {
+      res.json({ success: true, message: "Logged out successfully" });
+    } catch (error) {
+      res.status(500).json({ error: "Logout failed" });
+    }
+  });
+
   // Configure multer for image uploads
   const upload = multer({
     storage: multer.memoryStorage(),
