@@ -23,15 +23,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Configure session middleware
   app.use(session({
     secret: process.env.SESSION_SECRET || 'neropage-secret-key-change-in-production',
-    resave: true, // Changed to true to ensure session is saved
+    resave: false,
     saveUninitialized: false,
     name: 'connect.sid',
     proxy: true,
     cookie: {
       secure: false,
-      httpOnly: false, // Changed to false for development debugging
+      httpOnly: true,
       maxAge: 30 * 24 * 60 * 60 * 1000,
-      sameSite: 'none', // Changed to 'none' to work with cross-origin requests
+      sameSite: 'lax',
       path: '/'
     },
     rolling: true
@@ -42,6 +42,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { username, password } = req.body;
       
+      console.log('Login attempt for username:', username);
+      
       if (!username || !password) {
         return res.status(400).json({ error: "Username and password are required" });
       }
@@ -51,12 +53,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let profile = await storage.getProfileByUsername(username);
       
       if (!profile) {
+        console.log('Profile not found for username:', username);
         return res.status(401).json({ error: "Invalid credentials" });
       }
+
+      console.log('Profile found:', profile.username, 'userId:', profile.userId);
 
       // Set session
       req.session.userId = profile.userId;
       req.session.username = profile.username;
+
+      console.log('Session data set - userId:', req.session.userId, 'username:', req.session.username);
 
       // Explicitly save session before responding
       req.session.save((err) => {
@@ -65,13 +72,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ error: "Failed to save session" });
         }
         
-        console.log('Session saved successfully:', req.sessionID);
+        console.log('Session saved successfully. SessionID:', req.sessionID);
         res.json({ 
           user: { id: profile.userId, username: profile.username },
           profile 
         });
       });
     } catch (error) {
+      console.error('Login error:', error);
       res.status(500).json({ error: "Login failed" });
     }
   });
@@ -132,20 +140,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get authenticated user
   app.get("/api/auth/me", async (req, res) => {
     try {
+      console.log('Session check - userId:', req.session.userId, 'username:', req.session.username);
+      
       // Check if user is logged in via session
       if (req.session.userId && req.session.username) {
         const profile = await storage.getProfileByUsername(req.session.username);
         if (profile) {
+          console.log('Found profile for user:', profile.username);
           return res.json({ 
             user: { id: profile.userId, username: profile.username },
             profile 
           });
+        } else {
+          console.log('Profile not found for username:', req.session.username);
         }
+      } else {
+        console.log('No session data found');
       }
 
       // No session - return 401
       return res.status(401).json({ error: "Not authenticated" });
     } catch (error) {
+      console.error('Error in /api/auth/me:', error);
       res.status(500).json({ error: "Failed to get user" });
     }
   });
