@@ -264,8 +264,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Profile not found" });
       }
 
-      // Ensure profileId is set
-      const linkData = { ...req.body, profileId: profile.id };
+      // Convert boolean fields to numbers for Drizzle integer mode boolean columns
+      const linkData = { 
+        ...req.body, 
+        profileId: profile.id,
+        isScheduled: req.body.isScheduled ? 1 : 0,
+        isPriority: req.body.isPriority ? 1 : 0,
+        clicks: req.body.clicks ?? 0,
+      };
       const validatedData = insertSocialLinkSchema.parse(linkData);
       const link = await storage.createSocialLink(validatedData);
       res.status(201).json(link);
