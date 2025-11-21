@@ -11,6 +11,7 @@ import path from "path";
 import { promises as fs } from "fs";
 import crypto from "crypto";
 import session from "express-session";
+import bcrypt from "bcrypt";
 
 declare module 'express-session' {
   interface SessionData {
@@ -48,22 +49,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Username and password are required" });
       }
 
-      // For now, auto-login with any credentials (simplified auth)
-      // In production, you would verify password hash
-      let profile = await storage.getProfileByUsername(username);
-      
-      if (!profile) {
-        console.log('Profile not found for username:', username);
+      // Get user by username
+      const user = await storage.getUserByUsername(username);
+      if (!user) {
+        console.log('User not found for username:', username);
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
-      console.log('Profile found:', profile.username, 'userId:', profile.userId);
+      // Verify password
+      const passwordValid = await bcrypt.compare(password, user.passwordHash);
+      if (!passwordValid) {
+        console.log('Invalid password for username:', username);
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      // Get profile
+      const profile = await storage.getProfileByUsername(username);
+      if (!profile) {
+        console.log('Profile not found for username:', username);
+        return res.status(500).json({ error: "Profile not found" });
+      }
+
+      console.log('Login successful for:', profile.username);
 
       // Set session
-      req.session.userId = profile.userId;
-      req.session.username = profile.username;
-
-      console.log('Session data set - userId:', req.session.userId, 'username:', req.session.username);
+      req.session.userId = user.id;
+      req.session.username = user.username;
 
       // Explicitly save session before responding
       req.session.save((err) => {
@@ -74,7 +85,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log('Session saved successfully. SessionID:', req.sessionID);
         res.json({ 
-          user: { id: profile.userId, username: profile.username },
+          user: { id: user.id, username: user.username },
           profile 
         });
       });
@@ -99,10 +110,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(409).json({ error: "Username already taken" });
       }
 
+      // Hash password
+      const passwordHash = await bcrypt.hash(password, 10);
+
       // Create user and profile
       const user = await storage.createUser({ 
         username, 
-        passwordHash: password // In production, hash this with bcrypt
+        passwordHash
       });
       
       const profile = await storage.createProfile({
@@ -196,18 +210,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Image upload endpoint (with inline authentication before multer processes)
+  // Image upload endpoint (with authentication before multer processes)
   app.post("/api/upload-image", async (req, res, next) => {
-    // Check authentication before allowing file upload
-    if (!req.session.username) {
-      return res.status(401).json({ error: "Not authenticated" });
+    try {
+      // Check authentication before allowing file upload
+      if (!req.session.username) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      
+      const profile = await storage.getProfileByUsername(req.session.username);
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+      
+      // Authentication successful, proceed with file upload
+      next();
+    } catch (error) {
+      console.error("Upload authentication error:", error);
+      return res.status(500).json({ error: "Authentication failed" });
     }
-    const profile = await storage.getProfileByUsername(req.session.username);
-    if (!profile) {
-      return res.status(404).json({ error: "Profile not found" });
-    }
-    // Authentication successful, proceed with file upload
-    next();
   }, upload.single('image'), async (req, res) => {
     try {
       if (!req.file) {
@@ -939,10 +960,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Profile not found" });
       }
 
-      // Verify ownership by checking if submission belongs to this profile
-      const submissions = await storage.getFormSubmissions(profile.id);
-      const ownsSubmission = submissions.some(s => s.id === id);
-      if (!ownsSubmission) {
+      // Verify ownership by fetching the specific submission
+      const submission = await storage.getFormSubmissionById(id);
+      if (!submission || submission.profileId !== profile.id) {
         return res.status(404).json({ error: "Submission not found" });
       }
 

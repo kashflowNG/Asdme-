@@ -47,6 +47,7 @@ export interface IStorage {
 
   // Form Submissions methods
   getFormSubmissions(profileId: string): Promise<FormSubmission[]>;
+  getFormSubmissionById(id: string): Promise<FormSubmission | undefined>;
   createFormSubmission(submission: InsertFormSubmission): Promise<FormSubmission>;
   deleteFormSubmission(id: string): Promise<boolean>;
 
@@ -456,6 +457,19 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("getFormSubmissions error:", error);
       return [];
+    }
+  }
+
+  async getFormSubmissionById(id: string): Promise<FormSubmission | undefined> {
+    if (this.memoryStore) {
+      return this.memoryStore.formSubmissions.get(id);
+    }
+    try {
+      const result = await this.db.select().from(formSubmissions).where(eq(formSubmissions.id, id));
+      return result[0];
+    } catch (error) {
+      console.error("getFormSubmissionById error:", error);
+      return undefined;
     }
   }
 
