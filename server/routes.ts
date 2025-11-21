@@ -45,18 +45,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('Login attempt for username:', username);
       
+      // Validate input
       if (!username || !password) {
         return res.status(400).json({ error: "Username and password are required" });
+      }
+
+      // Validate username format to prevent injection
+      if (typeof username !== 'string' || username.length > 30 || !/^[a-zA-Z0-9_]+$/.test(username)) {
+        console.log('Invalid username format:', username);
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      // Validate password is a string
+      if (typeof password !== 'string' || password.length < 1) {
+        return res.status(401).json({ error: "Invalid credentials" });
       }
 
       // Get user by username
       const user = await storage.getUserByUsername(username);
       if (!user) {
         console.log('User not found for username:', username);
+        // Use constant-time comparison to prevent timing attacks
+        await bcrypt.compare(password, '$2b$10$invalidhashtopreventtimingattack');
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
-      // Verify password
+      // Verify password - this is the secure password check
       const passwordValid = await bcrypt.compare(password, user.passwordHash);
       if (!passwordValid) {
         console.log('Invalid password for username:', username);
@@ -72,21 +86,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('Login successful for:', profile.username);
 
-      // Set session
-      req.session.userId = user.id;
-      req.session.username = user.username;
-
-      // Explicitly save session before responding
-      req.session.save((err) => {
+      // Regenerate session ID to prevent session fixation
+      req.session.regenerate((err) => {
         if (err) {
-          console.error('Session save error:', err);
-          return res.status(500).json({ error: "Failed to save session" });
+          console.error('Session regeneration error:', err);
+          return res.status(500).json({ error: "Login failed" });
         }
-        
-        console.log('Session saved successfully. SessionID:', req.sessionID);
-        res.json({ 
-          user: { id: user.id, username: user.username },
-          profile 
+
+        // Set session data
+        req.session.userId = user.id;
+        req.session.username = user.username;
+
+        // Explicitly save session before responding
+        req.session.save((err) => {
+          if (err) {
+            console.error('Session save error:', err);
+            return res.status(500).json({ error: "Failed to save session" });
+          }
+          
+          console.log('Session saved successfully. SessionID:', req.sessionID);
+          res.json({ 
+            user: { id: user.id, username: user.username },
+            profile 
+          });
         });
       });
     } catch (error) {
@@ -100,8 +122,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { username, password } = req.body;
       
+      // Validate input presence
       if (!username || !password) {
         return res.status(400).json({ error: "Username and password are required" });
+      }
+
+      // Validate username format (matches client-side validation)
+      if (typeof username !== 'string' || 
+          username.length < 3 || 
+          username.length > 30 || 
+          !/^[a-zA-Z0-9_]+$/.test(username)) {
+        return res.status(400).json({ error: "Username must be 3-30 characters and contain only letters, numbers, and underscores" });
+      }
+
+      // Validate password strength
+      if (typeof password !== 'string' || password.length < 8) {
+        return res.status(400).json({ error: "Password must be at least 8 characters" });
       }
 
       // Check if username already exists
@@ -110,7 +146,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(409).json({ error: "Username already taken" });
       }
 
-      // Hash password
+      // Hash password with secure cost factor
       const passwordHash = await bcrypt.hash(password, 10);
 
       // Create user and profile
@@ -129,24 +165,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         backgroundColor: "#0A0A0F",
       });
 
-      // Set session for newly created user
-      req.session.userId = user.id;
-      req.session.username = user.username;
-
-      // Explicitly save session before responding
-      req.session.save((err) => {
+      // Regenerate session ID for new user
+      req.session.regenerate((err) => {
         if (err) {
-          console.error('Session save error:', err);
-          return res.status(500).json({ error: "Failed to save session" });
+          console.error('Session regeneration error:', err);
+          return res.status(500).json({ error: "Signup failed" });
         }
-        
-        console.log('Session saved successfully for new user:', req.sessionID);
-        res.status(201).json({ 
-          user: { id: user.id, username: user.username },
-          profile 
+
+        // Set session for newly created user
+        req.session.userId = user.id;
+        req.session.username = user.username;
+
+        // Explicitly save session before responding
+        req.session.save((err) => {
+          if (err) {
+            console.error('Session save error:', err);
+            return res.status(500).json({ error: "Failed to save session" });
+          }
+          
+          console.log('Session saved successfully for new user:', req.sessionID);
+          res.status(201).json({ 
+            user: { id: user.id, username: user.username },
+            profile 
+          });
         });
       });
     } catch (error) {
+      console.error('Signup error:', error);
       res.status(500).json({ error: "Signup failed" });
     }
   });
@@ -214,15 +259,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/upload-image", async (req, res, next) => {
     try {
       // Check authentication before allowing file upload
-      if (!req.session.username) {
+      if (!req.session.userId || !req.session.username) {
+        console.log("Upload denied - no session:", { sessionID: req.sessionID });
         return res.status(401).json({ error: "Not authenticated" });
       }
       
       const profile = await storage.getProfileByUsername(req.session.username);
       if (!profile) {
+        console.log("Upload denied - profile not found:", req.session.username);
         return res.status(404).json({ error: "Profile not found" });
       }
       
+      // Verify session userId matches profile userId
+      if (profile.userId !== req.session.userId) {
+        console.log("Upload denied - userId mismatch");
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      console.log("Upload authentication successful for:", profile.username);
       // Authentication successful, proceed with file upload
       next();
     } catch (error) {
@@ -233,6 +287,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No image file provided" });
+      }
+
+      // Double-check authentication after multer processing
+      if (!req.session.username) {
+        return res.status(401).json({ error: "Session expired during upload" });
       }
 
       // Create uploads directory if it doesn't exist
@@ -249,6 +308,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Return URL
       const imageUrl = `/uploads/${fileName}`;
+      console.log("Image uploaded successfully:", fileName);
       res.json({ url: imageUrl, success: true });
     } catch (error) {
       console.error("Image upload error:", error);
@@ -927,6 +987,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
+      }
+
+      // Verify the form/content block exists and belongs to this profile
+      const { blockId } = req.body;
+      if (blockId) {
+        const blocks = await storage.getContentBlocks(profile.id);
+        const ownsBlock = blocks.some(b => b.id === blockId && b.type === 'contact-form');
+        if (!ownsBlock) {
+          return res.status(403).json({ error: "Form not found or access denied" });
+        }
       }
 
       const submissionData = {
