@@ -37,6 +37,12 @@ export default function Login() {
     try {
       await apiRequest("POST", "/api/auth/login", data);
 
+      // Wait a moment for session to propagate
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Verify session before redirecting
+      await apiRequest("GET", "/api/auth/me");
+
       toast({
         title: "Welcome back!",
         description: "You've successfully logged in.",
