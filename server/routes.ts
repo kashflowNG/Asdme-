@@ -25,13 +25,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     secret: process.env.SESSION_SECRET || 'neropage-secret-key-change-in-production',
     resave: false,
     saveUninitialized: false,
+    name: 'sessionId', // Use a specific cookie name
     cookie: {
-      secure: false, // Set to false for development to work with proxied requests
+      secure: false, // Set to false for development
       httpOnly: true,
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-      sameSite: 'lax' // Allow cookies to be sent with same-site requests
-    }
+      sameSite: 'lax',
+      path: '/' // Ensure cookie is available for all paths
+    },
+    rolling: true // Extend session on each request
   }));
+
+  // Debug middleware to check session
+  app.use((req, res, next) => {
+    console.log('Session ID:', req.sessionID);
+    console.log('Session data:', req.session);
+    next();
+  });
 
   // Login endpoint
   app.post("/api/auth/login", async (req, res) => {
@@ -54,9 +64,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.session.userId = profile.userId;
       req.session.username = profile.username;
 
-      res.json({ 
-        user: { id: profile.userId, username: profile.username },
-        profile 
+      // Explicitly save session before responding
+      req.session.save((err) => {
+        if (err) {
+          console.error('Session save error:', err);
+          return res.status(500).json({ error: "Failed to save session" });
+        }
+        
+        console.log('Session saved successfully:', req.sessionID);
+        res.json({ 
+          user: { id: profile.userId, username: profile.username },
+          profile 
+        });
       });
     } catch (error) {
       res.status(500).json({ error: "Login failed" });
@@ -98,9 +117,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.session.userId = user.id;
       req.session.username = user.username;
 
-      res.status(201).json({ 
-        user: { id: user.id, username: user.username },
-        profile 
+      // Explicitly save session before responding
+      req.session.save((err) => {
+        if (err) {
+          console.error('Session save error:', err);
+          return res.status(500).json({ error: "Failed to save session" });
+        }
+        
+        console.log('Session saved successfully for new user:', req.sessionID);
+        res.status(201).json({ 
+          user: { id: user.id, username: user.username },
+          profile 
+        });
       });
     } catch (error) {
       res.status(500).json({ error: "Signup failed" });
