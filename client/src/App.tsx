@@ -7,11 +7,15 @@ import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import PublicProfile from "@/pages/public-profile";
 import Landing from "@/pages/landing";
+import Login from "@/pages/login";
+import Signup from "@/pages/signup";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Landing} />
+      <Route path="/login" component={Login} />
+      <Route path="/signup" component={Signup} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/user/:username" component={PublicProfile} />
       <Route component={NotFound} />
