@@ -27,7 +27,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     resave: false,
     saveUninitialized: false,
     name: 'neropage.sid',
-    proxy: false, // Disable proxy mode since we're in dev
+    proxy: true, // Enable proxy mode for Replit/Vite dev server
     cookie: {
       secure: false,
       httpOnly: true,
