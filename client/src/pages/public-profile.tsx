@@ -208,28 +208,39 @@ export default function PublicProfile() {
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={pageDescription} />
         <meta property="og:site_name" content={siteName} />
-        {profile.ogImage && <meta property="og:image" content={profile.ogImage} />}
-        {profile.ogImage && <meta property="og:image:alt" content={`${profile.username}'s profile image`} />}
-        {profile.avatarUrl && !profile.ogImage && <meta property="og:image" content={profile.avatarUrl} />}
+        {profile.ogImage ? (
+          <>
+            <meta property="og:image" content={profile.ogImage} />
+            <meta property="og:image:alt" content={`${profile.username}'s profile image`} />
+          </>
+        ) : profile.avatarUrl ? (
+          <>
+            <meta property="og:image" content={profile.avatarUrl} />
+            <meta property="og:image:alt" content={`${profile.username}'s avatar`} />
+          </>
+        ) : (
+          <>
+            <meta property="og:image" content={`${window.location.origin}/favicon.png`} />
+            <meta property="og:image:alt" content="Neropage Logo" />
+          </>
+        )}
         
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:url" content={profileUrl} />
         <meta name="twitter:title" content={pageTitle} />
         <meta name="twitter:description" content={pageDescription} />
-        {profile.ogImage && <meta name="twitter:image" content={profile.ogImage} />}
-        {profile.avatarUrl && !profile.ogImage && <meta name="twitter:image" content={profile.avatarUrl} />}
+        {profile.ogImage ? (
+          <meta name="twitter:image" content={profile.ogImage} />
+        ) : profile.avatarUrl ? (
+          <meta name="twitter:image" content={profile.avatarUrl} />
+        ) : (
+          <meta name="twitter:image" content={`${window.location.origin}/favicon.png`} />
+        )}
         
         {/* Additional SEO */}
         <meta name="robots" content="index, follow" />
         <meta name="googlebot" content="index, follow" />
-
-        {/* Twitter */}
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content={profileUrl} />
-        <meta property="twitter:title" content={pageTitle} />
-        <meta property="twitter:description" content={pageDescription} />
-        {profile.ogImage && <meta property="twitter:image" content={profile.ogImage} />}
       </Helmet>
 
       <div 
