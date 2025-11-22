@@ -9,21 +9,40 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+// Token storage
+const TOKEN_KEY = 'neropage_auth_token';
+
+export function setAuthToken(token: string) {
+  localStorage.setItem(TOKEN_KEY, token);
+}
+
+export function getAuthToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+export function removeAuthToken() {
+  localStorage.removeItem(TOKEN_KEY);
+}
+
 export async function apiRequest(
   method: string,
   url: string,
   data?: any
 ): Promise<any> {
+  const token = getAuthToken();
   const options: RequestInit = {
     method,
     headers: data instanceof FormData ? {} : {
       "Content-Type": "application/json",
     },
-    credentials: "include", // Important: include cookies in requests
   };
 
   if (data) {
     options.body = data instanceof FormData ? data : JSON.stringify(data);
+  }
+
+  if (token) {
+    options.headers['Authorization'] = `Bearer ${token}`;
   }
 
   const response = await fetch(url, options);
@@ -51,7 +70,14 @@ export async function apiRequest(
     return null;
   }
 
-  return response.json();
+  const dataResponse = await response.json();
+
+  // Store token if present in response (login/signup)
+  if (dataResponse.token) {
+    setAuthToken(dataResponse.token);
+  }
+
+  return dataResponse;
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
@@ -60,8 +86,15 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
+    const token = getAuthToken();
+    const headers: Record<string, string> = {};
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const res = await fetch(queryKey.join("/") as string, {
-      credentials: "include",
+      headers,
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {

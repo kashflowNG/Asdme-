@@ -1,3 +1,4 @@
+
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
@@ -10,34 +11,43 @@ import multer from "multer";
 import path from "path";
 import { promises as fs } from "fs";
 import crypto from "crypto";
-import session from "express-session";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
-declare module 'express-session' {
-  interface SessionData {
-    userId?: string;
-    username?: string;
+const JWT_SECRET = process.env.JWT_SECRET || 'neropage-jwt-secret-change-in-production';
+
+interface JWTPayload {
+  userId: string;
+  username: string;
+}
+
+function generateToken(payload: JWTPayload): string {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: '30d' });
+}
+
+function verifyToken(token: string): JWTPayload | null {
+  try {
+    return jwt.verify(token, JWT_SECRET) as JWTPayload;
+  } catch {
+    return null;
   }
 }
 
-export async function registerRoutes(app: Express): Promise<Server> {
-  // Configure session middleware
-  app.use(session({
-    secret: process.env.SESSION_SECRET || 'neropage-secret-key-change-in-production',
-    resave: false,
-    saveUninitialized: false,
-    name: 'neropage.sid',
-    proxy: true, // Enable proxy mode for Replit/Vite dev server
-    cookie: {
-      secure: false,
-      httpOnly: true,
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-      sameSite: 'lax',
-      path: '/',
-    },
-    rolling: true
-  }));
+function getAuthToken(req: any): string | null {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return authHeader.substring(7);
+  }
+  return null;
+}
 
+function authenticate(req: any): JWTPayload | null {
+  const token = getAuthToken(req);
+  if (!token) return null;
+  return verifyToken(token);
+}
+
+export async function registerRoutes(app: Express): Promise<Server> {
   // Login endpoint
   app.post("/api/auth/login", async (req, res) => {
     try {
@@ -45,39 +55,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('Login attempt for username:', username);
       
-      // Validate input
       if (!username || !password) {
         return res.status(400).json({ error: "Username and password are required" });
       }
 
-      // Validate username format to prevent injection
       if (typeof username !== 'string' || username.length > 30 || !/^[a-zA-Z0-9_]+$/.test(username)) {
         console.log('Invalid username format:', username);
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
-      // Validate password is a string
       if (typeof password !== 'string' || password.length < 1) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
-      // Get user by username
       const user = await storage.getUserByUsername(username);
       if (!user) {
         console.log('User not found for username:', username);
-        // Use constant-time comparison to prevent timing attacks
         await bcrypt.compare(password, '$2b$10$invalidhashtopreventtimingattack');
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
-      // Verify password - this is the secure password check
       const passwordValid = await bcrypt.compare(password, user.passwordHash);
       if (!passwordValid) {
         console.log('Invalid password for username:', username);
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
-      // Get profile
       const profile = await storage.getProfileByUsername(username);
       if (!profile) {
         console.log('Profile not found for username:', username);
@@ -86,30 +89,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('Login successful for:', profile.username);
 
-      // Regenerate session ID to prevent session fixation
-      req.session.regenerate((err) => {
-        if (err) {
-          console.error('Session regeneration error:', err);
-          return res.status(500).json({ error: "Login failed" });
-        }
+      const token = generateToken({ userId: user.id, username: user.username });
 
-        // Set session data
-        req.session.userId = user.id;
-        req.session.username = user.username;
-
-        // Explicitly save session before responding
-        req.session.save((err) => {
-          if (err) {
-            console.error('Session save error:', err);
-            return res.status(500).json({ error: "Failed to save session" });
-          }
-          
-          console.log('Session saved successfully. SessionID:', req.sessionID);
-          res.json({ 
-            user: { id: user.id, username: user.username },
-            profile 
-          });
-        });
+      res.json({ 
+        user: { id: user.id, username: user.username },
+        profile,
+        token
       });
     } catch (error) {
       console.error('Login error:', error);
@@ -122,12 +107,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { username, password } = req.body;
       
-      // Validate input presence
       if (!username || !password) {
         return res.status(400).json({ error: "Username and password are required" });
       }
 
-      // Validate username format (matches client-side validation)
       if (typeof username !== 'string' || 
           username.length < 3 || 
           username.length > 30 || 
@@ -135,21 +118,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Username must be 3-30 characters and contain only letters, numbers, and underscores" });
       }
 
-      // Validate password strength
       if (typeof password !== 'string' || password.length < 8) {
         return res.status(400).json({ error: "Password must be at least 8 characters" });
       }
 
-      // Check if username already exists
       const existing = await storage.getProfileByUsername(username);
       if (existing) {
         return res.status(409).json({ error: "Username already taken" });
       }
 
-      // Hash password with secure cost factor
       const passwordHash = await bcrypt.hash(password, 10);
 
-      // Create user and profile
       const user = await storage.createUser({ 
         username, 
         passwordHash
@@ -165,30 +144,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         backgroundColor: "#0A0A0F",
       });
 
-      // Regenerate session ID for new user
-      req.session.regenerate((err) => {
-        if (err) {
-          console.error('Session regeneration error:', err);
-          return res.status(500).json({ error: "Signup failed" });
-        }
+      const token = generateToken({ userId: user.id, username: user.username });
 
-        // Set session for newly created user
-        req.session.userId = user.id;
-        req.session.username = user.username;
-
-        // Explicitly save session before responding
-        req.session.save((err) => {
-          if (err) {
-            console.error('Session save error:', err);
-            return res.status(500).json({ error: "Failed to save session" });
-          }
-          
-          console.log('Session saved successfully for new user:', req.sessionID);
-          res.status(201).json({ 
-            user: { id: user.id, username: user.username },
-            profile 
-          });
-        });
+      res.status(201).json({ 
+        user: { id: user.id, username: user.username },
+        profile,
+        token
       });
     } catch (error) {
       console.error('Signup error:', error);
@@ -199,27 +160,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get authenticated user
   app.get("/api/auth/me", async (req, res) => {
     try {
-      console.log('Session check - sessionID:', req.sessionID, 'userId:', req.session.userId, 'username:', req.session.username);
-      console.log('Cookies:', req.headers.cookie);
+      const auth = authenticate(req);
       
-      // Check if user is logged in via session
-      if (req.session.userId && req.session.username) {
-        const profile = await storage.getProfileByUsername(req.session.username);
-        if (profile) {
-          console.log('Found profile for user:', profile.username);
-          return res.json({ 
-            user: { id: profile.userId, username: profile.username },
-            profile 
-          });
-        } else {
-          console.log('Profile not found for username:', req.session.username);
-        }
-      } else {
-        console.log('No session data found - sessionID:', req.sessionID);
+      if (!auth) {
+        return res.status(401).json({ error: "Not authenticated" });
       }
 
-      // No session - return 401
-      return res.status(401).json({ error: "Not authenticated" });
+      const profile = await storage.getProfileByUsername(auth.username);
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+
+      return res.json({ 
+        user: { id: auth.userId, username: auth.username },
+        profile 
+      });
     } catch (error) {
       console.error('Error in /api/auth/me:', error);
       res.status(500).json({ error: "Failed to get user" });
@@ -228,23 +183,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Logout endpoint
   app.post("/api/auth/logout", async (req, res) => {
-    try {
-      req.session.destroy((err) => {
-        if (err) {
-          return res.status(500).json({ error: "Logout failed" });
-        }
-        res.clearCookie('neropage.sid');
-        res.json({ success: true, message: "Logged out successfully" });
-      });
-    } catch (error) {
-      res.status(500).json({ error: "Logout failed" });
-    }
+    res.json({ success: true, message: "Logged out successfully" });
   });
 
   // Configure multer for image uploads
   const upload = multer({
     storage: multer.memoryStorage(),
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    limits: { fileSize: 5 * 1024 * 1024 },
     fileFilter: (_req, file, cb) => {
       const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
       if (allowedTypes.includes(file.mimetype)) {
@@ -255,32 +200,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Image upload endpoint (with authentication before multer processes)
+  // Image upload endpoint
   app.post("/api/upload-image", async (req, res, next) => {
     try {
-      // Check authentication before allowing file upload
-      if (!req.session.userId || !req.session.username) {
-        console.log("Upload denied - no session:", { sessionID: req.sessionID });
+      const auth = authenticate(req);
+      if (!auth) {
         return res.status(401).json({ error: "Not authenticated" });
       }
       
-      const profile = await storage.getProfileByUsername(req.session.username);
+      const profile = await storage.getProfileByUsername(auth.username);
       if (!profile) {
-        console.log("Upload denied - profile not found:", req.session.username);
         return res.status(404).json({ error: "Profile not found" });
       }
       
-      // Verify session userId matches profile userId
-      if (profile.userId !== req.session.userId) {
-        console.log("Upload denied - userId mismatch");
+      if (profile.userId !== auth.userId) {
         return res.status(403).json({ error: "Access denied" });
       }
       
-      console.log("Upload authentication successful for:", profile.username);
-      // Authentication successful, proceed with file upload
       next();
     } catch (error) {
-      console.error("Upload authentication error:", error);
       return res.status(500).json({ error: "Authentication failed" });
     }
   }, upload.single('image'), async (req, res) => {
@@ -289,29 +227,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "No image file provided" });
       }
 
-      // Double-check authentication after multer processing
-      if (!req.session.username) {
-        return res.status(401).json({ error: "Session expired during upload" });
-      }
-
-      // Create uploads directory if it doesn't exist
       const uploadsDir = path.join(process.cwd(), 'data', 'uploads');
       await fs.mkdir(uploadsDir, { recursive: true });
 
-      // Generate unique filename
       const fileExtension = path.extname(req.file.originalname);
       const fileName = `${crypto.randomBytes(16).toString('hex')}${fileExtension}`;
       const filePath = path.join(uploadsDir, fileName);
 
-      // Save file
       await fs.writeFile(filePath, req.file.buffer);
 
-      // Return URL
       const imageUrl = `/uploads/${fileName}`;
-      console.log("Image uploaded successfully:", fileName);
       res.json({ url: imageUrl, success: true });
     } catch (error) {
-      console.error("Image upload error:", error);
       res.status(500).json({ error: "Failed to upload image" });
     }
   });
@@ -329,11 +256,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get the current user's profile
   app.get("/api/profiles/me", async (req, res) => {
     try {
-      if (!req.session.username) {
+      const auth = authenticate(req);
+      if (!auth) {
         return res.status(401).json({ error: "Not authenticated" });
       }
 
-      let profile = await storage.getProfileByUsername(req.session.username);
+      let profile = await storage.getProfileByUsername(auth.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -360,19 +288,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update profile
   app.patch("/api/profiles/me", async (_req, res) => {
     try {
-      if (!_req.session.username) {
+      const auth = authenticate(_req);
+      if (!auth) {
         return res.status(401).json({ error: "Not authenticated" });
       }
 
-      const profile = await storage.getProfileByUsername(_req.session.username);
+      const profile = await storage.getProfileByUsername(auth.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
 
-      // Validate partial profile data
       const updates = updateProfileSchema.parse(_req.body);
 
-      // Check username uniqueness if updating username
       if (updates.username && updates.username !== profile.username) {
         const existing = await storage.getProfileByUsername(updates.username);
         if (existing) {
@@ -384,11 +311,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!updatedProfile) {
         return res.status(404).json({ error: "Profile not found" });
-      }
-
-      // Update session username if username was changed
-      if (updates.username) {
-        _req.session.username = updates.username;
       }
 
       res.json(updatedProfile);
@@ -403,11 +325,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get social links for current user's profile
   app.get("/api/links", async (req, res) => {
     try {
-      if (!req.session.username) {
+      const auth = authenticate(req);
+      if (!auth) {
         return res.status(401).json({ error: "Not authenticated" });
       }
 
-      const profile = await storage.getProfileByUsername(req.session.username);
+      const profile = await storage.getProfileByUsername(auth.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -439,22 +362,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create a new social link
   app.post("/api/links", async (req, res) => {
     try {
-      if (!req.session.username) {
+      const auth = authenticate(req);
+      if (!auth) {
         return res.status(401).json({ error: "Not authenticated" });
       }
 
-      const profile = await storage.getProfileByUsername(req.session.username);
+      const profile = await storage.getProfileByUsername(auth.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
 
-      // Convert boolean fields to numbers for Drizzle integer mode boolean columns
       const linkData = { 
         ...req.body, 
         profileId: profile.id,
       };
       
-      // Only convert if the value is a boolean type
       if (typeof req.body.isScheduled === 'boolean') {
         linkData.isScheduled = req.body.isScheduled ? 1 : 0;
       }
@@ -476,17 +398,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete a social link
   app.delete("/api/links/:id", async (req, res) => {
     try {
-      if (!req.session.username) {
+      const auth = authenticate(req);
+      if (!auth) {
         return res.status(401).json({ error: "Not authenticated" });
       }
 
       const { id } = req.params;
-      const profile = await storage.getProfileByUsername(req.session.username);
+      const profile = await storage.getProfileByUsername(auth.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
 
-      // Verify link belongs to profile
       const link = await storage.getSocialLink(id);
       if (!link || link.profileId !== profile.id) {
         return res.status(404).json({ error: "Link not found" });
@@ -507,11 +429,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Reorder social links
   app.post("/api/links/reorder", async (req, res) => {
     try {
-      if (!req.session.username) {
+      const auth = authenticate(req);
+      if (!auth) {
         return res.status(401).json({ error: "Not authenticated" });
       }
 
-      const profile = await storage.getProfileByUsername(req.session.username);
+      const profile = await storage.getProfileByUsername(auth.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -525,7 +448,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { links } = reorderSchema.parse(req.body);
 
-      // Verify all links belong to this profile
       const profileLinks = await storage.getSocialLinks(profile.id);
       const profileLinkIds = new Set(profileLinks.map(l => l.id));
 
@@ -582,11 +504,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Analytics endpoint
   app.get("/api/analytics", async (_req, res) => {
     try {
-      if (!_req.session.username) {
+      const auth = authenticate(_req);
+      if (!auth) {
         return res.status(401).json({ error: "Not authenticated" });
       }
 
-      const profile = await storage.getProfileByUsername(_req.session.username);
+      const profile = await storage.getProfileByUsername(auth.username);
       if (!profile) {
         return res.status(404).send("Profile not found");
       }
@@ -601,11 +524,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Detailed analytics endpoint
   app.get("/api/analytics/detailed", async (_req, res) => {
     try {
-      if (!_req.session.username) {
+      const auth = authenticate(_req);
+      if (!auth) {
         return res.status(401).json({ error: "Not authenticated" });
       }
 
-      const profile = await storage.getProfileByUsername(_req.session.username);
+      const profile = await storage.getProfileByUsername(auth.username);
       if (!profile) {
         return res.status(404).send("Profile not found");
       }
@@ -617,28 +541,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-
-  // Update specific profile (by ID) - deprecated, use /api/profiles/me instead
+  // Update specific profile (by ID)
   app.patch("/api/profiles/:id", async (req, res) => {
     try {
-      if (!req.session.username) {
+      const auth = authenticate(req);
+      if (!auth) {
         return res.status(401).json({ error: "Not authenticated" });
       }
 
       const { id } = req.params;
-      const profile = await storage.getProfileByUsername(req.session.username);
+      const profile = await storage.getProfileByUsername(auth.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
 
-      // Verify user can only update their own profile
       if (profile.id !== id) {
         return res.status(403).json({ error: "Cannot update another user's profile" });
       }
 
       const updates = updateProfileSchema.parse(req.body);
 
-      // Check username uniqueness if updating username
       if (updates.username && updates.username !== profile.username) {
         const existing = await storage.getProfileByUsername(updates.username);
         if (existing) {
@@ -650,11 +572,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!updatedProfile) {
         return res.status(404).json({ error: "Profile not found" });
-      }
-
-      // Update session username if username was changed
-      if (updates.username) {
-        req.session.username = updates.username;
       }
 
       res.json(updatedProfile);
@@ -669,17 +586,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update a social link
   app.patch("/api/links/:id", async (req, res) => {
     try {
-      if (!req.session.username) {
+      const auth = authenticate(req);
+      if (!auth) {
         return res.status(401).json({ error: "Not authenticated" });
       }
 
       const { id } = req.params;
-      const profile = await storage.getProfileByUsername(req.session.username);
+      const profile = await storage.getProfileByUsername(auth.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
 
-      // Verify link belongs to profile
       const link = await storage.getSocialLink(id);
       if (!link || link.profileId !== profile.id) {
         return res.status(404).json({ error: "Link not found" });
@@ -692,16 +609,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ===== Link Groups Routes =====
-
-  // Get link groups
+  // Link Groups Routes
   app.get("/api/link-groups", async (_req, res) => {
     try {
-      if (!_req.session.username) {
+      const auth = authenticate(_req);
+      if (!auth) {
         return res.status(401).json({ error: "Not authenticated" });
       }
 
-      const profile = await storage.getProfileByUsername(_req.session.username);
+      const profile = await storage.getProfileByUsername(auth.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -713,14 +629,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create link group
   app.post("/api/link-groups", async (req, res) => {
     try {
-      if (!req.session.username) {
+      const auth = authenticate(req);
+      if (!auth) {
         return res.status(401).json({ error: "Not authenticated" });
       }
 
-      const profile = await storage.getProfileByUsername(req.session.username);
+      const profile = await storage.getProfileByUsername(auth.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -737,20 +653,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Delete link group
   app.delete("/api/link-groups/:id", async (req, res) => {
     try {
-      if (!req.session.username) {
+      const auth = authenticate(req);
+      if (!auth) {
         return res.status(401).json({ error: "Not authenticated" });
       }
 
       const { id } = req.params;
-      const profile = await storage.getProfileByUsername(req.session.username);
+      const profile = await storage.getProfileByUsername(auth.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
 
-      // Verify ownership by checking if group belongs to this profile
       const groups = await storage.getLinkGroups(profile.id);
       const ownsGroup = groups.some(g => g.id === id);
       if (!ownsGroup) {
@@ -769,16 +684,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ===== Content Blocks Routes =====
-
-  // Get content blocks
+  // Content Blocks Routes
   app.get("/api/content-blocks", async (_req, res) => {
     try {
-      if (!_req.session.username) {
+      const auth = authenticate(_req);
+      if (!auth) {
         return res.status(401).json({ error: "Not authenticated" });
       }
 
-      const profile = await storage.getProfileByUsername(_req.session.username);
+      const profile = await storage.getProfileByUsername(auth.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -790,7 +704,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get content blocks for a specific profile
   app.get("/api/profiles/:username/content-blocks", async (req, res) => {
     try {
       const { username } = req.params;
@@ -807,14 +720,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create content block
   app.post("/api/content-blocks", async (req, res) => {
     try {
-      if (!req.session.username) {
+      const auth = authenticate(req);
+      if (!auth) {
         return res.status(401).json({ error: "Not authenticated" });
       }
 
-      const profile = await storage.getProfileByUsername(req.session.username);
+      const profile = await storage.getProfileByUsername(auth.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -831,20 +744,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update content block
   app.patch("/api/content-blocks/:id", async (req, res) => {
     try {
-      if (!req.session.username) {
+      const auth = authenticate(req);
+      if (!auth) {
         return res.status(401).json({ error: "Not authenticated" });
       }
 
       const { id } = req.params;
-      const profile = await storage.getProfileByUsername(req.session.username);
+      const profile = await storage.getProfileByUsername(auth.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
 
-      // Verify ownership by checking if block belongs to this profile
       const blocks = await storage.getContentBlocks(profile.id);
       const ownsBlock = blocks.some(b => b.id === id);
       if (!ownsBlock) {
@@ -863,20 +775,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Delete content block
   app.delete("/api/content-blocks/:id", async (req, res) => {
     try {
-      if (!req.session.username) {
+      const auth = authenticate(req);
+      if (!auth) {
         return res.status(401).json({ error: "Not authenticated" });
       }
 
       const { id } = req.params;
-      const profile = await storage.getProfileByUsername(req.session.username);
+      const profile = await storage.getProfileByUsername(auth.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
 
-      // Verify ownership by checking if block belongs to this profile
       const blocks = await storage.getContentBlocks(profile.id);
       const ownsBlock = blocks.some(b => b.id === id);
       if (!ownsBlock) {
@@ -895,14 +806,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Reorder content blocks
   app.post("/api/content-blocks/reorder", async (req, res) => {
     try {
-      if (!req.session.username) {
+      const auth = authenticate(req);
+      if (!auth) {
         return res.status(401).json({ error: "Not authenticated" });
       }
 
-      const profile = await storage.getProfileByUsername(req.session.username);
+      const profile = await storage.getProfileByUsername(auth.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -916,7 +827,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { blocks } = reorderSchema.parse(req.body);
 
-      // Verify all blocks belong to this profile
       const profileBlocks = await storage.getContentBlocks(profile.id);
       const profileBlockIds = new Set(profileBlocks.map(b => b.id));
 
@@ -936,16 +846,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ===== Form Submissions Routes =====
-
-  // Get form submissions
+  // Form Submissions Routes
   app.get("/api/form-submissions", async (_req, res) => {
     try {
-      if (!_req.session.username) {
+      const auth = authenticate(_req);
+      if (!auth) {
         return res.status(401).json({ error: "Not authenticated" });
       }
 
-      const profile = await storage.getProfileByUsername(_req.session.username);
+      const profile = await storage.getProfileByUsername(auth.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
@@ -957,29 +866,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Webhook configuration
   app.post("/api/webhooks/configure", async (req, res) => {
     try {
-      if (!req.session.username) {
+      const auth = authenticate(req);
+      if (!auth) {
         return res.status(401).json({ error: "Not authenticated" });
       }
 
-      const profile = await storage.getProfileByUsername(req.session.username);
+      const profile = await storage.getProfileByUsername(auth.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
 
-      // Store webhook URL for email service integration
       const { webhookUrl, service } = req.body;
       
-      // In a real app, this would save to database
       res.status(200).json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to configure webhook" });
     }
   });
 
-  // Create form submission (public endpoint)
   app.post("/api/profiles/:username/submit-form", async (req, res) => {
     try {
       const { username } = req.params;
@@ -989,7 +895,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Profile not found" });
       }
 
-      // Verify the form/content block exists and belongs to this profile
       const { blockId } = req.body;
       if (blockId) {
         const blocks = await storage.getContentBlocks(profile.id);
@@ -1017,20 +922,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Delete form submission
   app.delete("/api/form-submissions/:id", async (req, res) => {
     try {
-      if (!req.session.username) {
+      const auth = authenticate(req);
+      if (!auth) {
         return res.status(401).json({ error: "Not authenticated" });
       }
 
       const { id } = req.params;
-      const profile = await storage.getProfileByUsername(req.session.username);
+      const profile = await storage.getProfileByUsername(auth.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
 
-      // Verify ownership by fetching the specific submission
       const submission = await storage.getFormSubmissionById(id);
       if (!submission || submission.profileId !== profile.id) {
         return res.status(404).json({ error: "Submission not found" });

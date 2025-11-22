@@ -160,9 +160,6 @@ export default function Dashboard() {
     }
   }, [profile]);
 
-  // Removed the ad script injection from useEffect as it's now handled by Helmet
-  // The ad script will be loaded automatically by Helmet
-
   // Auto-refresh data every 3 seconds for instant updates
   useEffect(() => {
     const interval = setInterval(() => {
@@ -367,6 +364,9 @@ export default function Dashboard() {
   const handleSignOut = async () => {
     try {
       await apiRequest("POST", "/api/auth/logout");
+
+      // Clear token from localStorage
+      localStorage.removeItem('neropage_auth_token');
 
       toast({
         title: "Signed out",
