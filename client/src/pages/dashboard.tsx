@@ -597,7 +597,7 @@ export default function Dashboard() {
               {/* Ad Placement - Bottom of Overview */}
               <div className="flex justify-center py-4">
                 <div className="w-full max-w-md mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-overview"></div>
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b"></div>
                 </div>
               </div>
             </TabsContent>
@@ -723,7 +723,7 @@ export default function Dashboard() {
               {/* Ad Placement - Bottom of Profile */}
               <div className="flex justify-center py-4">
                 <div className="w-full max-w-md mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-profile"></div>
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b"></div>
                 </div>
               </div>
             </TabsContent>
@@ -806,7 +806,7 @@ export default function Dashboard() {
               {/* Ad Placement - Bottom of Links */}
               <div className="flex justify-center py-4">
                 <div className="w-full max-w-md mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-links"></div>
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b"></div>
                 </div>
               </div>
             </TabsContent>
@@ -830,7 +830,7 @@ export default function Dashboard() {
               {/* Ad Placement - Bottom of Appearance */}
               <div className="flex justify-center py-4">
                 <div className="w-full max-w-md mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-appearance"></div>
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b"></div>
                 </div>
               </div>
             </TabsContent>
@@ -844,7 +844,7 @@ export default function Dashboard() {
               {/* Ad Placement - Bottom of Advanced */}
               <div className="flex justify-center py-4">
                 <div className="w-full max-w-md mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-advanced"></div>
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b"></div>
                 </div>
               </div>
             </TabsContent>
