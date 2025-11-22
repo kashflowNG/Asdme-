@@ -584,15 +584,14 @@ export default function Dashboard() {
               </TabsTrigger>
             </TabsList>
 
-            {/* Ad Placement - Persistent across all tabs */}
-            <div className="flex justify-center py-6 sticky top-16 z-40 bg-background">
-              <div className="w-full max-w-md mx-auto">
-                <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b"></div>
-              </div>
-            </div>
-
             {/* Overview Tab */}
             <TabsContent value="overview" className="space-y-6 mt-6">
+              {/* Ad Placement - Top of Overview */}
+              <div className="flex justify-center py-4">
+                <div className="w-full max-w-md mx-auto">
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b"></div>
+                </div>
+              </div>
 
               <AnalyticsDashboard />
               <ClickHeatmap />
@@ -605,6 +604,13 @@ export default function Dashboard() {
 
             {/* Profile Tab */}
             <TabsContent value="profile" className="space-y-6 mt-6">
+              {/* Ad Placement - Top of Profile */}
+              <div className="flex justify-center py-4">
+                <div className="w-full max-w-md mx-auto">
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b"></div>
+                </div>
+              </div>
+
               <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-profile-editor">
                 <div className="flex items-center justify-between">
                   <h2 className="text-2xl font-bold">Profile Settings</h2>
@@ -724,6 +730,13 @@ export default function Dashboard() {
 
             {/* Links Tab */}
             <TabsContent value="links" className="space-y-6 mt-6">
+              {/* Ad Placement - Top of Links */}
+              <div className="flex justify-center py-4">
+                <div className="w-full max-w-md mx-auto">
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b"></div>
+                </div>
+              </div>
+
               <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-links-manager">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
@@ -800,6 +813,13 @@ export default function Dashboard() {
 
             {/* Appearance Tab */}
             <TabsContent value="appearance" className="space-y-6 mt-6">
+              {/* Ad Placement - Top of Appearance */}
+              <div className="flex justify-center py-4">
+                <div className="w-full max-w-md mx-auto">
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b"></div>
+                </div>
+              </div>
+
               {profile && (
                 <AppearanceEditor
                   profile={profile}
@@ -817,6 +837,13 @@ export default function Dashboard() {
 
             {/* Advanced Tab */}
             <TabsContent value="advanced" className="space-y-6 mt-6">
+              {/* Ad Placement - Top of Advanced */}
+              <div className="flex justify-center py-4">
+                <div className="w-full max-w-md mx-auto">
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b"></div>
+                </div>
+              </div>
+
               <ContentBlockManager />
               <CustomDomainManager />
               <ABTestManager />
