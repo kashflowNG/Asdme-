@@ -224,146 +224,146 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
         ) : (
           <ScrollArea className="max-h-[60vh] pr-4">
             <div className="space-y-6">
-              <div className="flex items-center gap-4 p-6 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl border-2 border-primary/20">
-                {selectedPlatformData && (
-                  <>
+              {selectedPlatform && platform && (
+                <>
+                  <div className="flex items-center gap-4 p-6 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl border-2 border-primary/20 mb-4">
                     <div className="p-3 bg-background rounded-lg shadow-sm">
-                      <selectedPlatformData.icon
+                      <platform.icon
                         className="w-8 h-8"
-                        style={{ color: selectedPlatformData.color }}
+                        style={{ color: platform.color }}
                       />
                     </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-lg">{selectedPlatformData.name}</p>
-                      <p className="text-xs text-muted-foreground capitalize">{selectedPlatformData.category}</p>
-                    </div>
-                  </>
-                )}
-              </div>
-              <div className="space-y-4">
-              {selectedPlatform === 'custom' && (
-                <div className="space-y-3">
-                  <Label htmlFor="customTitle" className="text-base font-semibold">Link Title</Label>
-                  <Input
-                    id="customTitle"
-                    type="text"
-                    placeholder="e.g., My Portfolio, My Blog, etc."
-                    value={formData.customTitle}
-                    onChange={(e) => setFormData({ ...formData, customTitle: e.target.value })}
-                    autoFocus
-                    className="h-12 text-base"
-                    data-testid="input-custom-title"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Give your custom link a descriptive name
-                  </p>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label>Badge (Optional)</Label>
-                <Select value={formData.badge} onValueChange={(value) => setFormData({ ...formData, badge: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="No badge" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No badge</SelectItem>
-                    <SelectItem value="new">NEW</SelectItem>
-                    <SelectItem value="hot">HOT</SelectItem>
-                    <SelectItem value="popular">POPULAR</SelectItem>
-                    <SelectItem value="limited">LIMITED</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Description (Optional)</Label>
-                <Input
-                  type="text"
-                  placeholder="Short description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Switch
-                  id="scheduled"
-                  checked={formData.isScheduled}
-                  onCheckedChange={(checked) => setFormData({ ...formData, isScheduled: checked })}
-                />
-                <Label htmlFor="scheduled" className="cursor-pointer">Schedule this link</Label>
-              </div>
-
-              {formData.isScheduled && (
-                <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg">
-                  <div className="space-y-2">
-                    <Label>Start Date</Label>
-                    <div className="relative">
-                      <Input
-                        type="datetime-local"
-                        value={formData.scheduleStart}
-                        onChange={(e) => setFormData({ ...formData, scheduleStart: e.target.value })}
-                        className="pr-8"
-                      />
-                      <Calendar className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <div>
+                      <h3 className="text-lg font-semibold">{platform.name}</h3>
+                      <p className="text-sm text-muted-foreground">{platform.placeholder}</p>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label>End Date</Label>
-                    <div className="relative">
+                  <div className="space-y-4">
+                  {selectedPlatform === 'custom' && (
+                    <div className="space-y-3">
+                      <Label htmlFor="customTitle" className="text-base font-semibold">Link Title</Label>
                       <Input
-                        type="datetime-local"
-                        value={formData.scheduleEnd}
-                        onChange={(e) => setFormData({ ...formData, scheduleEnd: e.target.value })}
-                        className="pr-8"
+                        id="customTitle"
+                        type="text"
+                        placeholder="e.g., My Portfolio, My Blog, etc."
+                        value={formData.customTitle}
+                        onChange={(e) => setFormData({ ...formData, customTitle: e.target.value })}
+                        autoFocus
+                        className="h-12 text-base"
+                        data-testid="input-custom-title"
                       />
-                      <Calendar className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <p className="text-xs text-muted-foreground">
+                        Give your custom link a descriptive name
+                      </p>
                     </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label>Badge (Optional)</Label>
+                    <Select value={formData.badge} onValueChange={(value) => setFormData({ ...formData, badge: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="No badge" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">No badge</SelectItem>
+                        <SelectItem value="new">NEW</SelectItem>
+                        <SelectItem value="hot">HOT</SelectItem>
+                        <SelectItem value="popular">POPULAR</SelectItem>
+                        <SelectItem value="limited">LIMITED</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Description (Optional)</Label>
+                    <Input
+                      type="text"
+                      placeholder="Short description"
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="scheduled"
+                      checked={formData.isScheduled}
+                      onCheckedChange={(checked) => setFormData({ ...formData, isScheduled: checked })}
+                    />
+                    <Label htmlFor="scheduled" className="cursor-pointer">Schedule this link</Label>
+                  </div>
+
+                  {formData.isScheduled && (
+                    <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg">
+                      <div className="space-y-2">
+                        <Label>Start Date</Label>
+                        <div className="relative">
+                          <Input
+                            type="datetime-local"
+                            value={formData.scheduleStart}
+                            onChange={(e) => setFormData({ ...formData, scheduleStart: e.target.value })}
+                            className="pr-8"
+                          />
+                          <Calendar className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>End Date</Label>
+                        <div className="relative">
+                          <Input
+                            type="datetime-local"
+                            value={formData.scheduleEnd}
+                            onChange={(e) => setFormData({ ...formData, scheduleEnd: e.target.value })}
+                            className="pr-8"
+                          />
+                          <Calendar className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label htmlFor="url" className="text-sm font-semibold">
+                      {selectedPlatform === 'custom' ? 'URL' : 'Profile URL'}
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="url"
+                        type="url"
+                        placeholder={platform?.placeholder || "https://example.com"}
+                        value={formData.url}
+                        onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                        className="h-12 text-base flex-1"
+                        data-testid="input-url"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploading}
+                        className="h-12 px-4"
+                      >
+                        {isUploading ? (
+                          <Upload className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <ImageIcon className="w-4 h-4" />
+                        )}
+                      </Button>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Click the image icon to upload an image and auto-generate URL
+                    </p>
                   </div>
                 </div>
+                </>
               )}
-
-              <div className="space-y-2">
-                <Label htmlFor="url" className="text-sm font-semibold">
-                  {selectedPlatform === 'custom' ? 'URL' : 'Profile URL'}
-                </Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="url"
-                    type="url"
-                    placeholder={platform?.placeholder || "https://example.com"}
-                    value={formData.url}
-                    onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                    className="h-12 text-base flex-1"
-                    data-testid="input-url"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploading}
-                    className="h-12 px-4"
-                  >
-                    {isUploading ? (
-                      <Upload className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <ImageIcon className="w-4 h-4" />
-                    )}
-                  </Button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Click the image icon to upload an image and auto-generate URL
-                </p>
-              </div>
-            </div>
             </div>
           </ScrollArea>
         )}
