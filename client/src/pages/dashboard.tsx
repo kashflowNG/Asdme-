@@ -586,6 +586,13 @@ export default function Dashboard() {
 
             {/* Overview Tab */}
             <TabsContent value="overview" className="space-y-6 mt-6">
+              {/* Ad Placement - Top of Overview */}
+              <div className="flex justify-center py-4">
+                <div className="w-full max-w-md mx-auto">
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b"></div>
+                </div>
+              </div>
+
               <AnalyticsDashboard />
               <ClickHeatmap />
               <LinkScheduleVisualizer links={sortedLinks} />
@@ -593,17 +600,17 @@ export default function Dashboard() {
                 existingPlatforms={links.map(l => l.platform)}
                 onAddPlatform={() => setShowAddDialog(true)}
               />
+            </TabsContent>
 
-              {/* Ad Placement - Bottom of Overview */}
+            {/* Profile Tab */}
+            <TabsContent value="profile" className="space-y-6 mt-6">
+              {/* Ad Placement - Top of Profile */}
               <div className="flex justify-center py-4">
                 <div className="w-full max-w-md mx-auto">
                   <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b"></div>
                 </div>
               </div>
-            </TabsContent>
 
-            {/* Profile Tab */}
-            <TabsContent value="profile" className="space-y-6 mt-6">
               <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-profile-editor">
                 <div className="flex items-center justify-between">
                   <h2 className="text-2xl font-bold">Profile Settings</h2>
@@ -719,17 +726,17 @@ export default function Dashboard() {
                   }
                 }}
               />
+            </TabsContent>
 
-              {/* Ad Placement - Bottom of Profile */}
+            {/* Links Tab */}
+            <TabsContent value="links" className="space-y-6 mt-6">
+              {/* Ad Placement - Top of Links */}
               <div className="flex justify-center py-4">
                 <div className="w-full max-w-md mx-auto">
                   <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b"></div>
                 </div>
               </div>
-            </TabsContent>
 
-            {/* Links Tab */}
-            <TabsContent value="links" className="space-y-6 mt-6">
               <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-links-manager">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
@@ -802,17 +809,17 @@ export default function Dashboard() {
               </Card>
 
               <LinkGroupManager />
+            </TabsContent>
 
-              {/* Ad Placement - Bottom of Links */}
+            {/* Appearance Tab */}
+            <TabsContent value="appearance" className="space-y-6 mt-6">
+              {/* Ad Placement - Top of Appearance */}
               <div className="flex justify-center py-4">
                 <div className="w-full max-w-md mx-auto">
                   <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b"></div>
                 </div>
               </div>
-            </TabsContent>
 
-            {/* Appearance Tab */}
-            <TabsContent value="appearance" className="space-y-6 mt-6">
               {profile && (
                 <AppearanceEditor
                   profile={profile}
@@ -826,27 +833,20 @@ export default function Dashboard() {
               )}
 
               <TemplateSelector />
-
-              {/* Ad Placement - Bottom of Appearance */}
-              <div className="flex justify-center py-4">
-                <div className="w-full max-w-md mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b"></div>
-                </div>
-              </div>
             </TabsContent>
 
             {/* Advanced Tab */}
             <TabsContent value="advanced" className="space-y-6 mt-6">
-              <ContentBlockManager />
-              <CustomDomainManager />
-              <ABTestManager />
-
-              {/* Ad Placement - Bottom of Advanced */}
+              {/* Ad Placement - Top of Advanced */}
               <div className="flex justify-center py-4">
                 <div className="w-full max-w-md mx-auto">
                   <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b"></div>
                 </div>
               </div>
+
+              <ContentBlockManager />
+              <CustomDomainManager />
+              <ABTestManager />
             </TabsContent>
           </Tabs>
         </main>
