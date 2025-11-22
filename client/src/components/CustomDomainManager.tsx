@@ -49,9 +49,14 @@ export function CustomDomainManager() {
           <div className="p-4 bg-muted/50 rounded-lg space-y-2">
             <p className="text-sm font-semibold">DNS Configuration:</p>
             <div className="font-mono text-xs space-y-1">
-              <p>Type: CNAME</p>
-              <p>Name: {domain.split('.')[0]}</p>
-              <p>Value: your-app.replit.dev</p>
+              <p>Type: A</p>
+              <p>Name: {domain.includes('.') ? domain.split('.').slice(0, -2).join('.') || '@' : '@'}</p>
+              <p>Value: [Your Replit deployment IP will be shown here after linking]</p>
+            </div>
+            <div className="font-mono text-xs space-y-1 mt-3">
+              <p>Type: TXT</p>
+              <p>Name: {domain.includes('.') ? domain.split('.').slice(0, -2).join('.') || '@' : '@'}</p>
+              <p>Value: [Verification code will be shown here after linking]</p>
             </div>
           </div>
         )}
