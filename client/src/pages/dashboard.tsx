@@ -152,7 +152,15 @@ export default function Dashboard() {
   const [editingLink, setEditingLink] = useState<SocialLink | null>(null);
   const [showQRDialog, setShowQRDialog] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState(() => {
+    const hash = window.location.hash.replace('#', '');
+    return hash || "overview";
+  });
+
+  const handleTabChange = (value: string) => {
+    window.location.hash = value;
+    window.location.reload();
+  };
   const [profileForm, setProfileForm] = useState({
     username: "",
     bio: "",
@@ -625,7 +633,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-6">
             <TabsList className="grid w-full grid-cols-5 h-auto p-1">
               <TabsTrigger value="overview" className="gap-2 py-3">
                 <BarChart3 className="w-4 h-4" />
