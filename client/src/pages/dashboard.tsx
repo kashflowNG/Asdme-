@@ -508,23 +508,46 @@ export default function Dashboard() {
             {/* Overview Tab */}
             <TabsContent value="overview" className="space-y-6 mt-6">
               <AnalyticsDashboard />
+              
+              {/* Ad Placement - After Analytics */}
+              <div className="flex justify-center py-4">
+                <div className="w-full max-w-md mx-auto">
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-overview-1"></div>
+                </div>
+              </div>
+
               <ClickHeatmap />
               <LinkScheduleVisualizer links={sortedLinks} />
+              
+              {/* Ad Placement - Middle of Overview */}
+              <div className="flex justify-center py-4">
+                <div className="w-full max-w-md mx-auto">
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-overview-2"></div>
+                </div>
+              </div>
+
               <SmartRecommendations
                 existingPlatforms={links.map(l => l.platform)}
                 onAddPlatform={() => setShowAddDialog(true)}
               />
 
-              {/* Ad Placement - Overview Tab */}
-              <div className="flex justify-center py-6">
-                <div className="w-full max-w-sm mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-overview"></div>
+              {/* Ad Placement - Bottom of Overview */}
+              <div className="flex justify-center py-4">
+                <div className="w-full max-w-md mx-auto">
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-overview-3"></div>
                 </div>
               </div>
             </TabsContent>
 
             {/* Profile Tab */}
             <TabsContent value="profile" className="space-y-6 mt-6">
+              {/* Ad Placement - Top of Profile */}
+              <div className="flex justify-center py-4">
+                <div className="w-full max-w-md mx-auto">
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-profile-1"></div>
+                </div>
+              </div>
+
               <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-profile-editor">
                 <div className="flex items-center justify-between">
                   <h2 className="text-2xl font-bold">Profile Settings</h2>
@@ -631,6 +654,13 @@ export default function Dashboard() {
                 </div>
               </Card>
 
+              {/* Ad Placement - Middle of Profile */}
+              <div className="flex justify-center py-4">
+                <div className="w-full max-w-md mx-auto">
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-profile-2"></div>
+                </div>
+              </div>
+
               <SEOEditor
                 profile={profile || null}
                 onUpdate={async (updates) => {
@@ -641,16 +671,23 @@ export default function Dashboard() {
                 }}
               />
 
-              {/* Ad Placement - Profile Tab */}
-              <div className="flex justify-center py-6">
-                <div className="w-full max-w-sm mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-profile"></div>
+              {/* Ad Placement - Bottom of Profile */}
+              <div className="flex justify-center py-4">
+                <div className="w-full max-w-md mx-auto">
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-profile-3"></div>
                 </div>
               </div>
             </TabsContent>
 
             {/* Links Tab */}
             <TabsContent value="links" className="space-y-6 mt-6">
+              {/* Ad Placement - Top of Links */}
+              <div className="flex justify-center py-4">
+                <div className="w-full max-w-md mx-auto">
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-links-1"></div>
+                </div>
+              </div>
+
               <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-links-manager">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
@@ -717,21 +754,42 @@ export default function Dashboard() {
                       </SortableContext>
                     </DndContext>
 
-                    {/* Ad Placement - Bottom of links section */}
-                    <div className="flex justify-center py-6 mt-6">
+                    {/* Ad Placement - Bottom of links list */}
+                    <div className="flex justify-center py-4 mt-6">
                       <div className="w-full max-w-md mx-auto">
-                        <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-links"></div>
+                        <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-links-2"></div>
                       </div>
                     </div>
                   </>
                 )}
               </Card>
 
+              {/* Ad Placement - Before Link Groups */}
+              <div className="flex justify-center py-4">
+                <div className="w-full max-w-md mx-auto">
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-links-3"></div>
+                </div>
+              </div>
+
               <LinkGroupManager />
+
+              {/* Ad Placement - Bottom of Links */}
+              <div className="flex justify-center py-4">
+                <div className="w-full max-w-md mx-auto">
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-links-4"></div>
+                </div>
+              </div>
             </TabsContent>
 
             {/* Appearance Tab */}
             <TabsContent value="appearance" className="space-y-6 mt-6">
+              {/* Ad Placement - Top of Appearance */}
+              <div className="flex justify-center py-4">
+                <div className="w-full max-w-md mx-auto">
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-appearance-1"></div>
+                </div>
+              </div>
+
               {profile && (
                 <AppearanceEditor
                   profile={profile}
@@ -743,26 +801,57 @@ export default function Dashboard() {
                   }}
                 />
               )}
+
+              {/* Ad Placement - Middle of Appearance */}
+              <div className="flex justify-center py-4">
+                <div className="w-full max-w-md mx-auto">
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-appearance-2"></div>
+                </div>
+              </div>
+
               <TemplateSelector />
 
-              {/* Ad Placement - Appearance Tab */}
-              <div className="flex justify-center py-6">
-                <div className="w-full max-w-sm mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-appearance"></div>
+              {/* Ad Placement - Bottom of Appearance */}
+              <div className="flex justify-center py-4">
+                <div className="w-full max-w-md mx-auto">
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-appearance-3"></div>
                 </div>
               </div>
             </TabsContent>
 
             {/* Advanced Tab */}
             <TabsContent value="advanced" className="space-y-6 mt-6">
+              {/* Ad Placement - Top of Advanced */}
+              <div className="flex justify-center py-4">
+                <div className="w-full max-w-md mx-auto">
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-advanced-1"></div>
+                </div>
+              </div>
+
               <ContentBlockManager />
+
+              {/* Ad Placement - After Content Blocks */}
+              <div className="flex justify-center py-4">
+                <div className="w-full max-w-md mx-auto">
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-advanced-2"></div>
+                </div>
+              </div>
+
               <CustomDomainManager />
+
+              {/* Ad Placement - After Custom Domain */}
+              <div className="flex justify-center py-4">
+                <div className="w-full max-w-md mx-auto">
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-advanced-3"></div>
+                </div>
+              </div>
+
               <ABTestManager />
 
-              {/* Ad Placement - Advanced Tab */}
-              <div className="flex justify-center py-6">
-                <div className="w-full max-w-sm mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-advanced"></div>
+              {/* Ad Placement - Bottom of Advanced */}
+              <div className="flex justify-center py-4">
+                <div className="w-full max-w-md mx-auto">
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-advanced-4"></div>
                 </div>
               </div>
             </TabsContent>
