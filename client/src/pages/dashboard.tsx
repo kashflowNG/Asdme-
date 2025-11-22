@@ -158,6 +158,8 @@ export default function Dashboard() {
     bio: "",
     avatar: "",
   });
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const lastCommittedProfile = useRef<Profile | null>(null);
 
@@ -376,6 +378,70 @@ export default function Dashboard() {
     }
 
     updateProfileMutation.mutate({ [field]: value });
+  };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Error",
+        description: "Image size must be less than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Error",
+        description: "Only JPEG, PNG, GIF, and WebP images are allowed",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingAvatar(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload image');
+      }
+
+      const data = await response.json();
+      
+      // Update profile with the new avatar URL
+      updateProfileMutation.mutate({ avatar: data.url });
+      
+      toast({
+        title: "Avatar uploaded",
+        description: "Your profile picture has been updated successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to upload avatar",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingAvatar(false);
+      // Reset the input so the same file can be uploaded again
+      if (avatarInputRef.current) {
+        avatarInputRef.current.value = '';
+      }
+    }
   };
 
   const handleAddLink = (
@@ -620,23 +686,42 @@ export default function Dashboard() {
                       {initials}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1">
-                    <Label htmlFor="avatar" className="text-sm font-medium">Avatar URL</Label>
-                    <div className="flex gap-2 mt-1">
-                      <Input
-                        id="avatar"
-                        type="url"
-                        placeholder="https://example.com/avatar.jpg"
-                        value={profileForm.avatar}
-                        onChange={(e) => setProfileForm({ ...profileForm, avatar: e.target.value })}
-                        onBlur={() => handleUpdateProfile("avatar")}
-                        disabled={!profile}
-                        data-testid="input-avatar"
+                  <div className="flex-1 space-y-2">
+                    <Label className="text-sm font-medium">Profile Picture</Label>
+                    <div className="flex gap-2">
+                      <input
+                        ref={avatarInputRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/gif,image/webp"
+                        onChange={handleAvatarUpload}
+                        className="hidden"
+                        data-testid="input-avatar-file"
                       />
-                      <Button size="icon" variant="outline" data-testid="button-upload-avatar">
+                      <Button
+                        variant="outline"
+                        onClick={() => avatarInputRef.current?.click()}
+                        disabled={!profile || uploadingAvatar}
+                        className="flex-1 gap-2"
+                        data-testid="button-upload-avatar"
+                      >
                         <Upload className="w-4 h-4" />
+                        {uploadingAvatar ? "Uploading..." : "Upload Image"}
                       </Button>
+                      {profile?.avatar && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => updateProfileMutation.mutate({ avatar: "" })}
+                          disabled={uploadingAvatar}
+                          data-testid="button-remove-avatar"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
                     </div>
+                    <p className="text-xs text-muted-foreground">
+                      Max size: 5MB. Formats: JPEG, PNG, GIF, WebP
+                    </p>
                   </div>
                 </div>
 
