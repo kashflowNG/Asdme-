@@ -32,7 +32,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       secure: false,
       httpOnly: true,
       maxAge: 30 * 24 * 60 * 60 * 1000,
-      sameSite: 'lax',
+      sameSite: 'none', // Required for Vite proxy in Replit
       path: '/',
       domain: undefined // Let browser handle domain
     },
