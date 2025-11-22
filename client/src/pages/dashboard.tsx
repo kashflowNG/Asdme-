@@ -153,6 +153,29 @@ export default function Dashboard() {
   const [showQRDialog, setShowQRDialog] = useState(false);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
+
+  // Refresh ads when tab changes
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    
+    // Reload ads by removing and re-adding the script
+    const adContainer = document.getElementById('container-d3086215aaf6d1aac4a8cf2c4eda801b');
+    if (adContainer) {
+      // Clear the container
+      adContainer.innerHTML = '';
+      
+      // Remove existing ad scripts
+      const existingScripts = document.querySelectorAll('script[src*="d3086215aaf6d1aac4a8cf2c4eda801b"]');
+      existingScripts.forEach(script => script.remove());
+      
+      // Re-inject the ad script
+      const script = document.createElement('script');
+      script.async = true;
+      script.dataset.cfasync = 'false';
+      script.src = '//pl24547095.profitablecpmrate.com/d3086215aaf6d1aac4a8cf2c4eda801b/invoke.js';
+      document.body.appendChild(script);
+    }
+  };
   const [profileForm, setProfileForm] = useState({
     username: "",
     bio: "",
@@ -625,7 +648,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-6">
             <TabsList className="grid w-full grid-cols-5 h-auto p-1">
               <TabsTrigger value="overview" className="gap-2 py-3">
                 <BarChart3 className="w-4 h-4" />

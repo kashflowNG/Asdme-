@@ -57,6 +57,20 @@ const layouts = [
 ];
 
 export function AppearanceEditor({ profile, onUpdate }: AppearanceEditorProps) {
+  const handleAppearanceTabChange = (value: string) => {
+    // Refresh ads when switching appearance tabs
+    const adContainer = document.getElementById('container-d3086215aaf6d1aac4a8cf2c4eda801b');
+    if (adContainer) {
+      adContainer.innerHTML = '';
+      const existingScripts = document.querySelectorAll('script[src*="d3086215aaf6d1aac4a8cf2c4eda801b"]');
+      existingScripts.forEach(script => script.remove());
+      const script = document.createElement('script');
+      script.async = true;
+      script.dataset.cfasync = 'false';
+      script.src = '//pl24547095.profitablecpmrate.com/d3086215aaf6d1aac4a8cf2c4eda801b/invoke.js';
+      document.body.appendChild(script);
+    }
+  };
   const [backgroundType, setBackgroundType] = useState<string>(
     profile.backgroundType || "color"
   );
@@ -84,7 +98,7 @@ export function AppearanceEditor({ profile, onUpdate }: AppearanceEditorProps) {
         <h2 className="text-2xl font-bold">Appearance Customization</h2>
       </div>
 
-      <Tabs defaultValue="theme" className="w-full">
+      <Tabs defaultValue="theme" className="w-full" onValueChange={handleAppearanceTabChange}>
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="theme" className="gap-2">
             <Palette className="w-4 h-4" />
