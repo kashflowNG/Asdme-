@@ -191,6 +191,7 @@ export default function PublicProfile() {
   const profileUrl = `${window.location.origin}/user/${profile.username}`;
   const pageTitle = profile.seoTitle || `${profile.username} - Link Hub`;
   const pageDescription = profile.seoDescription || profile.bio || `Check out all of ${profile.username}'s social media links and content`;
+  const siteName = window.location.hostname.replace('www.', '');
 
   return (
     <>
@@ -206,7 +207,7 @@ export default function PublicProfile() {
         <meta property="og:url" content={profileUrl} />
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={pageDescription} />
-        <meta property="og:site_name" content="Neropage" />
+        <meta property="og:site_name" content={siteName} />
         {profile.ogImage && <meta property="og:image" content={profile.ogImage} />}
         {profile.ogImage && <meta property="og:image:alt" content={`${profile.username}'s profile image`} />}
         {profile.avatarUrl && !profile.ogImage && <meta property="og:image" content={profile.avatarUrl} />}
