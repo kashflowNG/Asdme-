@@ -411,19 +411,11 @@ export default function Dashboard() {
       const formData = new FormData();
       formData.append('image', file);
 
-      const response = await fetch('/api/upload-image', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to upload image');
-      }
-
-      const data = await response.json();
+      // Use apiRequest which includes authentication headers
+      const data = await apiRequest('POST', '/api/upload-image', formData);
       
       // Update profile with the new avatar URL
-      updateProfileMutation.mutate({ avatar: data.url });
+      await updateProfileMutation.mutateAsync({ avatar: data.url });
       
       toast({
         title: "Avatar uploaded",
