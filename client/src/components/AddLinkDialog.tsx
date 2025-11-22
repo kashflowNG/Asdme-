@@ -18,6 +18,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Calendar, Upload, Image as ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 interface AddLinkDialogProps {
   open: boolean;
@@ -136,13 +137,7 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
 
   const addLinkMutation = useMutation({
     mutationFn: async (linkData: any) => {
-      const response = await fetch("/api/links", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(linkData),
-      });
-      if (!response.ok) throw new Error("Failed to add link");
-      return response.json();
+      return apiRequest("POST", "/api/links", linkData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/links"] });
@@ -152,10 +147,10 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
       });
       handleClose();
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: "Failed to add link",
+        description: error.message || "Failed to add link",
         variant: "destructive",
       });
     },
