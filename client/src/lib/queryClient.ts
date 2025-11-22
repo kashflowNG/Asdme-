@@ -30,19 +30,21 @@ export async function apiRequest(
   data?: any
 ): Promise<any> {
   const token = getAuthToken();
+  const headers: Record<string, string> = data instanceof FormData ? {} : {
+    "Content-Type": "application/json",
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const options: RequestInit = {
     method,
-    headers: data instanceof FormData ? {} : {
-      "Content-Type": "application/json",
-    },
+    headers,
   };
 
   if (data) {
     options.body = data instanceof FormData ? data : JSON.stringify(data);
-  }
-
-  if (token) {
-    options.headers['Authorization'] = `Bearer ${token}`;
   }
 
   const response = await fetch(url, options);
