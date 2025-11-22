@@ -3,7 +3,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import {
-  insertProfileSchema, updateProfileSchema, insertSocialLinkSchema,
+  insertProfileSchema, updateProfileSchema, insertSocialLinkSchema, updateSocialLinkSchema,
   insertLinkGroupSchema, insertContentBlockSchema, insertFormSubmissionSchema
 } from "@shared/schema";
 import { z } from "zod";
@@ -392,6 +392,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invalid link data", details: error.errors });
       }
       res.status(500).json({ error: "Failed to create link" });
+    }
+  });
+
+  // Update a social link
+  app.patch("/api/links/:id", async (req, res) => {
+    try {
+      const auth = authenticate(req);
+      if (!auth) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { id } = req.params;
+      const profile = await storage.getProfileByUsername(auth.username);
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+
+      const link = await storage.getSocialLink(id);
+      if (!link || link.profileId !== profile.id) {
+        return res.status(404).json({ error: "Link not found" });
+      }
+
+      const validatedUpdates = updateSocialLinkSchema.parse(req.body);
+      const updates: any = { ...validatedUpdates };
+      
+      if (typeof validatedUpdates.enabled === 'boolean') {
+        updates.enabled = validatedUpdates.enabled ? 1 : 0;
+      }
+      if (typeof validatedUpdates.isScheduled === 'boolean') {
+        updates.isScheduled = validatedUpdates.isScheduled ? 1 : 0;
+      }
+      if (typeof validatedUpdates.isPriority === 'boolean') {
+        updates.isPriority = validatedUpdates.isPriority ? 1 : 0;
+      }
+
+      const updatedLink = await storage.updateSocialLink(id, updates);
+
+      if (!updatedLink) {
+        return res.status(404).json({ error: "Link not found" });
+      }
+
+      res.json(updatedLink);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid link data", details: error.errors });
+      }
+      res.status(500).json({ error: "Failed to update link" });
     }
   });
 

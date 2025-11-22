@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { AddLinkDialog } from "@/components/AddLinkDialog";
+import { EditLinkDialog } from "@/components/EditLinkDialog";
 import { NeropageLogo } from "@/components/NeropageLogo";
 import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
 import { QRCodeGenerator } from "@/components/QRCodeGenerator";
@@ -24,7 +25,8 @@ import { ClickHeatmap } from "@/components/ClickHeatmap";
 import { LinkScheduleVisualizer } from "@/components/LinkScheduleVisualizer";
 import { EngagementAlerts } from "@/components/EngagementAlerts";
 import { getPlatform } from "@/lib/platforms";
-import { GripVertical, Trash2, Plus, Eye, Upload, Copy, Check, ExternalLink, LogOut, QrCode, BarChart3, Link2, Palette, Settings, Zap } from "lucide-react";
+import { GripVertical, Trash2, Plus, Eye, Upload, Copy, Check, ExternalLink, LogOut, QrCode, BarChart3, Link2, Palette, Settings, Zap, Edit, EyeOff } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -61,9 +63,11 @@ import { Helmet } from "react-helmet";
 interface SortableLinkItemProps {
   link: SocialLink;
   onDelete: (id: string) => void;
+  onEdit: (link: SocialLink) => void;
+  onToggle: (id: string, enabled: boolean) => void;
 }
 
-function SortableLinkItem({ link, onDelete }: SortableLinkItemProps) {
+function SortableLinkItem({ link, onDelete, onEdit, onToggle }: SortableLinkItemProps) {
   const {
     attributes,
     listeners,
@@ -84,11 +88,13 @@ function SortableLinkItem({ link, onDelete }: SortableLinkItemProps) {
 
   const Icon = platform.icon;
 
+  const isEnabled = typeof link.enabled === 'number' ? link.enabled === 1 : link.enabled !== false;
+
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="group flex items-center gap-4 p-4 bg-card rounded-xl border-2 border-card-border hover:border-primary/30 shadow-sm hover:shadow-md transition-all"
+      className={`group flex items-center gap-4 p-4 bg-card rounded-xl border-2 border-card-border hover:border-primary/30 shadow-sm hover:shadow-md transition-all ${!isEnabled ? 'opacity-60' : ''}`}
       data-testid={`link-item-${link.platform}`}
     >
       <button
@@ -103,18 +109,37 @@ function SortableLinkItem({ link, onDelete }: SortableLinkItemProps) {
         <Icon className="w-6 h-6 flex-shrink-0" style={{ color: platform.color }} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold">{platform.name}</p>
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-semibold">{link.customTitle || platform.name}</p>
+          {!isEnabled && <EyeOff className="w-3 h-3 text-muted-foreground" />}
+        </div>
         <p className="text-xs text-muted-foreground truncate">{link.url}</p>
       </div>
-      <Button
-        size="icon"
-        variant="ghost"
-        onClick={() => onDelete(link.id)}
-        className="flex-shrink-0 hover:bg-destructive/10 hover:text-destructive transition-colors"
-        data-testid={`button-delete-${link.platform}`}
-      >
-        <Trash2 className="w-4 h-4" />
-      </Button>
+      <div className="flex items-center gap-2">
+        <Switch
+          checked={isEnabled}
+          onCheckedChange={(checked) => onToggle(link.id, checked)}
+          data-testid={`switch-toggle-${link.platform}`}
+        />
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={() => onEdit(link)}
+          className="flex-shrink-0 hover:bg-primary/10 hover:text-primary transition-colors"
+          data-testid={`button-edit-${link.platform}`}
+        >
+          <Edit className="w-4 h-4" />
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={() => onDelete(link.id)}
+          className="flex-shrink-0 hover:bg-destructive/10 hover:text-destructive transition-colors"
+          data-testid={`button-delete-${link.platform}`}
+        >
+          <Trash2 className="w-4 h-4" />
+        </Button>
+      </div>
     </div>
   );
 }
@@ -123,6 +148,8 @@ export default function Dashboard() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingLink, setEditingLink] = useState<SocialLink | null>(null);
   const [showQRDialog, setShowQRDialog] = useState(false);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
@@ -237,6 +264,42 @@ export default function Dashboard() {
       toast({
         title: "Error",
         description: error.message || "Failed to add link",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateLinkMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<SocialLink> }) => {
+      return await apiRequest("PATCH", `/api/links/${id}`, updates);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/links"] });
+      toast({
+        title: "Link updated",
+        description: "Your link has been updated successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update link",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const toggleLinkMutation = useMutation({
+    mutationFn: async ({ id, enabled }: { id: string; enabled: boolean }) => {
+      return await apiRequest("PATCH", `/api/links/${id}`, { enabled });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/links"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to toggle link",
         variant: "destructive",
       });
     },
@@ -393,9 +456,25 @@ export default function Dashboard() {
 
   const sortedLinks = [...links].sort((a, b) => a.order - b.order);
 
-  // Dummy handleDelete function to satisfy the types in the changes, as it's not defined in original
   const handleDelete = (id: string) => {
     deleteLinkMutation.mutate(id);
+  };
+
+  const handleEditLink = (link: SocialLink) => {
+    setEditingLink(link);
+    setShowEditDialog(true);
+  };
+
+  const handleUpdateLink = (updates: Partial<SocialLink>) => {
+    if (editingLink) {
+      updateLinkMutation.mutate({ id: editingLink.id, updates });
+      setShowEditDialog(false);
+      setEditingLink(null);
+    }
+  };
+
+  const handleToggleLink = (id: string, enabled: boolean) => {
+    toggleLinkMutation.mutate({ id, enabled });
   };
 
   return (
@@ -508,24 +587,8 @@ export default function Dashboard() {
             {/* Overview Tab */}
             <TabsContent value="overview" className="space-y-6 mt-6">
               <AnalyticsDashboard />
-              
-              {/* Ad Placement - After Analytics */}
-              <div className="flex justify-center py-4">
-                <div className="w-full max-w-md mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-overview-1"></div>
-                </div>
-              </div>
-
               <ClickHeatmap />
               <LinkScheduleVisualizer links={sortedLinks} />
-              
-              {/* Ad Placement - Middle of Overview */}
-              <div className="flex justify-center py-4">
-                <div className="w-full max-w-md mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-overview-2"></div>
-                </div>
-              </div>
-
               <SmartRecommendations
                 existingPlatforms={links.map(l => l.platform)}
                 onAddPlatform={() => setShowAddDialog(true)}
@@ -534,20 +597,13 @@ export default function Dashboard() {
               {/* Ad Placement - Bottom of Overview */}
               <div className="flex justify-center py-4">
                 <div className="w-full max-w-md mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-overview-3"></div>
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-overview"></div>
                 </div>
               </div>
             </TabsContent>
 
             {/* Profile Tab */}
             <TabsContent value="profile" className="space-y-6 mt-6">
-              {/* Ad Placement - Top of Profile */}
-              <div className="flex justify-center py-4">
-                <div className="w-full max-w-md mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-profile-1"></div>
-                </div>
-              </div>
-
               <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-profile-editor">
                 <div className="flex items-center justify-between">
                   <h2 className="text-2xl font-bold">Profile Settings</h2>
@@ -654,13 +710,6 @@ export default function Dashboard() {
                 </div>
               </Card>
 
-              {/* Ad Placement - Middle of Profile */}
-              <div className="flex justify-center py-4">
-                <div className="w-full max-w-md mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-profile-2"></div>
-                </div>
-              </div>
-
               <SEOEditor
                 profile={profile || null}
                 onUpdate={async (updates) => {
@@ -674,20 +723,13 @@ export default function Dashboard() {
               {/* Ad Placement - Bottom of Profile */}
               <div className="flex justify-center py-4">
                 <div className="w-full max-w-md mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-profile-3"></div>
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-profile"></div>
                 </div>
               </div>
             </TabsContent>
 
             {/* Links Tab */}
             <TabsContent value="links" className="space-y-6 mt-6">
-              {/* Ad Placement - Top of Links */}
-              <div className="flex justify-center py-4">
-                <div className="w-full max-w-md mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-links-1"></div>
-                </div>
-              </div>
-
               <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-links-manager">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
@@ -748,48 +790,29 @@ export default function Dashboard() {
                               key={link.id}
                               link={link}
                               onDelete={() => handleDelete(link.id)}
+                              onEdit={handleEditLink}
+                              onToggle={handleToggleLink}
                             />
                           ))}
                         </div>
                       </SortableContext>
                     </DndContext>
-
-                    {/* Ad Placement - Bottom of links list */}
-                    <div className="flex justify-center py-4 mt-6">
-                      <div className="w-full max-w-md mx-auto">
-                        <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-links-2"></div>
-                      </div>
-                    </div>
                   </>
                 )}
               </Card>
-
-              {/* Ad Placement - Before Link Groups */}
-              <div className="flex justify-center py-4">
-                <div className="w-full max-w-md mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-links-3"></div>
-                </div>
-              </div>
 
               <LinkGroupManager />
 
               {/* Ad Placement - Bottom of Links */}
               <div className="flex justify-center py-4">
                 <div className="w-full max-w-md mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-links-4"></div>
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-links"></div>
                 </div>
               </div>
             </TabsContent>
 
             {/* Appearance Tab */}
             <TabsContent value="appearance" className="space-y-6 mt-6">
-              {/* Ad Placement - Top of Appearance */}
-              <div className="flex justify-center py-4">
-                <div className="w-full max-w-md mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-appearance-1"></div>
-                </div>
-              </div>
-
               {profile && (
                 <AppearanceEditor
                   profile={profile}
@@ -802,56 +825,26 @@ export default function Dashboard() {
                 />
               )}
 
-              {/* Ad Placement - Middle of Appearance */}
-              <div className="flex justify-center py-4">
-                <div className="w-full max-w-md mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-appearance-2"></div>
-                </div>
-              </div>
-
               <TemplateSelector />
 
               {/* Ad Placement - Bottom of Appearance */}
               <div className="flex justify-center py-4">
                 <div className="w-full max-w-md mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-appearance-3"></div>
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-appearance"></div>
                 </div>
               </div>
             </TabsContent>
 
             {/* Advanced Tab */}
             <TabsContent value="advanced" className="space-y-6 mt-6">
-              {/* Ad Placement - Top of Advanced */}
-              <div className="flex justify-center py-4">
-                <div className="w-full max-w-md mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-advanced-1"></div>
-                </div>
-              </div>
-
               <ContentBlockManager />
-
-              {/* Ad Placement - After Content Blocks */}
-              <div className="flex justify-center py-4">
-                <div className="w-full max-w-md mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-advanced-2"></div>
-                </div>
-              </div>
-
               <CustomDomainManager />
-
-              {/* Ad Placement - After Custom Domain */}
-              <div className="flex justify-center py-4">
-                <div className="w-full max-w-md mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-advanced-3"></div>
-                </div>
-              </div>
-
               <ABTestManager />
 
               {/* Ad Placement - Bottom of Advanced */}
               <div className="flex justify-center py-4">
                 <div className="w-full max-w-md mx-auto">
-                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-advanced-4"></div>
+                  <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b-advanced"></div>
                 </div>
               </div>
             </TabsContent>
@@ -863,6 +856,13 @@ export default function Dashboard() {
           onOpenChange={setShowAddDialog}
           onAdd={handleAddLink}
           existingPlatforms={links.map((link) => link.platform)}
+        />
+
+        <EditLinkDialog
+          open={showEditDialog}
+          onOpenChange={setShowEditDialog}
+          link={editingLink}
+          onUpdate={handleUpdateLink}
         />
 
         {profile && (

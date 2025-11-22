@@ -60,6 +60,7 @@ export const socialLinks = pgTable("social_links", {
   scheduleStart: text("schedule_start"),
   scheduleEnd: text("schedule_end"),
   thumbnail: text("thumbnail"),
+  enabled: integer("enabled", { mode: 'boolean' }).notNull().default(sql`1`),
   
   // Enhanced Features
   groupId: varchar("group_id"),
@@ -155,6 +156,20 @@ export const insertSocialLinkSchema = createInsertSchema(socialLinks).omit({
   id: true,
 });
 
+export const updateSocialLinkSchema = z.object({
+  platform: z.string().optional(),
+  url: z.string().optional(),
+  customTitle: z.string().optional(),
+  badge: z.string().optional(),
+  description: z.string().optional(),
+  enabled: z.boolean().optional(),
+  isScheduled: z.boolean().optional(),
+  scheduleStart: z.string().optional(),
+  scheduleEnd: z.string().optional(),
+  isPriority: z.boolean().optional(),
+  groupId: z.string().optional(),
+});
+
 export const insertLinkGroupSchema = createInsertSchema(linkGroups).omit({
   id: true,
 });
@@ -189,6 +204,7 @@ export type InsertProfile = z.infer<typeof insertProfileSchema>;
 export type UpdateProfile = z.infer<typeof updateProfileSchema>;
 export type Profile = typeof profiles.$inferSelect;
 export type InsertSocialLink = z.infer<typeof insertSocialLinkSchema>;
+export type UpdateSocialLink = z.infer<typeof updateSocialLinkSchema>;
 export type SocialLink = typeof socialLinks.$inferSelect;
 export type LinkClick = typeof linkClicks.$inferSelect;
 export type ProfileView = typeof profileViews.$inferSelect;
