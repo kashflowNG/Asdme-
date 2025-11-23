@@ -443,58 +443,6 @@ export default function PublicProfile() {
                       </form>
                     </Card>
                   )}
-
-                  {(block.type === "music" || block.type === "podcast") && block.mediaUrl && (
-                    <Card className="p-6 glass-card neon-glow overflow-hidden">
-                      {block.title && <h3 className="text-xl font-bold mb-4">{block.title}</h3>}
-                      <div className="aspect-video rounded-lg overflow-hidden bg-black/20">
-                        <iframe
-                          src={block.mediaUrl}
-                          className="w-full h-full"
-                          allow="encrypted-media"
-                          allowFullScreen
-                        />
-                      </div>
-                    </Card>
-                  )}
-
-                  {block.type === "testimonial" && block.content && (
-                    <Card className="p-6 glass-card neon-glow">
-                      <div className="flex items-start gap-4">
-                        <div className="text-4xl text-primary/30">"</div>
-                        <div className="flex-1">
-                          {block.title && <p className="font-semibold mb-2">{block.title}</p>}
-                          <p className="text-foreground italic mb-3">{block.content}</p>
-                          {block.mediaUrl && (
-                            <div className="flex items-center gap-3">
-                              <img 
-                                src={block.mediaUrl} 
-                                alt="Author" 
-                                className="w-10 h-10 rounded-full object-cover"
-                              />
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </Card>
-                  )}
-
-                  {block.type === "faq" && block.content && (
-                    <Card className="p-6 glass-card neon-glow">
-                      {block.title && <h3 className="text-xl font-bold mb-4">{block.title}</h3>}
-                      <div className="space-y-4">
-                        {block.content.split("\n\n").map((qa, idx) => {
-                          const [question, answer] = qa.split("\n");
-                          return (
-                            <div key={idx} className="border-b border-border/30 pb-4 last:border-0">
-                              <p className="font-semibold mb-2">{question}</p>
-                              <p className="text-sm text-muted-foreground">{answer}</p>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </Card>
-                  )}
                 </div>
               ))}
             </div>
