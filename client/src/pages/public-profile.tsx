@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Helmet } from "react-helmet";
 import { SocialProofWidget } from "@/components/SocialProofWidget";
 import { LiveVisitorCounter } from "@/components/LiveVisitorCounter";
+import DOMPurify from "dompurify";
 
 export default function PublicProfile() {
   const [, params] = useRoute("/user/:username");
@@ -113,6 +114,43 @@ export default function PublicProfile() {
     submitFormMutation.mutate(emailFormData);
   };
 
+  // Helper function to escape HTML
+  const escapeHtml = (text: string): string => {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  };
+
+  // Helper function to sanitize CSS
+  const sanitizeCSS = (css: string): string => {
+    // For maximum security, we prevent breaking out of <style> tag
+    // and filter dangerous CSS patterns
+    let sanitized = css;
+    
+    // Prevent </style> tag injection and other HTML tag injections
+    sanitized = sanitized.replace(/<\s*\/?\s*style[^>]*>/gi, '');
+    sanitized = sanitized.replace(/<\s*script[^>]*>.*?<\s*\/\s*script\s*>/gis, '');
+    sanitized = sanitized.replace(/<[^>]+>/g, ''); // Remove any remaining HTML tags
+    
+    // Remove all at-rules (@import, @font-face, @keyframes, etc.) except @media
+    sanitized = sanitized.replace(/@(?!media)[a-z-]+\s*[^{;]*[{;]/gi, '');
+    
+    // Remove any URL references (to prevent data:, javascript:, and external resource loading)
+    sanitized = sanitized.replace(/url\s*\([^)]*\)/gi, '');
+    
+    // Remove expression() and other IE-specific hacks
+    sanitized = sanitized.replace(/expression\s*\([^)]*\)/gi, '');
+    sanitized = sanitized.replace(/-moz-binding\s*:/gi, '');
+    
+    // Remove behavior property (IE)
+    sanitized = sanitized.replace(/behavior\s*:/gi, '');
+    
+    // Remove any javascript: or vbscript: protocol references
+    sanitized = sanitized.replace(/(javascript|vbscript|data):/gi, '');
+    
+    return sanitized;
+  };
+
   // Render custom template with placeholders replaced
   const renderCustomTemplate = () => {
     if (!profile || !profile.useCustomTemplate || !profile.templateHTML) {
@@ -121,48 +159,48 @@ export default function PublicProfile() {
 
     let html = profile.templateHTML;
 
-    // Replace basic placeholders
-    html = html.replace(/\{\{username\}\}/g, profile.username);
-    html = html.replace(/\{\{bio\}\}/g, profile.bio || "");
-    html = html.replace(/\{\{avatar\}\}/g, profile.avatar || "");
+    // Replace basic placeholders with escaped values
+    html = html.replace(/\{\{username\}\}/g, escapeHtml(profile.username));
+    html = html.replace(/\{\{bio\}\}/g, escapeHtml(profile.bio || ""));
+    html = html.replace(/\{\{avatar\}\}/g, escapeHtml(profile.avatar || ""));
 
-    // Generate social links HTML
+    // Generate social links HTML with escaped values
     const socialLinksHTML = sortedLinks
       .map(
         (link) => `
         <a 
-          href="${link.url}" 
+          href="${escapeHtml(link.url)}" 
           target="_blank" 
           rel="noopener noreferrer"
           class="social-link"
-          data-platform="${link.platform}"
+          data-platform="${escapeHtml(link.platform)}"
         >
-          ${link.customTitle || link.platform}
+          ${escapeHtml(link.customTitle || link.platform)}
         </a>
       `
       )
       .join("");
     html = html.replace(/\{\{socialLinks\}\}/g, socialLinksHTML);
 
-    // Generate content blocks HTML
+    // Generate content blocks HTML with escaped values
     const contentBlocksHTML = sortedBlocks
       .map((block) => {
         if (block.type === "text" && block.content) {
           return `<div class="content-block content-block-text">
-            ${block.title ? `<h3>${block.title}</h3>` : ""}
-            <p>${block.content}</p>
+            ${block.title ? `<h3>${escapeHtml(block.title)}</h3>` : ""}
+            <p>${escapeHtml(block.content)}</p>
           </div>`;
         }
         if (block.type === "image" && block.mediaUrl) {
           return `<div class="content-block content-block-image">
-            ${block.title ? `<h3>${block.title}</h3>` : ""}
-            <img src="${block.mediaUrl}" alt="${block.title || "Content"}" />
+            ${block.title ? `<h3>${escapeHtml(block.title)}</h3>` : ""}
+            <img src="${escapeHtml(block.mediaUrl)}" alt="${escapeHtml(block.title || "Content")}" />
           </div>`;
         }
         if (block.type === "video" && block.mediaUrl) {
           return `<div class="content-block content-block-video">
-            ${block.title ? `<h3>${block.title}</h3>` : ""}
-            <iframe src="${block.mediaUrl.replace("watch?v=", "embed/")}" frameborder="0" allowfullscreen></iframe>
+            ${block.title ? `<h3>${escapeHtml(block.title)}</h3>` : ""}
+            <iframe src="${escapeHtml(block.mediaUrl.replace("watch?v=", "embed/"))}" frameborder="0" allowfullscreen></iframe>
           </div>`;
         }
         return "";
@@ -170,7 +208,15 @@ export default function PublicProfile() {
       .join("");
     html = html.replace(/\{\{contentBlocks\}\}/g, contentBlocksHTML);
 
-    return html;
+    // Sanitize the final HTML using DOMPurify to prevent XSS
+    // Block iframes entirely and use strict URL validation
+    return DOMPurify.sanitize(html, {
+      ALLOWED_TAGS: ['div', 'span', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img', 'a', 'ul', 'ol', 'li', 'br', 'strong', 'em', 'u'],
+      ALLOWED_ATTR: ['class', 'id', 'href', 'src', 'alt', 'target', 'rel', 'data-platform'],
+      ALLOW_DATA_ATTR: false,
+      // Only allow http, https, and relative URLs - block data:, javascript:, etc.
+      ALLOWED_URI_REGEXP: /^(?:(?:https?|ftp):\/\/|\/|#)/i,
+    });
   };
 
   // Get background style based on customization
@@ -331,12 +377,7 @@ export default function PublicProfile() {
 
         {/* Custom CSS */}
         {profile.customCSS && (
-          <style dangerouslySetInnerHTML={{ __html: profile.customCSS }} />
-        )}
-
-        {/* Custom Template CSS */}
-        {profile.useCustomTemplate && profile.templateCSS && (
-          <style dangerouslySetInnerHTML={{ __html: profile.templateCSS }} />
+          <style dangerouslySetInnerHTML={{ __html: sanitizeCSS(profile.customCSS) }} />
         )}
 
         {/* Render custom template if enabled */}

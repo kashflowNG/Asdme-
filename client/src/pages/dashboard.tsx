@@ -19,13 +19,14 @@ import { ContentBlockManager } from "@/components/ContentBlockManager";
 import { CustomDomainManager } from "@/components/CustomDomainManager";
 import { LinkGroupManager } from "@/components/LinkGroupManager";
 import { TemplateSelector } from "@/components/TemplateSelector";
+import { TemplateEditor } from "@/components/TemplateEditor";
 import { ABTestManager } from "@/components/ABTestManager";
 import { SmartRecommendations } from "@/components/SmartRecommendations";
 import { ClickHeatmap } from "@/components/ClickHeatmap";
 import { LinkScheduleVisualizer } from "@/components/LinkScheduleVisualizer";
 import { EngagementAlerts } from "@/components/EngagementAlerts";
 import { getPlatform } from "@/lib/platforms";
-import { GripVertical, Trash2, Plus, Eye, Upload, Copy, Check, ExternalLink, LogOut, QrCode, BarChart3, Link2, Palette, Settings, Zap, Edit, EyeOff } from "lucide-react";
+import { GripVertical, Trash2, Plus, Eye, Upload, Copy, Check, ExternalLink, LogOut, QrCode, BarChart3, Link2, Palette, Settings, Zap, Edit, EyeOff, FileCode } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import {
   AlertDialog,
@@ -635,7 +636,7 @@ export default function Dashboard() {
           </div>
 
           <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-6">
-            <TabsList className="grid w-full grid-cols-6 h-auto p-1">
+            <TabsList className="grid w-full grid-cols-7 h-auto p-1">
               <TabsTrigger value="overview" className="gap-2 py-3">
                 <BarChart3 className="w-4 h-4" />
                 <span className="hidden sm:inline">Overview</span>
@@ -655,6 +656,10 @@ export default function Dashboard() {
               <TabsTrigger value="appearance" className="gap-2 py-3">
                 <Palette className="w-4 h-4" />
                 <span className="hidden sm:inline">Appearance</span>
+              </TabsTrigger>
+              <TabsTrigger value="template" className="gap-2 py-3">
+                <FileCode className="w-4 h-4" />
+                <span className="hidden sm:inline">Template</span>
               </TabsTrigger>
               <TabsTrigger value="advanced" className="gap-2 py-3">
                 <Zap className="w-4 h-4" />
@@ -1052,6 +1057,25 @@ export default function Dashboard() {
               )}
 
               <TemplateSelector />
+            </TabsContent>
+
+            {/* Template Tab */}
+            <TabsContent value="template" className="space-y-6 mt-6">
+              {profile && (
+                <TemplateEditor
+                  profile={profile}
+                  onUpdate={async (updates) => {
+                    if (profile) {
+                      await updateProfileMutation.mutateAsync(updates);
+                      await queryClient.refetchQueries({ queryKey: ["/api/profiles/me"] });
+                      toast({
+                        title: "Template saved",
+                        description: "Your custom template has been updated",
+                      });
+                    }
+                  }}
+                />
+              )}
             </TabsContent>
 
             {/* Advanced Tab */}

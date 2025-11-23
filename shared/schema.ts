@@ -29,9 +29,8 @@ export const profiles = pgTable("profiles", {
   fontFamily: text("font_family").default("DM Sans"),
   buttonStyle: text("button_style").default("rounded"), // rounded, square, pill
   
-  // Custom Template
+  // Custom Template (HTML only for security - CSS disabled)
   templateHTML: text("template_html"),
-  templateCSS: text("template_css"),
   useCustomTemplate: integer("use_custom_template", { mode: 'boolean' }).notNull().default(sql`0`),
   
   // SEO & Metadata
@@ -146,9 +145,8 @@ export const updateProfileSchema = z.object({
   fontFamily: z.string().optional(),
   buttonStyle: z.string().optional(),
   
-  // Custom Template
+  // Custom Template (HTML only for security)
   templateHTML: z.string().optional(),
-  templateCSS: z.string().optional(),
   useCustomTemplate: z.boolean().optional(),
   
   // SEO
