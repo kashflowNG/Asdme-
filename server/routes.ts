@@ -186,16 +186,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ success: true, message: "Logged out successfully" });
   });
 
-  // Configure multer for image uploads
+  // Configure multer for image and video uploads
   const upload = multer({
     storage: multer.memoryStorage(),
-    limits: { fileSize: 5 * 1024 * 1024 },
+    limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit for videos
     fileFilter: (_req, file, cb) => {
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      const allowedTypes = [
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+        'video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'
+      ];
       if (allowedTypes.includes(file.mimetype)) {
         cb(null, true);
       } else {
-        cb(new Error('Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.'));
+        cb(new Error('Invalid file type. Only JPEG, PNG, GIF, WebP images and MP4, WebM, MOV, AVI videos are allowed.'));
       }
     }
   });

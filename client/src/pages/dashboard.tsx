@@ -392,22 +392,28 @@ export default function Dashboard() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
+    // Validate file size (50MB max for videos, 5MB for images)
+    const isVideo = file.type.startsWith('video/');
+    const maxSize = isVideo ? 50 * 1024 * 1024 : 5 * 1024 * 1024;
+    
+    if (file.size > maxSize) {
       toast({
         title: "Error",
-        description: "Image size must be less than 5MB",
+        description: isVideo ? "Video size must be less than 50MB" : "Image size must be less than 5MB",
         variant: "destructive",
       });
       return;
     }
 
     // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    const allowedTypes = [
+      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+      'video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'
+    ];
     if (!allowedTypes.includes(file.type)) {
       toast({
         title: "Error",
-        description: "Only JPEG, PNG, GIF, and WebP images are allowed",
+        description: "Only JPEG, PNG, GIF, WebP images and MP4, WebM, MOV, AVI videos are allowed",
         variant: "destructive",
       });
       return;
@@ -692,7 +698,7 @@ export default function Dashboard() {
                       <input
                         ref={avatarInputRef}
                         type="file"
-                        accept="image/jpeg,image/png,image/gif,image/webp"
+                        accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm,video/quicktime,video/x-msvideo"
                         onChange={handleAvatarUpload}
                         className="hidden"
                         data-testid="input-avatar-file"
@@ -705,7 +711,7 @@ export default function Dashboard() {
                         data-testid="button-upload-avatar"
                       >
                         <Upload className="w-4 h-4" />
-                        {uploadingAvatar ? "Uploading..." : "Upload Image"}
+                        {uploadingAvatar ? "Uploading..." : "Upload Media"}
                       </Button>
                       {profile?.avatar && (
                         <Button
@@ -720,7 +726,7 @@ export default function Dashboard() {
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Max size: 5MB. Formats: JPEG, PNG, GIF, WebP
+                      Images: 5MB max (JPEG, PNG, GIF, WebP) | Videos: 50MB max (MP4, WebM, MOV, AVI)
                     </p>
                   </div>
                 </div>
@@ -904,13 +910,13 @@ export default function Dashboard() {
                       Upload Media Files
                     </h3>
                     <p className="text-xs text-muted-foreground mb-4">
-                      Upload images (JPEG, PNG, GIF, WebP) or videos to generate permanent URLs
+                      Upload images (JPEG, PNG, GIF, WebP) or videos (MP4, WebM, MOV, AVI) to generate permanent URLs
                     </p>
                     
                     <input
                       ref={avatarInputRef}
                       type="file"
-                      accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm"
+                      accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm,video/quicktime,video/x-msvideo"
                       onChange={handleAvatarUpload}
                       className="hidden"
                       data-testid="input-media-file"
@@ -923,10 +929,10 @@ export default function Dashboard() {
                       data-testid="button-upload-media"
                     >
                       <Upload className="w-4 h-4" />
-                      {uploadingAvatar ? "Uploading..." : "Choose File to Upload"}
+                      {uploadingAvatar ? "Uploading..." : "Choose Image or Video to Upload"}
                     </Button>
                     <p className="text-xs text-muted-foreground mt-2">
-                      Max size: 5MB per file
+                      Max size: 5MB for images, 50MB for videos
                     </p>
                   </div>
 

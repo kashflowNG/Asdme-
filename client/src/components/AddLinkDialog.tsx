@@ -352,7 +352,7 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
                       <input
                         ref={fileInputRef}
                         type="file"
-                        accept="image/*"
+                        accept="image/*,video/mp4,video/webm,video/quicktime,video/x-msvideo"
                         onChange={handleImageUpload}
                         className="hidden"
                       />
