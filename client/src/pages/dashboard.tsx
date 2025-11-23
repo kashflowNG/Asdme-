@@ -59,6 +59,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useLocation } from "wouter";
+import { Helmet } from "react-helmet";
 
 
 interface SortableLinkItemProps {
@@ -551,6 +552,10 @@ export default function Dashboard() {
 
   return (
     <>
+      <Helmet>
+        <script async data-cfasync="false" src="//pl28091865.effectivegatecpm.com/d3086215aaf6d1aac4a8cf2c4eda801b/invoke.js"></script>
+      </Helmet>
+
       <div className="min-h-screen bg-background relative">
         {/* Background Effects */}
         <div className="absolute inset-0 -z-10">
