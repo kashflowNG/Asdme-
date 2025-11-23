@@ -113,6 +113,66 @@ export default function PublicProfile() {
     submitFormMutation.mutate(emailFormData);
   };
 
+  // Render custom template with placeholders replaced
+  const renderCustomTemplate = () => {
+    if (!profile || !profile.useCustomTemplate || !profile.templateHTML) {
+      return null;
+    }
+
+    let html = profile.templateHTML;
+
+    // Replace basic placeholders
+    html = html.replace(/\{\{username\}\}/g, profile.username);
+    html = html.replace(/\{\{bio\}\}/g, profile.bio || "");
+    html = html.replace(/\{\{avatar\}\}/g, profile.avatar || "");
+
+    // Generate social links HTML
+    const socialLinksHTML = sortedLinks
+      .map(
+        (link) => `
+        <a 
+          href="${link.url}" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="social-link"
+          data-platform="${link.platform}"
+        >
+          ${link.customTitle || link.platform}
+        </a>
+      `
+      )
+      .join("");
+    html = html.replace(/\{\{socialLinks\}\}/g, socialLinksHTML);
+
+    // Generate content blocks HTML
+    const contentBlocksHTML = sortedBlocks
+      .map((block) => {
+        if (block.type === "text" && block.content) {
+          return `<div class="content-block content-block-text">
+            ${block.title ? `<h3>${block.title}</h3>` : ""}
+            <p>${block.content}</p>
+          </div>`;
+        }
+        if (block.type === "image" && block.mediaUrl) {
+          return `<div class="content-block content-block-image">
+            ${block.title ? `<h3>${block.title}</h3>` : ""}
+            <img src="${block.mediaUrl}" alt="${block.title || "Content"}" />
+          </div>`;
+        }
+        if (block.type === "video" && block.mediaUrl) {
+          return `<div class="content-block content-block-video">
+            ${block.title ? `<h3>${block.title}</h3>` : ""}
+            <iframe src="${block.mediaUrl.replace("watch?v=", "embed/")}" frameborder="0" allowfullscreen></iframe>
+          </div>`;
+        }
+        return "";
+      })
+      .join("");
+    html = html.replace(/\{\{contentBlocks\}\}/g, contentBlocksHTML);
+
+    return html;
+  };
+
   // Get background style based on customization
   const getBackgroundStyle = () => {
     if (!profile) return {};
@@ -274,9 +334,22 @@ export default function PublicProfile() {
           <style dangerouslySetInnerHTML={{ __html: profile.customCSS }} />
         )}
 
-        <div className={`max-w-4xl mx-auto px-4 relative z-10 ${profile.layout === "minimal" ? "max-w-2xl" : ""}`}>
-          {/* Hero Section */}
-          <div className="pt-16 pb-8 text-center animate-fade-in" data-testid="profile-header">
+        {/* Custom Template CSS */}
+        {profile.useCustomTemplate && profile.templateCSS && (
+          <style dangerouslySetInnerHTML={{ __html: profile.templateCSS }} />
+        )}
+
+        {/* Render custom template if enabled */}
+        {profile.useCustomTemplate && renderCustomTemplate() ? (
+          <div 
+            className="custom-template-content"
+            dangerouslySetInnerHTML={{ __html: renderCustomTemplate() || "" }}
+            data-testid="custom-template-content"
+          />
+        ) : (
+          <div className={`max-w-4xl mx-auto px-4 relative z-10 ${profile.layout === "minimal" ? "max-w-2xl" : ""}`}>
+            {/* Hero Section */}
+            <div className="pt-16 pb-8 text-center animate-fade-in" data-testid="profile-header">
             {/* Profile Avatar */}
             <div className="relative inline-block mb-6">
               <div 
@@ -525,7 +598,8 @@ export default function PublicProfile() {
               </div>
             </div>
           </footer>
-        </div>
+          </div>
+        )}
       </div>
     </>
   );
