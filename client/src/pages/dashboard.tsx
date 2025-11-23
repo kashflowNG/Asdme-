@@ -392,14 +392,13 @@ export default function Dashboard() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file size (50MB max for videos, 5MB for images)
-    const isVideo = file.type.startsWith('video/');
-    const maxSize = isVideo ? 50 * 1024 * 1024 : 5 * 1024 * 1024;
+    // Validate file size (500MB max)
+    const maxSize = 500 * 1024 * 1024;
     
     if (file.size > maxSize) {
       toast({
         title: "Error",
-        description: isVideo ? "Video size must be less than 50MB" : "Image size must be less than 5MB",
+        description: "File size must be less than 500MB",
         variant: "destructive",
       });
       return;
@@ -726,7 +725,7 @@ export default function Dashboard() {
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Images: 5MB max (JPEG, PNG, GIF, WebP) | Videos: 50MB max (MP4, WebM, MOV, AVI)
+                      Upload any image or video up to 500MB (JPEG, PNG, GIF, WebP, MP4, WebM, MOV, AVI)
                     </p>
                   </div>
                 </div>
@@ -932,7 +931,7 @@ export default function Dashboard() {
                       {uploadingAvatar ? "Uploading..." : "Choose Image or Video to Upload"}
                     </Button>
                     <p className="text-xs text-muted-foreground mt-2">
-                      Max size: 5MB for images, 50MB for videos
+                      Max size: 500MB per file
                     </p>
                   </div>
 
