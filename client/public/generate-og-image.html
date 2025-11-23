@@ -1,0 +1,217 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Neropage OG Image Generator</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: #0a0a0a;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    }
+
+    .og-image-container {
+      width: 1200px;
+      height: 630px;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #8B5CF6;
+    }
+
+    /* Animated gradient orbs */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.3;
+      animation: float 20s ease-in-out infinite;
+    }
+
+    .orb-1 {
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, #8B5CF6 0%, transparent 70%);
+      top: -100px;
+      left: 100px;
+      animation-delay: 0s;
+    }
+
+    .orb-2 {
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, #06B6D4 0%, transparent 70%);
+      top: 100px;
+      right: -50px;
+      animation-delay: 5s;
+    }
+
+    .orb-3 {
+      width: 450px;
+      height: 450px;
+      background: radial-gradient(circle, #EC4899 0%, transparent 70%);
+      bottom: -100px;
+      left: 300px;
+      animation-delay: 10s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) translateX(0); }
+      25% { transform: translateY(-20px) translateX(20px); }
+      50% { transform: translateY(0) translateX(0); }
+      75% { transform: translateY(20px) translateX(-20px); }
+    }
+
+    /* Logo container */
+    .logo-wrapper {
+      position: relative;
+      z-index: 10;
+      margin-bottom: 40px;
+    }
+
+    /* Text content */
+    .text-content {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+    }
+
+    .brand-name {
+      font-size: 72px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #8B5CF6 0%, #06B6D4 50%, #EC4899 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 20px;
+      letter-spacing: -2px;
+    }
+
+    .tagline {
+      font-size: 28px;
+      color: #94a3b8;
+      font-weight: 400;
+      max-width: 800px;
+      line-height: 1.4;
+    }
+
+    /* Hexagonal frame */
+    .hex-frame {
+      filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.6));
+    }
+
+    /* Instructions */
+    .instructions {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 300px;
+      font-size: 14px;
+      line-height: 1.6;
+      border: 1px solid #8B5CF6;
+      z-index: 1000;
+    }
+
+    .instructions h3 {
+      margin-bottom: 10px;
+      color: #8B5CF6;
+    }
+
+    .instructions ol {
+      margin-left: 20px;
+    }
+
+    .instructions li {
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="instructions">
+    <h3>📸 How to Create OG Image:</h3>
+    <ol>
+      <li>Take a screenshot of the bordered area (1200×630px)</li>
+      <li>Save as <code>og-image.png</code></li>
+      <li>Replace the file in <code>client/public/og-image.png</code></li>
+      <li>Or use a tool like <a href="https://html2canvas.hertzen.com/" target="_blank" style="color: #06B6D4;">html2canvas</a></li>
+    </ol>
+  </div>
+
+  <div class="og-image-container">
+    <!-- Animated gradient orbs -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <!-- NP Logo -->
+    <div class="logo-wrapper">
+      <svg width="200" height="200" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="hexGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+            <stop offset="50%" style="stop-color:#06B6D4;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#EC4899;stop-opacity:1" />
+          </linearGradient>
+          <linearGradient id="npGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1">
+              <animate attributeName="stop-color" values="#8B5CF6;#06B6D4;#EC4899;#8B5CF6" dur="3s" repeatCount="indefinite" />
+            </stop>
+            <stop offset="100%" style="stop-color:#06B6D4;stop-opacity:1">
+              <animate attributeName="stop-color" values="#06B6D4;#EC4899;#8B5CF6;#06B6D4" dur="3s" repeatCount="indefinite" />
+            </stop>
+          </linearGradient>
+        </defs>
+        
+        <!-- Hexagonal outline -->
+        <polygon class="hex-frame" points="50,5 90,27.5 90,72.5 50,95 10,72.5 10,27.5" fill="none" stroke="url(#hexGradient)" stroke-width="3" opacity="0.8"/>
+        
+        <!-- Inner hexagon -->
+        <polygon points="50,15 80,32.5 80,67.5 50,85 20,67.5 20,32.5" fill="rgba(139, 92, 246, 0.15)" stroke="url(#hexGradient)" stroke-width="1.5" opacity="0.6"/>
+        
+        <!-- Central container background -->
+        <rect x="25" y="25" width="50" height="50" rx="10" fill="rgba(139, 92, 246, 0.25)" stroke="rgba(139, 92, 246, 0.4)" stroke-width="1"/>
+        
+        <!-- NP Text -->
+        <text x="50" y="63" text-anchor="middle" fill="url(#npGradient)" font-size="32" font-weight="900" font-family="system-ui, -apple-system, sans-serif" letter-spacing="-2">NP</text>
+        
+        <!-- Geometric accents -->
+        <polygon points="68,28 75,28 75,35" fill="url(#hexGradient)" opacity="0.7"/>
+        <polygon points="25,65 25,72 32,72" fill="url(#hexGradient)" opacity="0.7"/>
+        
+        <!-- Orbital particles -->
+        <circle cx="72" cy="32" r="4" fill="#06B6D4" opacity="0.9">
+          <animate attributeName="opacity" values="0.9;1;0.9" dur="2s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="28" cy="68" r="3.5" fill="#EC4899" opacity="0.9">
+          <animate attributeName="opacity" values="0.9;1;0.9" dur="2.5s" repeatCount="indefinite"/>
+        </circle>
+      </svg>
+    </div>
+
+    <!-- Text Content -->
+    <div class="text-content">
+      <h1 class="brand-name">Neropage</h1>
+      <p class="tagline">Your Ultimate Link-in-Bio Solution</p>
+    </div>
+  </div>
+</body>
+</html>
