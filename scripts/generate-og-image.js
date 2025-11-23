@@ -2,9 +2,12 @@
 // Script to generate og-image.png from the HTML template
 // Run with: node scripts/generate-og-image.js
 
-const puppeteer = require('puppeteer');
-const path = require('path');
-const fs = require('fs');
+import puppeteer from 'puppeteer';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 async function generateOGImage() {
   console.log('🚀 Starting OG image generation...');
