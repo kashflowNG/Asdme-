@@ -164,47 +164,7 @@
 
     <!-- NP Logo -->
     <div class="logo-wrapper">
-      <svg width="200" height="200" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="hexGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
-            <stop offset="50%" style="stop-color:#06B6D4;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#EC4899;stop-opacity:1" />
-          </linearGradient>
-          <linearGradient id="npGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1">
-              <animate attributeName="stop-color" values="#8B5CF6;#06B6D4;#EC4899;#8B5CF6" dur="3s" repeatCount="indefinite" />
-            </stop>
-            <stop offset="100%" style="stop-color:#06B6D4;stop-opacity:1">
-              <animate attributeName="stop-color" values="#06B6D4;#EC4899;#8B5CF6;#06B6D4" dur="3s" repeatCount="indefinite" />
-            </stop>
-          </linearGradient>
-        </defs>
-        
-        <!-- Hexagonal outline -->
-        <polygon class="hex-frame" points="50,5 90,27.5 90,72.5 50,95 10,72.5 10,27.5" fill="none" stroke="url(#hexGradient)" stroke-width="3" opacity="0.8"/>
-        
-        <!-- Inner hexagon -->
-        <polygon points="50,15 80,32.5 80,67.5 50,85 20,67.5 20,32.5" fill="rgba(139, 92, 246, 0.15)" stroke="url(#hexGradient)" stroke-width="1.5" opacity="0.6"/>
-        
-        <!-- Central container background -->
-        <rect x="25" y="25" width="50" height="50" rx="10" fill="rgba(139, 92, 246, 0.25)" stroke="rgba(139, 92, 246, 0.4)" stroke-width="1"/>
-        
-        <!-- NP Text -->
-        <text x="50" y="63" text-anchor="middle" fill="url(#npGradient)" font-size="32" font-weight="900" font-family="system-ui, -apple-system, sans-serif" letter-spacing="-2">NP</text>
-        
-        <!-- Geometric accents -->
-        <polygon points="68,28 75,28 75,35" fill="url(#hexGradient)" opacity="0.7"/>
-        <polygon points="25,65 25,72 32,72" fill="url(#hexGradient)" opacity="0.7"/>
-        
-        <!-- Orbital particles -->
-        <circle cx="72" cy="32" r="4" fill="#06B6D4" opacity="0.9">
-          <animate attributeName="opacity" values="0.9;1;0.9" dur="2s" repeatCount="indefinite"/>
-        </circle>
-        <circle cx="28" cy="68" r="3.5" fill="#EC4899" opacity="0.9">
-          <animate attributeName="opacity" values="0.9;1;0.9" dur="2.5s" repeatCount="indefinite"/>
-        </circle>
-      </svg>
+      <img src="favicon.svg" alt="Neropage Logo" width="200" height="200" style="filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.6));" />
     </div>
 
     <!-- Text Content -->
