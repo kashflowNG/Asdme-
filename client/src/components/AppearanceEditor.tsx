@@ -14,10 +14,12 @@ import {
 } from "@/components/ui/select";
 import { Palette, Image, Video, Code, Type, Layout, Sparkles } from "lucide-react";
 import type { Profile } from "@shared/schema";
+import { useToast } from "@/components/ui/use-toast";
 
 interface AppearanceEditorProps {
   profile: Profile;
   onUpdate: (updates: Partial<Profile>) => void;
+  updateProfile: (updates: Partial<Profile>) => Promise<void>; // Added for toast functionality
 }
 
 const themes = [
@@ -56,7 +58,8 @@ const layouts = [
   { id: "minimal", name: "Minimal", description: "Clean, centered minimal design" },
 ];
 
-export function AppearanceEditor({ profile, onUpdate }: AppearanceEditorProps) {
+export function AppearanceEditor({ profile, onUpdate, updateProfile }: AppearanceEditorProps) {
+  const { toast } = useToast(); // Initialize toast
   const [backgroundType, setBackgroundType] = useState<string>(
     profile.backgroundType || "color"
   );
@@ -76,6 +79,51 @@ export function AppearanceEditor({ profile, onUpdate }: AppearanceEditorProps) {
     setBackgroundType(type);
     onUpdate({ backgroundType: type });
   };
+
+  const handleColorChange = async (field: 'primaryColor' | 'backgroundColor', color: string) => {
+    try {
+      await updateProfile({ [field]: color });
+      toast({
+        title: "Color updated",
+        description: "Your profile color has been updated",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Failed to update color",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleResetToDefaults = async () => {
+    try {
+      await updateProfile({
+        theme: "neon",
+        primaryColor: "#8B5CF6",
+        backgroundColor: "#0A0A0F",
+        backgroundType: "color",
+        backgroundImage: undefined,
+        backgroundVideo: undefined,
+        layout: "stacked",
+        fontFamily: "DM Sans",
+        buttonStyle: "rounded",
+        customCSS: undefined,
+        useCustomTemplate: false,
+      });
+      toast({
+        title: "Reset to defaults",
+        description: "Your appearance settings have been reset to defaults",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Failed to reset",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
 
   return (
     <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-appearance-editor">
@@ -143,14 +191,14 @@ export function AppearanceEditor({ profile, onUpdate }: AppearanceEditorProps) {
                   id="primary-color"
                   type="color"
                   value={profile.primaryColor || "#8B5CF6"}
-                  onChange={(e) => onUpdate({ primaryColor: e.target.value })}
+                  onChange={(e) => handleColorChange("primaryColor", e.target.value)}
                   className="w-20 h-10"
                   data-testid="input-primary-color"
                 />
                 <Input
                   type="text"
                   value={profile.primaryColor || "#8B5CF6"}
-                  onChange={(e) => onUpdate({ primaryColor: e.target.value })}
+                  onChange={(e) => handleColorChange("primaryColor", e.target.value)}
                   className="flex-1"
                   placeholder="#8B5CF6"
                 />
@@ -164,14 +212,14 @@ export function AppearanceEditor({ profile, onUpdate }: AppearanceEditorProps) {
                   id="bg-color"
                   type="color"
                   value={profile.backgroundColor || "#0A0A0F"}
-                  onChange={(e) => onUpdate({ backgroundColor: e.target.value })}
+                  onChange={(e) => handleColorChange("backgroundColor", e.target.value)}
                   className="w-20 h-10"
                   data-testid="input-background-color"
                 />
                 <Input
                   type="text"
                   value={profile.backgroundColor || "#0A0A0F"}
-                  onChange={(e) => onUpdate({ backgroundColor: e.target.value })}
+                  onChange={(e) => handleColorChange("backgroundColor", e.target.value)}
                   className="flex-1"
                   placeholder="#0A0A0F"
                 />
@@ -352,21 +400,7 @@ export function AppearanceEditor({ profile, onUpdate }: AppearanceEditorProps) {
         <Button
           variant="outline"
           className="flex-1"
-          onClick={() => {
-            const defaultTheme = themes[0];
-            onUpdate({
-              theme: defaultTheme.id,
-              primaryColor: defaultTheme.primaryColor,
-              backgroundColor: defaultTheme.backgroundColor,
-              backgroundType: "color",
-              backgroundImage: "",
-              backgroundVideo: "",
-              layout: "stacked",
-              fontFamily: "DM Sans",
-              buttonStyle: "rounded",
-              customCSS: "",
-            });
-          }}
+          onClick={handleResetToDefaults}
         >
           Reset to Default
         </Button>

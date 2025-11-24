@@ -141,6 +141,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         theme: "neon",
         primaryColor: "#8B5CF6",
         backgroundColor: "#0A0A0F",
+        backgroundType: "color",
+        layout: "stacked",
+        fontFamily: "DM Sans",
+        buttonStyle: "rounded",
+        useCustomTemplate: false,
+        hideBranding: false,
+        verificationBadge: false,
       });
 
       const token = generateToken({ userId: user.id, username: user.username });
