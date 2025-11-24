@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Palette, Image, Video, Code, Type, Layout, Sparkles } from "lucide-react";
 import type { Profile } from "@shared/schema";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface AppearanceEditorProps {
   profile: Profile;
