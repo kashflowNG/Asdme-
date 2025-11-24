@@ -936,7 +936,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/profiles/:username/form-submit", async (req, res) => {
+  app.post("/api/profiles/:username/submit-form", async (req, res) => {
     try {
       const { username } = req.params;
       const profile = await storage.getProfileByUsername(username);
@@ -945,20 +945,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Profile not found" });
       }
 
-      const { name, email, message } = req.body;
-      
-      if (!email || !message) {
-        return res.status(400).json({ error: "Email and message are required" });
+      const { blockId } = req.body;
+      if (blockId) {
+        const blocks = await storage.getContentBlocks(profile.id);
+        const ownsBlock = blocks.some(b => b.id === blockId && b.type === 'contact-form');
+        if (!ownsBlock) {
+          return res.status(403).json({ error: "Form not found or access denied" });
+        }
       }
 
       const submissionData = {
+        ...req.body,
         profileId: profile.id,
-        name: name || null,
-        email,
-        message,
         timestamp: new Date().toISOString(),
-        userAgent: req.headers['user-agent'] || null,
-        referrer: req.headers['referer'] || null,
+        userAgent: req.headers['user-agent'],
       };
 
       const validatedData = insertFormSubmissionSchema.parse(submissionData);
