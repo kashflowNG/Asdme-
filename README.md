@@ -1,15 +1,17 @@
 # Neropage - Social Media Link Landing Page Builder
 
-A modern, neon-themed platform for creating personalized social media link landing pages. Built with React, Express, and featuring offline-first PWA capabilities.
+A modern, neon-themed social media link landing page builder.
 
 ## Features
 
-- 🎨 **Neo-Neon Design**: Futuristic, eye-catching interface with neon aesthetics
-- 🔗 **Link Management**: Add, reorder, and manage all your social media links in one place
-- 📱 **Mobile-First**: Optimized for mobile viewing and sharing
-- 🌐 **PWA Support**: Works offline with service worker caching
-- ⚡ **Fast & Responsive**: Built with Vite for lightning-fast performance
-- 💾 **Persistent Storage**: Data cached locally for offline access
+- 🎨 Stunning neo-neon design aesthetics
+- ⚡ Lightning-fast performance with PWA technology
+- 📊 Advanced analytics and insights
+- 🎯 Link scheduling and prioritization
+- 🔒 Enterprise-grade security
+- 🌐 Custom domain support
+- 📱 Mobile-first responsive design
+- 🎭 Full customization options
 
 ## Tech Stack
 
@@ -62,21 +64,6 @@ npm start
 ```
 
 ## Deployment
-
-### Deploy to Render
-
-This project includes a `render.yaml` configuration file for easy deployment to Render.com.
-
-1. Push your code to GitHub/GitLab
-2. Connect your repository to Render
-3. Render will automatically detect the `render.yaml` and configure your service
-4. Deploy!
-
-The configuration includes:
-- Automatic builds on push
-- Persistent disk storage for data
-- Environment variables pre-configured
-- Health checks enabled
 
 ### Deploy to Other Platforms
 
