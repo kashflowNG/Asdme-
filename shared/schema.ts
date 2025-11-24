@@ -147,7 +147,7 @@ export const updateProfileSchema = z.object({
   
   // Custom Template (HTML only for security - allow long strings)
   templateHTML: z.string().optional(), // No length limit for now
-  useCustomTemplate: z.boolean().optional(),
+  useCustomTemplate: z.union([z.boolean(), z.number()]).optional(), // Accept both boolean and integer (0/1)
   
   // SEO
   seoTitle: z.string().optional(),
@@ -156,8 +156,8 @@ export const updateProfileSchema = z.object({
   
   // Branding
   customDomain: z.string().optional(),
-  hideBranding: z.boolean().optional(),
-  verificationBadge: z.boolean().optional(),
+  hideBranding: z.union([z.boolean(), z.number()]).optional(), // Accept both boolean and integer (0/1)
+  verificationBadge: z.union([z.boolean(), z.number()]).optional(), // Accept both boolean and integer (0/1)
 });
 
 export const insertSocialLinkSchema = createInsertSchema(socialLinks).omit({
