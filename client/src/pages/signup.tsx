@@ -49,12 +49,6 @@ export default function Signup() {
         password: data.password,
       });
 
-      // Wait a moment for session to propagate
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      // Verify session before redirecting
-      await apiRequest("GET", "/api/auth/me");
-
       toast({
         title: "Account created!",
         description: "Welcome to Neropage. Let's set up your profile.",
