@@ -17,6 +17,7 @@ import { Helmet } from "react-helmet";
 import { SocialProofWidget } from "@/components/SocialProofWidget";
 import { LiveVisitorCounter } from "@/components/LiveVisitorCounter";
 import DOMPurify from "dompurify";
+import { getPlatform } from "@/lib/platforms";
 
 export default function PublicProfile() {
   const [, params] = useRoute("/user/:username");
@@ -364,25 +365,37 @@ export default function PublicProfile() {
           <div 
             className="min-h-screen"
             dangerouslySetInnerHTML={{ 
-              __html: profile.templateHTML
-                .replace(/\{\{username\}\}/g, profile.username || '')
-                .replace(/\{\{bio\}\}/g, profile.bio || '')
-                .replace(/\{\{avatar\}\}/g, profile.avatar || '')
-                .replace(/\{\{primaryColor\}\}/g, profile.primaryColor || '#8B5CF6')
-                .replace(/\{\{backgroundColor\}\}/g, profile.backgroundColor || '#0a0a0a')
-                .replace(/\{\{fontFamily\}\}/g, profile.fontFamily || 'DM Sans')
-                .replace(/\{\{socialLinks\}\}/g, sortedLinks.length > 0 ? sortedLinks.map(link => `
-                  <a href="${link.url}" target="_blank" rel="noopener noreferrer" 
-                     class="block p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-all border border-white/10 hover:border-white/20 group">
-                    <span class="font-semibold">${link.icon} ${link.customTitle || link.platform}</span>
-                  </a>
-                `).join('') : '<p class="text-gray-400 text-center">No links added yet</p>')
-                .replace(/\{\{contentBlocks\}\}/g, sortedBlocks.length > 0 ? sortedBlocks.map(block => `
-                  <div class="p-6 rounded-lg bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20">
-                    <h3 class="font-bold mb-2">${block.title || 'Content Block'}</h3>
-                    <div class="text-sm text-gray-300">${block.content || ''}</div>
-                  </div>
-                `).join('') : '')
+              __html: DOMPurify.sanitize(
+                profile.templateHTML
+                  .replace(/\{\{username\}\}/g, escapeHtml(profile.username || ''))
+                  .replace(/\{\{bio\}\}/g, escapeHtml(profile.bio || ''))
+                  .replace(/\{\{avatar\}\}/g, escapeHtml(profile.avatar || ''))
+                  .replace(/\{\{primaryColor\}\}/g, escapeHtml(profile.primaryColor || '#8B5CF6'))
+                  .replace(/\{\{backgroundColor\}\}/g, escapeHtml(profile.backgroundColor || '#0a0a0a'))
+                  .replace(/\{\{fontFamily\}\}/g, escapeHtml(profile.fontFamily || 'DM Sans'))
+                  .replace(/\{\{socialLinks\}\}/g, sortedLinks.length > 0 ? sortedLinks.map(link => {
+                    const platform = getPlatform(link.platform);
+                    const icon = platform ? platform.name.charAt(0) : '🔗';
+                    return `
+                      <a href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer" 
+                         class="block p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-all border border-white/10 hover:border-white/20 group">
+                        <span class="font-semibold">${icon} ${escapeHtml(link.customTitle || link.platform)}</span>
+                      </a>
+                    `;
+                  }).join('') : '<p class="text-gray-400 text-center">No links added yet</p>')
+                  .replace(/\{\{contentBlocks\}\}/g, sortedBlocks.length > 0 ? sortedBlocks.map(block => `
+                    <div class="p-6 rounded-lg bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20">
+                      <h3 class="font-bold mb-2">${escapeHtml(block.title || 'Content Block')}</h3>
+                      <div class="text-sm text-gray-300">${escapeHtml(block.content || '')}</div>
+                    </div>
+                  `).join('') : ''),
+                {
+                  ALLOWED_TAGS: ['div', 'span', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img', 'a', 'ul', 'ol', 'li', 'br', 'strong', 'em', 'u', 'header', 'footer', 'section', 'article', 'main', 'nav'],
+                  ALLOWED_ATTR: ['class', 'id', 'href', 'src', 'alt', 'target', 'rel', 'style'],
+                  ALLOW_DATA_ATTR: false,
+                  ALLOWED_URI_REGEXP: /^(?:(?:https?|ftp):\/\/|\/|#)/i,
+                }
+              )
             }}
           />
         ) : (

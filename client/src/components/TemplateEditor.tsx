@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -10,6 +9,7 @@ import { Code, Eye, FileCode, AlertCircle, Shield, Sparkles, Copy, Check } from 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import type { Profile } from "@shared/schema";
+import { queryClient } from "@/lib/queryClient";
 
 interface TemplateEditorProps {
   profile: Profile;
@@ -24,12 +24,12 @@ const DEFAULT_TEMPLATE_HTML = `<!-- Hero Section -->
       <h1 class="text-5xl font-bold mb-4">@{{username}}</h1>
       <p class="text-xl text-gray-400">{{bio}}</p>
     </div>
-    
+
     <!-- Social Links -->
     <div class="space-y-4 mb-12">
       {{socialLinks}}
     </div>
-    
+
     <!-- Content Blocks -->
     <div class="space-y-6">
       {{contentBlocks}}
@@ -71,7 +71,7 @@ const ADVANCED_TEMPLATES = [
   <!-- Animated Grid Background -->
   <div class="absolute inset-0 bg-gradient-to-b from-purple-900/20 via-black to-cyan-900/20"></div>
   <div class="absolute inset-0" style="background-image: linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px); background-size: 50px 50px;"></div>
-  
+
   <div class="relative z-10 max-w-4xl mx-auto px-6 py-16">
     <!-- Profile Section -->
     <div class="text-center mb-16">
@@ -179,7 +179,7 @@ const ADVANCED_TEMPLATES = [
   <!-- Animated Background -->
   <div class="absolute inset-0 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500"></div>
   <div class="absolute inset-0 backdrop-blur-3xl bg-black/30"></div>
-  
+
   <!-- Floating Orbs -->
   <div class="absolute top-20 left-20 w-72 h-72 bg-blue-400/30 rounded-full blur-3xl animate-pulse"></div>
   <div class="absolute bottom-20 right-20 w-96 h-96 bg-purple-400/30 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
@@ -408,7 +408,7 @@ export function TemplateEditor({ profile, onUpdate }: TemplateEditorProps) {
   // Generate live preview by replacing placeholders with sample data
   const previewHTML = useMemo(() => {
     let html = templateHTML;
-    
+
     // Replace placeholders with sample data
     html = html.replace(/\{\{username\}\}/g, profile.username || 'username');
     html = html.replace(/\{\{bio\}\}/g, profile.bio || 'Your bio goes here...');
@@ -416,7 +416,7 @@ export function TemplateEditor({ profile, onUpdate }: TemplateEditorProps) {
     html = html.replace(/\{\{primaryColor\}\}/g, profile.primaryColor || '#8B5CF6');
     html = html.replace(/\{\{backgroundColor\}\}/g, profile.backgroundColor || '#0a0a0a');
     html = html.replace(/\{\{fontFamily\}\}/g, profile.fontFamily || 'DM Sans');
-    
+
     // Sample social links
     html = html.replace(/\{\{socialLinks\}\}/g, `
       <div class="space-y-3">
@@ -428,7 +428,7 @@ export function TemplateEditor({ profile, onUpdate }: TemplateEditorProps) {
         </a>
       </div>
     `);
-    
+
     // Sample content blocks
     html = html.replace(/\{\{contentBlocks\}\}/g, `
       <div class="space-y-4">
@@ -438,19 +438,19 @@ export function TemplateEditor({ profile, onUpdate }: TemplateEditorProps) {
         </div>
       </div>
     `);
-    
+
     return html;
   }, [templateHTML, profile]);
 
   // Basic HTML validation
   const validateHTML = (html: string) => {
     const errors: string[] = [];
-    
+
     // Check for dangerous scripts (security)
     if (html.includes('<script')) {
       errors.push('Script tags are not allowed for security reasons');
     }
-    
+
     // Check for dangerous event handlers
     const dangerousPatterns = ['onclick', 'onerror', 'onload', 'javascript:'];
     for (const pattern of dangerousPatterns) {
@@ -459,7 +459,7 @@ export function TemplateEditor({ profile, onUpdate }: TemplateEditorProps) {
         break;
       }
     }
-    
+
     return errors;
   };
 
@@ -469,13 +469,13 @@ export function TemplateEditor({ profile, onUpdate }: TemplateEditorProps) {
     if (validationErrors.length > 0) {
       return;
     }
-    
+
     try {
       await onUpdate({
         templateHTML,
         useCustomTemplate,
       });
-      
+
       // Show success feedback
       const event = new CustomEvent('toast', {
         detail: {
@@ -484,6 +484,9 @@ export function TemplateEditor({ profile, onUpdate }: TemplateEditorProps) {
         }
       });
       window.dispatchEvent(event);
+
+      // Invalidate the profile query to refetch data
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
     } catch (error) {
       console.error('Failed to save template:', error);
       const event = new CustomEvent('toast', {
@@ -539,7 +542,7 @@ export function TemplateEditor({ profile, onUpdate }: TemplateEditorProps) {
             Pro
           </Badge>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Button
             variant={previewMode === 'split' ? 'default' : 'outline'}

@@ -1211,12 +1211,21 @@ export default function Dashboard() {
                   profile={profile}
                   onUpdate={async (updates) => {
                     if (profile) {
-                      await updateProfileMutation.mutateAsync(updates);
-                      await queryClient.refetchQueries({ queryKey: ["/api/profiles/me"] });
-                      toast({
-                        title: "Template saved",
-                        description: "Your custom template has been updated",
-                      });
+                      try {
+                        await updateProfileMutation.mutateAsync(updates);
+                        await queryClient.invalidateQueries({ queryKey: ["/api/profiles/me"] });
+                        toast({
+                          title: "Template saved",
+                          description: "Your custom template has been updated successfully",
+                        });
+                      } catch (error) {
+                        console.error('Template save error:', error);
+                        toast({
+                          title: "Error",
+                          description: error instanceof Error ? error.message : "Failed to save template",
+                          variant: "destructive",
+                        });
+                      }
                     }
                   }}
                 />
