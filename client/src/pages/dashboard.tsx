@@ -26,7 +26,7 @@ import { ClickHeatmap } from "@/components/ClickHeatmap";
 import { LinkScheduleVisualizer } from "@/components/LinkScheduleVisualizer";
 import { EngagementAlerts } from "@/components/EngagementAlerts";
 import { getPlatform } from "@/lib/platforms";
-import { GripVertical, Trash2, Plus, Eye, Upload, Copy, Check, ExternalLink, LogOut, QrCode, BarChart3, Link2, Palette, Settings, Zap, Edit, EyeOff, FileCode } from "lucide-react";
+import { GripVertical, Trash2, Plus, Eye, Upload, Copy, Check, ExternalLink, LogOut, QrCode, BarChart3, Link2, Palette, Settings, Zap, Edit, EyeOff, FileCode, Mail } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import {
   AlertDialog,
@@ -187,6 +187,14 @@ export default function Dashboard() {
     refetchOnWindowFocus: true,
   });
 
+  const { data: contentBlocks = [] } = useQuery<ContentBlock[]>({
+    queryKey: ["/api/content-blocks"],
+  });
+
+  const { data: formSubmissions = [] } = useQuery<any[]>({
+    queryKey: ["/api/form-submissions"],
+  });
+
   useEffect(() => {
     if (profile && profile.id !== lastCommittedProfile.current?.id) {
       const profileData = {
@@ -206,6 +214,7 @@ export default function Dashboard() {
       queryClient.invalidateQueries({ queryKey: ["/api/links"] });
       queryClient.invalidateQueries({ queryKey: ["/api/analytics"] });
       queryClient.invalidateQueries({ queryKey: ["/api/analytics/detailed"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/form-submissions"] });
     }, 3000);
 
     return () => clearInterval(interval);
@@ -396,7 +405,7 @@ export default function Dashboard() {
 
     // Validate file size (500MB max)
     const maxSize = 500 * 1024 * 1024;
-    
+
     if (file.size > maxSize) {
       toast({
         title: "Error",
@@ -428,10 +437,10 @@ export default function Dashboard() {
 
       // Use apiRequest which includes authentication headers
       const data = await apiRequest('POST', '/api/upload-image', formData);
-      
+
       // Update profile with the new avatar URL
       await updateProfileMutation.mutateAsync({ avatar: data.url });
-      
+
       toast({
         title: "Avatar uploaded",
         description: "Your profile picture has been updated successfully",
@@ -681,6 +690,33 @@ export default function Dashboard() {
                 existingPlatforms={links.map(l => l.platform)}
                 onAddPlatform={() => setShowAddDialog(true)}
               />
+              {/* Form Submissions */}
+              {formSubmissions.length > 0 && (
+                <Card className="p-6 glass-card neon-glow">
+                  <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                    <Mail className="w-5 h-5" />
+                    Form Submissions ({formSubmissions.length})
+                  </h3>
+                  <div className="space-y-4">
+                    {formSubmissions.map((submission: any) => (
+                      <Card key={submission.id} className="p-4 bg-muted/30">
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="font-medium">{submission.name}</p>
+                              <p className="text-sm text-muted-foreground">{submission.email}</p>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(submission.timestamp).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <p className="text-sm">{submission.message}</p>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </Card>
+              )}
             </TabsContent>
 
             {/* Profile Tab */}
@@ -921,7 +957,7 @@ export default function Dashboard() {
                     <p className="text-xs text-muted-foreground mb-4">
                       Upload images (JPEG, PNG, GIF, WebP) or videos (MP4, WebM, MOV, AVI) to generate permanent URLs
                     </p>
-                    
+
                     <input
                       ref={avatarInputRef}
                       type="file"
