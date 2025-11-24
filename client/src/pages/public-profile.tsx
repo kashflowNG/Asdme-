@@ -400,77 +400,97 @@ export default function PublicProfile() {
           />
         ) : (
           /* Beautiful Default Layout */
-          <div className="max-w-4xl mx-auto px-4 relative z-10">
-            {/* Modern Hero Section with Glassmorphism */}
-            <div className="pt-20 pb-12 text-center animate-fade-in" data-testid="profile-header">
-              {/* Floating Background Orbs */}
-              <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-purple-500/30 to-pink-500/30 rounded-full blur-3xl opacity-50 animate-pulse-slow" />
-              <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-full blur-3xl opacity-40 animate-pulse-slow" style={{ animationDelay: '1s' }} />
+          <div className="max-w-5xl mx-auto px-4 py-8 relative z-10">
+            {/* Enhanced Hero Section */}
+            <div className="pt-16 pb-10 text-center animate-fade-in" data-testid="profile-header">
+              {/* Animated Background Elements */}
+              <div className="absolute top-10 left-1/4 w-96 h-96 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full blur-3xl opacity-60 animate-pulse-slow" />
+              <div className="absolute top-32 right-1/4 w-80 h-80 bg-gradient-to-br from-cyan-500/15 to-blue-500/15 rounded-full blur-3xl opacity-50 animate-pulse-slow" style={{ animationDelay: '1.5s' }} />
 
-              {/* Profile Card with Glass Effect */}
-              <div className="relative backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-10 mb-8 shadow-2xl max-w-2xl mx-auto">
-                {/* Profile Avatar */}
-                <div className="relative inline-block mb-6">
+              {/* Main Profile Card */}
+              <div className="relative backdrop-blur-2xl bg-gradient-to-br from-white/10 to-white/5 border-2 border-white/20 rounded-[2rem] p-12 mb-10 shadow-2xl max-w-3xl mx-auto hover:shadow-[0_0_80px_rgba(139,92,246,0.3)] transition-all duration-500">
+                {/* Animated Border Gradient */}
+                <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-r from-purple-500/50 via-pink-500/50 to-cyan-500/50 opacity-0 blur-xl group-hover:opacity-100 transition-opacity duration-500 -z-10" />
+
+                {/* Profile Avatar with Enhanced Glow */}
+                <div className="relative inline-block mb-8">
                   <div 
-                    className="absolute inset-0 rounded-full blur-2xl opacity-60 animate-pulse-slow"
+                    className="absolute -inset-4 rounded-full blur-3xl opacity-70 animate-pulse-slow"
                     style={{
-                      background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}, ${profile.backgroundColor || "#0A0A0F"})`,
+                      background: `radial-gradient(circle, ${profile.primaryColor || "#8B5CF6"}, transparent 70%)`,
                     }}
                   />
-                  <Avatar className="relative w-36 h-36 border-4 border-white/30 shadow-2xl">
+                  <Avatar className="relative w-40 h-40 border-[6px] border-white/40 shadow-[0_0_60px_rgba(255,255,255,0.3)] ring-4 ring-white/10">
                     <AvatarImage src={profile.avatar || undefined} alt={profile.username} />
                     <AvatarFallback 
-                      className="text-4xl font-bold text-white"
-                      style={{ background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}, ${profile.backgroundColor || "#0A0A0F"})` }}
+                      className="text-5xl font-black text-white"
+                      style={{ 
+                        background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}, ${profile.primaryColor || "#8B5CF6"}99)`,
+                      }}
                     >
                       {initials}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="absolute bottom-3 right-3 w-8 h-8 bg-emerald-400 border-4 border-white/50 rounded-full shadow-lg animate-pulse">
-                    <div className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75" />
+                  {/* Online Status Indicator */}
+                  <div className="absolute bottom-4 right-4 flex items-center justify-center">
+                    <div className="w-10 h-10 bg-emerald-400 border-[5px] border-white/60 rounded-full shadow-xl">
+                      <div className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-60" />
+                    </div>
                   </div>
                 </div>
 
-                {/* Username with Gradient */}
-                <div className="mb-6">
+                {/* Username with Premium Styling */}
+                <div className="mb-8 space-y-4">
                   <h1 
-                    className="text-5xl md:text-6xl font-black mb-3 drop-shadow-lg"
+                    className="text-6xl md:text-7xl font-black mb-4 tracking-tight leading-none"
                     style={{ 
-                      background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}, ${profile.backgroundColor || "#0A0A0F"})`,
+                      background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"} 0%, #ffffff 50%, ${profile.primaryColor || "#8B5CF6"} 100%)`,
+                      backgroundSize: '200% auto',
                       WebkitBackgroundClip: "text",
                       backgroundClip: "text",
                       color: "transparent",
+                      animation: 'shimmer 3s linear infinite',
                     }}
                     data-testid="text-username"
                   >
                     @{profile.username}
                   </h1>
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="h-px w-12 bg-gradient-to-r from-transparent to-white/30" />
+                  
+                  {/* Decorative Line with Badge */}
+                  <div className="flex items-center justify-center gap-3 mb-6">
+                    <div className="h-[2px] w-20 bg-gradient-to-r from-transparent via-white/40 to-white/40 rounded-full" />
                     <Badge 
-                      className="px-4 py-1.5 text-xs font-bold backdrop-blur-sm"
+                      className="px-5 py-2 text-sm font-bold backdrop-blur-md shadow-lg hover:scale-105 transition-transform"
                       style={{
-                        backgroundColor: `${profile.primaryColor || "#8B5CF6"}30`,
-                        borderColor: `${profile.primaryColor || "#8B5CF6"}60`,
+                        background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}40, ${profile.primaryColor || "#8B5CF6"}60)`,
+                        borderColor: `${profile.primaryColor || "#8B5CF6"}`,
+                        borderWidth: '2px',
                         color: 'white',
                       }}
                     >
-                      <Zap className="w-3 h-3 mr-1" />
-                      PRO
+                      <Zap className="w-4 h-4 mr-1.5 animate-pulse" />
+                      PRO MEMBER
                     </Badge>
-                    <div className="h-px w-12 bg-gradient-to-l from-transparent to-white/30" />
+                    <div className="h-[2px] w-20 bg-gradient-to-l from-transparent via-white/40 to-white/40 rounded-full" />
                   </div>
                 </div>
 
+                {/* Bio Section */}
                 {profile.bio && (
-                  <p className="text-xl max-w-xl mx-auto leading-relaxed text-white/90 font-medium" data-testid="text-bio">
-                    {profile.bio}
-                  </p>
+                  <div className="max-w-2xl mx-auto mb-8">
+                    <p className="text-2xl leading-relaxed text-white/95 font-medium tracking-wide" data-testid="text-bio">
+                      {profile.bio}
+                    </p>
+                  </div>
                 )}
 
-                {/* Live Visitor Counter */}
-                <div className="flex justify-center mt-6">
+                {/* Live Stats Row */}
+                <div className="flex justify-center items-center gap-6 pt-6 border-t border-white/10">
                   <LiveVisitorCounter username={profile.username} />
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                    <span className="text-sm text-white/70 font-medium">Available</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -586,20 +606,20 @@ export default function PublicProfile() {
             </div>
           )}
 
-          {/* Links Section with Modern Glass Cards */}
-          <div className="pb-16" data-testid="links-container">
+          {/* Enhanced Links Section */}
+          <div className="pb-20" data-testid="links-container">
             {sortedLinks.length === 0 ? (
-              <div className="backdrop-blur-xl bg-white/10 border-2 border-dashed border-white/20 rounded-3xl p-12 text-center max-w-2xl mx-auto shadow-xl">
-                <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center backdrop-blur-sm">
-                  <Globe className="w-10 h-10 text-white" />
+              <div className="backdrop-blur-2xl bg-gradient-to-br from-white/10 to-white/5 border-2 border-dashed border-white/30 rounded-[2rem] p-16 text-center max-w-2xl mx-auto shadow-2xl">
+                <div className="w-24 h-24 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-purple-500/30 to-pink-500/30 flex items-center justify-center backdrop-blur-sm border border-white/20 shadow-xl">
+                  <Globe className="w-12 h-12 text-white drop-shadow-lg" />
                 </div>
-                <h3 className="text-2xl font-bold mb-2 text-white">No Platforms Yet</h3>
-                <p className="text-white/70">
-                  This user hasn't connected any platforms yet
+                <h3 className="text-3xl font-bold mb-3 text-white">No Links Yet</h3>
+                <p className="text-lg text-white/70">
+                  This user hasn't added any links to their profile
                 </p>
               </div>
             ) : (
-              <div className={`space-y-4 max-w-3xl mx-auto ${profile.layout === "grid" ? "md:grid md:grid-cols-2 md:gap-4 md:space-y-0" : ""}`}>
+              <div className={`space-y-5 max-w-3xl mx-auto ${profile.layout === "grid" ? "md:grid md:grid-cols-2 md:gap-5 md:space-y-0" : ""}`}>
                 {sortedLinks.map((link, index) => {
                   // Check if link is scheduled
                   const now = new Date();
@@ -613,24 +633,36 @@ export default function PublicProfile() {
                   return (
                     <div
                       key={link.id}
-                      className="animate-fade-in relative backdrop-blur-xl bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/40 rounded-2xl transition-all shadow-lg hover:shadow-2xl hover:scale-105"
-                      style={{ animationDelay: `${index * 50}ms` }}
+                      className="group animate-fade-in relative backdrop-blur-2xl bg-gradient-to-br from-white/15 to-white/5 hover:from-white/25 hover:to-white/10 border-2 border-white/20 hover:border-white/50 rounded-2xl transition-all duration-300 shadow-xl hover:shadow-[0_0_40px_rgba(139,92,246,0.4)] hover:scale-[1.02] active:scale-[0.98]"
+                      style={{ 
+                        animationDelay: `${index * 80}ms`,
+                      }}
                     >
+                      {/* Glow Effect on Hover */}
+                      <div 
+                        className="absolute -inset-1 rounded-2xl opacity-0 group-hover:opacity-100 blur-lg transition-opacity duration-300 -z-10"
+                        style={{
+                          background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}60, transparent)`,
+                        }}
+                      />
+                      
                       {link.badge && link.badge !== "none" && (
-                        <div className="absolute -top-3 -right-3 z-10">
-                          <Badge className="bg-gradient-to-r from-pink-500 to-purple-500 text-white border-0 shadow-lg px-3 py-1">
-                            {link.badge.toUpperCase()}
+                        <div className="absolute -top-3 -right-3 z-10 animate-bounce-slow">
+                          <Badge className="bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500 text-white border-0 shadow-2xl px-4 py-1.5 text-xs font-bold uppercase tracking-wider">
+                            {link.badge}
                           </Badge>
                         </div>
                       )}
+                      
                       <SocialLinkButton
                         platformId={link.platform}
                         url={link.url}
                         customTitle={link.customTitle}
                         onClick={() => handleLinkClick(link.id)}
                       />
+                      
                       {link.description && (
-                        <p className="text-xs text-white/70 mt-2 px-6 pb-3">
+                        <p className="text-sm text-white/80 mt-3 px-6 pb-4 leading-relaxed">
                           {link.description}
                         </p>
                       )}
@@ -641,33 +673,50 @@ export default function PublicProfile() {
             )}
           </div>
 
-          {/* Modern Footer with Glass Effect */}
-          <footer className="relative z-10 backdrop-blur-xl bg-black/30 border-t border-white/20 py-12 mt-16">
-            <div className="max-w-4xl mx-auto px-6 text-center">
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <NeropageLogo size={40} />
-                <div className="text-left">
-                  <div
-                    className="text-lg font-bold select-none"
-                    style={{
-                      background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}, #06B6D4, #EC4899, ${profile.primaryColor || "#8B5CF6"})`,
-                      backgroundSize: '300% 300%',
-                      WebkitBackgroundClip: 'text',
-                      backgroundClip: 'text',
-                      color: 'transparent',
-                      animation: 'shimmer 3s linear infinite',
-                    }}
-                  >
-                    Neropage
-                  </div>
-                  <div className="text-xs text-white/60 font-medium">
-                    Premium Link Platform
+          {/* Premium Footer */}
+          <footer className="relative z-10 backdrop-blur-2xl bg-gradient-to-t from-black/50 to-black/30 border-t-2 border-white/20 py-16 mt-24">
+            <div className="max-w-4xl mx-auto px-6">
+              <div className="text-center space-y-6">
+                {/* Logo and Brand */}
+                <div className="flex items-center justify-center gap-4 mb-6">
+                  <NeropageLogo size={48} />
+                  <div className="text-left">
+                    <div
+                      className="text-2xl font-black select-none tracking-tight"
+                      style={{
+                        background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}, #06B6D4, #EC4899, ${profile.primaryColor || "#8B5CF6"})`,
+                        backgroundSize: '300% 300%',
+                        WebkitBackgroundClip: 'text',
+                        backgroundClip: 'text',
+                        color: 'transparent',
+                        animation: 'shimmer 3s linear infinite',
+                      }}
+                    >
+                      Neropage
+                    </div>
+                    <div className="text-xs text-white/70 font-semibold tracking-wider uppercase">
+                      Premium Bio Platform
+                    </div>
                   </div>
                 </div>
+
+                {/* Divider */}
+                <div className="flex items-center justify-center gap-4 my-6">
+                  <div className="h-px w-24 bg-gradient-to-r from-transparent to-white/30" />
+                  <div className="w-2 h-2 rounded-full bg-white/30" />
+                  <div className="h-px w-24 bg-gradient-to-l from-transparent to-white/30" />
+                </div>
+
+                {/* Copyright */}
+                <p className="text-white/60 text-sm font-medium">
+                  © 2024 <span className="text-white/90 font-bold">@{profile.username}</span> • Crafted with <span className="text-pink-400">♥</span> on Neropage
+                </p>
+                
+                {/* Tagline */}
+                <p className="text-white/40 text-xs italic">
+                  One link to rule them all ✨
+                </p>
               </div>
-              <p className="text-white/50 text-sm">
-                © 2024 @{profile.username} • Powered by Neropage
-              </p>
             </div>
           </footer>
           </div>
