@@ -143,22 +143,18 @@ export function TemplateEditor({ profile, onUpdate }: TemplateEditorProps) {
   const validateHTML = (html: string) => {
     const errors: string[] = [];
     
-    // Check for unclosed tags (simple check)
-    const openTags = html.match(/<(\w+)[^>]*>/g) || [];
-    const closeTags = html.match(/<\/(\w+)>/g) || [];
-    
-    if (openTags.length !== closeTags.length) {
-      errors.push('Possible unclosed HTML tags detected');
-    }
-    
     // Check for dangerous scripts (security)
     if (html.includes('<script')) {
       errors.push('Script tags are not allowed for security reasons');
     }
     
-    // Check for inline styles (we want CSS in appearance tab)
-    if (html.includes('style=')) {
-      errors.push('Inline styles detected - use the Appearance tab for styling');
+    // Check for dangerous event handlers
+    const dangerousPatterns = ['onclick', 'onerror', 'onload', 'javascript:'];
+    for (const pattern of dangerousPatterns) {
+      if (html.toLowerCase().includes(pattern)) {
+        errors.push(`Potentially dangerous pattern detected: ${pattern}`);
+        break;
+      }
     }
     
     return errors;
@@ -167,13 +163,26 @@ export function TemplateEditor({ profile, onUpdate }: TemplateEditorProps) {
   const validationErrors = useMemo(() => validateHTML(templateHTML), [templateHTML]);
 
   const handleSave = () => {
-    onUpdate({
-      templateHTML,
-      useCustomTemplate,
-    });
+    if (validationErrors.length > 0) {
+      return;
+    }
+    
+    try {
+      onUpdate({
+        templateHTML,
+        useCustomTemplate,
+      });
+    } catch (error) {
+      console.error('Failed to save template:', error);
+    }
   };
 
   const handleReset = () => {
+    if (templateHTML !== DEFAULT_TEMPLATE_HTML) {
+      if (!confirm('This will reset your template to default. Continue?')) {
+        return;
+      }
+    }
     setTemplateHTML(DEFAULT_TEMPLATE_HTML);
   };
 
@@ -191,6 +200,11 @@ export function TemplateEditor({ profile, onUpdate }: TemplateEditorProps) {
   };
 
   const loadTemplate = (code: string) => {
+    if (templateHTML !== DEFAULT_TEMPLATE_HTML && templateHTML !== code) {
+      if (!confirm('Loading this template will replace your current code. Continue?')) {
+        return;
+      }
+    }
     setTemplateHTML(code);
   };
 
@@ -231,7 +245,7 @@ export function TemplateEditor({ profile, onUpdate }: TemplateEditorProps) {
         <AlertDescription>
           Advanced feature: Edit the HTML template used to render your profile. Use placeholders for dynamic content.
           <br />
-          <strong className="text-yellow-500">Note:</strong> Custom CSS is disabled for security. Use the Appearance tab for styling.
+          <strong className="text-yellow-500">Note:</strong> Inline styles and Tailwind classes are supported. Script tags are disabled for security.
         </AlertDescription>
       </Alert>
 
@@ -303,14 +317,40 @@ export function TemplateEditor({ profile, onUpdate }: TemplateEditorProps) {
                 <Eye className="w-4 h-4" />
                 Live Preview
               </Label>
-              <div 
-                className="min-h-[500px] border rounded-lg p-6 overflow-auto bg-gradient-to-b from-background to-muted/20"
-                style={{
-                  fontFamily: profile.fontFamily || 'DM Sans',
-                  color: profile.primaryColor || '#8B5CF6'
-                }}
-              >
-                <div dangerouslySetInnerHTML={{ __html: previewHTML }} />
+              <div className="min-h-[500px] border rounded-lg overflow-hidden bg-gradient-to-b from-background to-muted/20">
+                <iframe
+                  className="w-full h-[500px] bg-transparent"
+                  sandbox="allow-same-origin"
+                  srcDoc={`
+                    <!DOCTYPE html>
+                    <html>
+                      <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <script src="https://cdn.tailwindcss.com"></script>
+                        <style>
+                          body {
+                            margin: 0;
+                            padding: 1.5rem;
+                            font-family: ${profile.fontFamily || 'DM Sans'}, sans-serif;
+                            background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.05));
+                            color: #ffffff;
+                          }
+                          * {
+                            box-sizing: border-box;
+                          }
+                          a {
+                            text-decoration: none;
+                            color: inherit;
+                          }
+                        </style>
+                      </head>
+                      <body>
+                        ${previewHTML}
+                      </body>
+                    </html>
+                  `}
+                />
               </div>
               <p className="text-xs text-muted-foreground">
                 ✨ Preview updates in real-time as you type
