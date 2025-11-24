@@ -566,9 +566,9 @@ export function TemplateEditor({ profile, onUpdate }: TemplateEditorProps) {
       <Alert>
         <Shield className="h-4 w-4" />
         <AlertDescription>
-          Advanced feature: Edit the HTML template used to render your profile. Use placeholders for dynamic content.
+          <strong>Your profile uses a beautiful default layout.</strong> Enable "Use Custom Template" below to design your own unique landing page with HTML & Tailwind CSS.
           <br />
-          <strong className="text-yellow-500">Note:</strong> Inline styles and Tailwind classes are supported. Script tags are disabled for security.
+          <strong className="text-yellow-500">Pro Tip:</strong> Choose from 6 pre-built templates or create your own. Inline styles and Tailwind classes are fully supported.
         </AlertDescription>
       </Alert>
 

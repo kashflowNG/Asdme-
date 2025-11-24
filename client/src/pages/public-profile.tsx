@@ -399,81 +399,91 @@ export default function PublicProfile() {
             }}
           />
         ) : (
-          <div className={`max-w-4xl mx-auto px-4 relative z-10 ${profile.layout === "minimal" ? "max-w-2xl" : ""}`}>
-            {/* Hero Section */}
-            <div className="pt-16 pb-8 text-center animate-fade-in" data-testid="profile-header">
-            {/* Profile Avatar */}
-            <div className="relative inline-block mb-6">
-              <div 
-                className="absolute inset-0 rounded-full blur-xl opacity-50 animate-pulse-slow"
-                style={{
-                  background: `linear-gradient(to right, ${profile.primaryColor || "#8B5CF6"}, ${profile.backgroundColor || "#0A0A0F"})`,
-                }}
-              />
-              <Avatar className="relative w-32 h-32 border-4 border-background shadow-2xl">
-                <AvatarImage src={profile.avatar || undefined} alt={profile.username} />
-                <AvatarFallback 
-                  className="text-3xl font-bold text-white"
-                  style={{ background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}, ${profile.backgroundColor || "#0A0A0F"})` }}
-                >
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-              <div className="absolute bottom-2 right-2 w-6 h-6 bg-emerald-400 border-4 border-background rounded-full shadow-lg animate-pulse" />
+          /* Beautiful Default Layout */
+          <div className="max-w-4xl mx-auto px-4 relative z-10">
+            {/* Modern Hero Section with Glassmorphism */}
+            <div className="pt-20 pb-12 text-center animate-fade-in" data-testid="profile-header">
+              {/* Floating Background Orbs */}
+              <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-purple-500/30 to-pink-500/30 rounded-full blur-3xl opacity-50 animate-pulse-slow" />
+              <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-full blur-3xl opacity-40 animate-pulse-slow" style={{ animationDelay: '1s' }} />
+
+              {/* Profile Card with Glass Effect */}
+              <div className="relative backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-10 mb-8 shadow-2xl max-w-2xl mx-auto">
+                {/* Profile Avatar */}
+                <div className="relative inline-block mb-6">
+                  <div 
+                    className="absolute inset-0 rounded-full blur-2xl opacity-60 animate-pulse-slow"
+                    style={{
+                      background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}, ${profile.backgroundColor || "#0A0A0F"})`,
+                    }}
+                  />
+                  <Avatar className="relative w-36 h-36 border-4 border-white/30 shadow-2xl">
+                    <AvatarImage src={profile.avatar || undefined} alt={profile.username} />
+                    <AvatarFallback 
+                      className="text-4xl font-bold text-white"
+                      style={{ background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}, ${profile.backgroundColor || "#0A0A0F"})` }}
+                    >
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="absolute bottom-3 right-3 w-8 h-8 bg-emerald-400 border-4 border-white/50 rounded-full shadow-lg animate-pulse">
+                    <div className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75" />
+                  </div>
+                </div>
+
+                {/* Username with Gradient */}
+                <div className="mb-6">
+                  <h1 
+                    className="text-5xl md:text-6xl font-black mb-3 drop-shadow-lg"
+                    style={{ 
+                      background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}, ${profile.backgroundColor || "#0A0A0F"})`,
+                      WebkitBackgroundClip: "text",
+                      backgroundClip: "text",
+                      color: "transparent",
+                    }}
+                    data-testid="text-username"
+                  >
+                    @{profile.username}
+                  </h1>
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="h-px w-12 bg-gradient-to-r from-transparent to-white/30" />
+                    <Badge 
+                      className="px-4 py-1.5 text-xs font-bold backdrop-blur-sm"
+                      style={{
+                        backgroundColor: `${profile.primaryColor || "#8B5CF6"}30`,
+                        borderColor: `${profile.primaryColor || "#8B5CF6"}60`,
+                        color: 'white',
+                      }}
+                    >
+                      <Zap className="w-3 h-3 mr-1" />
+                      PRO
+                    </Badge>
+                    <div className="h-px w-12 bg-gradient-to-l from-transparent to-white/30" />
+                  </div>
+                </div>
+
+                {profile.bio && (
+                  <p className="text-xl max-w-xl mx-auto leading-relaxed text-white/90 font-medium" data-testid="text-bio">
+                    {profile.bio}
+                  </p>
+                )}
+
+                {/* Live Visitor Counter */}
+                <div className="flex justify-center mt-6">
+                  <LiveVisitorCounter username={profile.username} />
+                </div>
+              </div>
             </div>
 
-            {/* Username and Badge */}
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <h1 
-                className="text-4xl font-black"
-                style={{ 
-                  background: `linear-gradient(to right, ${profile.primaryColor || "#8B5CF6"}, ${profile.backgroundColor || "#0A0A0F"})`,
-                  WebkitBackgroundClip: "text",
-                  backgroundClip: "text",
-                  color: "transparent",
-                }}
-                data-testid="text-username"
-              >
-                @{profile.username}
-              </h1>
-              <Badge 
-                className="px-3 py-1 neon-glow"
-                style={{
-                  backgroundColor: `${profile.primaryColor || "#8B5CF6"}20`,
-                  borderColor: `${profile.primaryColor || "#8B5CF6"}40`,
-                }}
-              >
-                <Zap className="w-3 h-3 mr-1" />
-                PRO
-              </Badge>
-            </div>
-
-            {profile.bio && (
-              <p className="text-lg max-w-2xl mx-auto px-6 mb-6 leading-relaxed text-foreground" data-testid="text-bio">
-                {profile.bio}
-              </p>
-            )}
-
-            {/* Live Visitor Counter */}
-            <div className="flex justify-center mb-6">
-              <LiveVisitorCounter username={profile.username} />
-            </div>
-
-            {/* Separator */}
-            <div className="max-w-md mx-auto mb-12 relative">
-              <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-            </div>
-          </div>
-
-          {/* Content Blocks */}
+          {/* Content Blocks with Glass Design */}
           {sortedBlocks.length > 0 && (
-            <div className="pb-8 space-y-6">
+            <div className="pb-8 space-y-6 max-w-3xl mx-auto">
               {sortedBlocks.map((block) => (
                 <div key={block.id} className="animate-fade-in">
                   {block.type === "video" && block.mediaUrl && (
-                    <Card className="p-6 glass-card neon-glow overflow-hidden">
-                      {block.title && <h3 className="text-xl font-bold mb-4">{block.title}</h3>}
-                      <div className="aspect-video rounded-lg overflow-hidden bg-black/20">
+                    <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl">
+                      {block.title && <h3 className="text-xl font-bold mb-4 text-white">{block.title}</h3>}
+                      <div className="aspect-video rounded-xl overflow-hidden bg-black/40 border border-white/10">
                         <iframe
                           src={block.mediaUrl.replace("watch?v=", "embed/")}
                           className="w-full h-full"
@@ -481,55 +491,55 @@ export default function PublicProfile() {
                           allowFullScreen
                         />
                       </div>
-                    </Card>
+                    </div>
                   )}
 
                   {block.type === "image" && block.mediaUrl && (
-                    <Card className="p-6 glass-card neon-glow overflow-hidden">
-                      {block.title && <h3 className="text-xl font-bold mb-4">{block.title}</h3>}
+                    <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl">
+                      {block.title && <h3 className="text-xl font-bold mb-4 text-white">{block.title}</h3>}
                       <img 
                         src={block.mediaUrl} 
                         alt={block.title || "Content"} 
-                        className="w-full rounded-lg"
+                        className="w-full rounded-xl border border-white/10"
                       />
-                    </Card>
+                    </div>
                   )}
 
                   {block.type === "gallery" && block.content && (
-                    <Card className="p-6 glass-card neon-glow">
-                      {block.title && <h3 className="text-xl font-bold mb-4">{block.title}</h3>}
+                    <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl">
+                      {block.title && <h3 className="text-xl font-bold mb-4 text-white">{block.title}</h3>}
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                         {block.content.split("\n").filter(url => url.trim()).map((url, idx) => (
                           <img 
                             key={idx}
                             src={url.trim()} 
                             alt={`Gallery ${idx + 1}`} 
-                            className="w-full aspect-square object-cover rounded-lg"
+                            className="w-full aspect-square object-cover rounded-xl border border-white/10"
                           />
                         ))}
                       </div>
-                    </Card>
+                    </div>
                   )}
 
                   {block.type === "text" && block.content && (
-                    <Card className="p-6 glass-card neon-glow">
-                      {block.title && <h3 className="text-xl font-bold mb-4">{block.title}</h3>}
-                      <p className="text-foreground whitespace-pre-wrap">{block.content}</p>
-                    </Card>
+                    <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl">
+                      {block.title && <h3 className="text-xl font-bold mb-4 text-white">{block.title}</h3>}
+                      <p className="text-white/90 whitespace-pre-wrap leading-relaxed">{block.content}</p>
+                    </div>
                   )}
 
                   {block.type === "embed" && block.content && (
-                    <Card className="p-6 glass-card neon-glow overflow-hidden">
-                      {block.title && <h3 className="text-xl font-bold mb-4">{block.title}</h3>}
+                    <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl">
+                      {block.title && <h3 className="text-xl font-bold mb-4 text-white">{block.title}</h3>}
                       <div dangerouslySetInnerHTML={{ __html: block.content }} />
-                    </Card>
+                    </div>
                   )}
 
                   {block.type === "form" && (
-                    <Card className="p-6 glass-card neon-glow">
+                    <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl">
                       <div className="flex items-center gap-3 mb-4">
-                        <Mail className="w-6 h-6" style={{ color: profile.primaryColor || "#8B5CF6" }} />
-                        <h3 className="text-xl font-bold">{block.title || "Get in Touch"}</h3>
+                        <Mail className="w-6 h-6 text-white" />
+                        <h3 className="text-xl font-bold text-white">{block.title || "Get in Touch"}</h3>
                       </div>
                       <form onSubmit={(e) => handleFormSubmit(e, block.id)} className="space-y-4">
                         <Input
@@ -538,6 +548,7 @@ export default function PublicProfile() {
                           onChange={(e) => setEmailFormData({ ...emailFormData, name: e.target.value })}
                           required
                           data-testid="input-form-name"
+                          className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                         />
                         <Input
                           type="email"
@@ -546,6 +557,7 @@ export default function PublicProfile() {
                           onChange={(e) => setEmailFormData({ ...emailFormData, email: e.target.value })}
                           required
                           data-testid="input-form-email"
+                          className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                         />
                         <Input
                           placeholder="Your Message"
@@ -553,6 +565,7 @@ export default function PublicProfile() {
                           onChange={(e) => setEmailFormData({ ...emailFormData, message: e.target.value })}
                           required
                           data-testid="input-form-message"
+                          className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                         />
                         <Button
                           type="submit"
@@ -566,23 +579,25 @@ export default function PublicProfile() {
                           {submitFormMutation.isPending ? "Sending..." : "Send Message"}
                         </Button>
                       </form>
-                    </Card>
+                    </div>
                   )}
                 </div>
               ))}
             </div>
           )}
 
-          {/* Links Section */}
-          <div className="pb-12" data-testid="links-container">
+          {/* Links Section with Modern Glass Cards */}
+          <div className="pb-16" data-testid="links-container">
             {sortedLinks.length === 0 ? (
-              <Card className="p-12 text-center max-w-2xl mx-auto glass-card neon-glow border-2 border-dashed">
-                <Globe className="w-10 h-10 mx-auto mb-4" style={{ color: profile.primaryColor || "#8B5CF6" }} />
-                <h3 className="text-xl font-bold mb-2">No Platforms Yet</h3>
-                <p className="text-muted-foreground">
+              <div className="backdrop-blur-xl bg-white/10 border-2 border-dashed border-white/20 rounded-3xl p-12 text-center max-w-2xl mx-auto shadow-xl">
+                <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center backdrop-blur-sm">
+                  <Globe className="w-10 h-10 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold mb-2 text-white">No Platforms Yet</h3>
+                <p className="text-white/70">
                   This user hasn't connected any platforms yet
                 </p>
-              </Card>
+              </div>
             ) : (
               <div className={`space-y-4 max-w-3xl mx-auto ${profile.layout === "grid" ? "md:grid md:grid-cols-2 md:gap-4 md:space-y-0" : ""}`}>
                 {sortedLinks.map((link, index) => {
@@ -598,12 +613,12 @@ export default function PublicProfile() {
                   return (
                     <div
                       key={link.id}
-                      className="animate-fade-in relative"
+                      className="animate-fade-in relative backdrop-blur-xl bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/40 rounded-2xl transition-all shadow-lg hover:shadow-2xl hover:scale-105"
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
                       {link.badge && link.badge !== "none" && (
-                        <div className="absolute -top-2 -right-2 z-10">
-                          <Badge className="bg-gradient-to-r from-pink-500 to-purple-500 text-white border-0 shadow-lg">
+                        <div className="absolute -top-3 -right-3 z-10">
+                          <Badge className="bg-gradient-to-r from-pink-500 to-purple-500 text-white border-0 shadow-lg px-3 py-1">
                             {link.badge.toUpperCase()}
                           </Badge>
                         </div>
@@ -615,7 +630,7 @@ export default function PublicProfile() {
                         onClick={() => handleLinkClick(link.id)}
                       />
                       {link.description && (
-                        <p className="text-xs text-muted-foreground mt-2 px-4">
+                        <p className="text-xs text-white/70 mt-2 px-6 pb-3">
                           {link.description}
                         </p>
                       )}
@@ -626,28 +641,33 @@ export default function PublicProfile() {
             )}
           </div>
 
-          {/* Footer */}
-          <footer className="py-12 text-center border-t border-border/50 mt-8">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <NeropageLogo size={40} />
-              <div className="text-left">
-                <div
-                  className="text-lg font-bold select-none"
-                  style={{
-                    background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}, #06B6D4, #EC4899, ${profile.primaryColor || "#8B5CF6"})`,
-                    backgroundSize: '300% 300%',
-                    WebkitBackgroundClip: 'text',
-                    backgroundClip: 'text',
-                    color: 'transparent',
-                    animation: 'shimmer 3s linear infinite',
-                  }}
-                >
-                  Neropage
-                </div>
-                <div className="text-xs text-muted-foreground font-medium">
-                  Premium Link Platform
+          {/* Modern Footer with Glass Effect */}
+          <footer className="relative z-10 backdrop-blur-xl bg-black/30 border-t border-white/20 py-12 mt-16">
+            <div className="max-w-4xl mx-auto px-6 text-center">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <NeropageLogo size={40} />
+                <div className="text-left">
+                  <div
+                    className="text-lg font-bold select-none"
+                    style={{
+                      background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}, #06B6D4, #EC4899, ${profile.primaryColor || "#8B5CF6"})`,
+                      backgroundSize: '300% 300%',
+                      WebkitBackgroundClip: 'text',
+                      backgroundClip: 'text',
+                      color: 'transparent',
+                      animation: 'shimmer 3s linear infinite',
+                    }}
+                  >
+                    Neropage
+                  </div>
+                  <div className="text-xs text-white/60 font-medium">
+                    Premium Link Platform
+                  </div>
                 </div>
               </div>
+              <p className="text-white/50 text-sm">
+                © 2024 @{profile.username} • Powered by Neropage
+              </p>
             </div>
           </footer>
           </div>
