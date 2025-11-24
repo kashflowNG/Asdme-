@@ -473,9 +473,14 @@ export function TemplateEditor({ profile, onUpdate }: TemplateEditorProps) {
     try {
       // Ensure we're sending valid data
       const updates: any = {
-        templateHTML: templateHTML || '',
+        templateHTML: templateHTML.trim() || '',
         useCustomTemplate: useCustomTemplate,
       };
+
+      console.log('Saving template with data:', {
+        templateLength: updates.templateHTML.length,
+        useCustomTemplate: updates.useCustomTemplate
+      });
 
       await onUpdate(updates);
 
@@ -492,7 +497,18 @@ export function TemplateEditor({ profile, onUpdate }: TemplateEditorProps) {
       queryClient.invalidateQueries({ queryKey: ['/api/profiles/me'] });
     } catch (error: any) {
       console.error('Template save error:', error);
-      const errorMessage = error?.message || error?.error || 'Failed to save template. Please try again.';
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      
+      let errorMessage = 'Failed to save template. Please try again.';
+      
+      if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.error) {
+        errorMessage = error.error;
+      } else if (error?.details) {
+        errorMessage = `Validation error: ${JSON.stringify(error.details)}`;
+      }
+      
       const event = new CustomEvent('toast', {
         detail: {
           title: 'Error',

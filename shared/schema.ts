@@ -146,7 +146,7 @@ export const updateProfileSchema = z.object({
   buttonStyle: z.string().optional(),
   
   // Custom Template (HTML only for security - allow long strings)
-  templateHTML: z.string().max(500000).optional(), // 500KB max
+  templateHTML: z.string().optional(), // No length limit for now
   useCustomTemplate: z.boolean().optional(),
   
   // SEO
