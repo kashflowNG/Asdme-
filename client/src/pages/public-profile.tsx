@@ -298,6 +298,8 @@ export default function PublicProfile() {
   const pageTitle = profile.seoTitle || `${profile.username} - Link Hub`;
   const pageDescription = profile.seoDescription || profile.bio || `Check out all of ${profile.username}'s social media links and content`;
   const siteName = window.location.hostname.replace('www.', '');
+  const ogImage = profile.ogImage || profile.avatar || `${window.location.origin}/favicon.png`;
+  const ogImageAlt = profile.ogImage ? `${profile.username}'s profile image` : profile.avatar ? `${profile.username}'s avatar` : "Neropage Logo";
 
   return (
     <>
@@ -308,43 +310,20 @@ export default function PublicProfile() {
         <meta name="keywords" content={`${profile.username}, social links, bio link, ${profile.username} links, contact ${profile.username}`} />
         <link rel="canonical" href={profileUrl} />
 
-        {/* Open Graph / Facebook */}
         <meta property="og:type" content="profile" />
         <meta property="og:url" content={profileUrl} />
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={pageDescription} />
         <meta property="og:site_name" content={siteName} />
-        {profile.ogImage ? (
-          <>
-            <meta property="og:image" content={profile.ogImage} />
-            <meta property="og:image:alt" content={`${profile.username}'s profile image`} />
-          </>
-        ) : profile.avatarUrl ? (
-          <>
-            <meta property="og:image" content={profile.avatarUrl} />
-            <meta property="og:image:alt" content={`${profile.username}'s avatar`} />
-          </>
-        ) : (
-          <>
-            <meta property="og:image" content={`${window.location.origin}/favicon.png`} />
-            <meta property="og:image:alt" content="Neropage Logo" />
-          </>
-        )}
+        <meta property="og:image" content={ogImage} />
+        <meta property="og:image:alt" content={ogImageAlt} />
 
-        {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:url" content={profileUrl} />
         <meta name="twitter:title" content={pageTitle} />
         <meta name="twitter:description" content={pageDescription} />
-        {profile.ogImage ? (
-          <meta name="twitter:image" content={profile.ogImage} />
-        ) : profile.avatarUrl ? (
-          <meta name="twitter:image" content={profile.avatarUrl} />
-        ) : (
-          <meta name="twitter:image" content={`${window.location.origin}/favicon.png`} />
-        )}
+        <meta name="twitter:image" content={ogImage} />
 
-        {/* Additional SEO */}
         <meta name="robots" content="index, follow" />
         <meta name="googlebot" content="index, follow" />
       </Helmet>
