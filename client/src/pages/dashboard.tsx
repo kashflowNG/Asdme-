@@ -553,7 +553,19 @@ export default function Dashboard() {
   return (
     <>
       <Helmet>
-        <script async data-cfasync="false" src="//pl28091865.effectivegatecpm.com/d3086215aaf6d1aac4a8cf2c4eda801b/invoke.js"></script>
+        <script type="text/javascript">
+          {`
+            atOptions = {
+              'key' : '9effa3562d5aac5edcf587ad7df01754',
+              'format' : 'iframe',
+              'height' : 50,
+              'width' : 320,
+              'params' : {}
+            };
+          `}
+        </script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/9effa3562d5aac5edcf587ad7df01754/invoke.js"></script>
+        <script type="text/javascript" src="//pl28091887.effectivegatecpm.com/cf/47/df/cf47df159320ecb4f3636e497a6d0d1f.js"></script>
       </Helmet>
 
       <div className="min-h-screen bg-background relative">
@@ -633,11 +645,9 @@ export default function Dashboard() {
         <main className="max-w-6xl mx-auto px-4 py-6 animate-fade-in">
           <EngagementAlerts />
 
-          {/* Persistent Ad Placement - Above All Tabs */}
-          <div className="flex justify-center py-4 mt-6">
-            <div className="w-full max-w-md mx-auto">
-              <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b"></div>
-            </div>
+          {/* Banner Ad Placement */}
+          <div className="flex justify-center py-4 mt-4" data-testid="ad-banner-container">
+            <div className="w-full max-w-sm mx-auto"></div>
           </div>
 
           <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-6">
