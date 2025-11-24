@@ -9,6 +9,7 @@ import PublicProfile from "@/pages/public-profile";
 import Landing from "@/pages/landing";
 import Login from "@/pages/login";
 import Signup from "@/pages/signup";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 function Router() {
   return (
