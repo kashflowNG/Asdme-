@@ -62,147 +62,328 @@ const TEMPLATE_VARIABLES = [
 
 const ADVANCED_TEMPLATES = [
   {
-    name: 'Modern Hero Page',
-    code: `<!-- Hero Section -->
-<section class="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900/20 via-black to-pink-900/20 p-8">
-  <div class="max-w-5xl w-full">
+    name: 'Neon Cyberpunk',
+    description: 'Bold neon colors with futuristic cyberpunk aesthetics',
+    preview: '🌃',
+    color: 'from-cyan-500 to-purple-500',
+    code: `<!-- Cyberpunk Hero -->
+<div class="min-h-screen bg-black relative overflow-hidden">
+  <!-- Animated Grid Background -->
+  <div class="absolute inset-0 bg-gradient-to-b from-purple-900/20 via-black to-cyan-900/20"></div>
+  <div class="absolute inset-0" style="background-image: linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px); background-size: 50px 50px;"></div>
+  
+  <div class="relative z-10 max-w-4xl mx-auto px-6 py-16">
+    <!-- Profile Section -->
     <div class="text-center mb-16">
-      <div class="inline-block relative mb-8">
-        <div class="w-40 h-40 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 mx-auto"></div>
-        <div class="absolute -bottom-4 -right-4 w-16 h-16 bg-green-500 rounded-full border-4 border-black"></div>
+      <div class="relative inline-block mb-8">
+        <div class="w-40 h-40 rounded-lg bg-gradient-to-br from-cyan-500 to-purple-600 mx-auto transform rotate-3 shadow-[0_0_50px_rgba(6,182,212,0.5)]"></div>
+        <div class="absolute top-0 right-0 w-8 h-8 bg-pink-500 rounded-full animate-pulse"></div>
       </div>
-      <h1 class="text-6xl md:text-7xl font-black mb-6 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-        @{{username}}
+      <h1 class="text-7xl font-black mb-4 tracking-tight" style="text-shadow: 0 0 20px rgba(6,182,212,0.8), 0 0 40px rgba(139,92,246,0.6);">
+        <span class="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+          @{{username}}
+        </span>
       </h1>
-      <p class="text-2xl text-gray-300 mb-8 max-w-2xl mx-auto">{{bio}}</p>
+      <p class="text-xl text-cyan-300 max-w-2xl mx-auto font-mono">{{bio}}</p>
+      <div class="mt-6 flex items-center justify-center gap-2">
+        <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+        <span class="text-sm text-gray-400 font-mono">ONLINE • AVAILABLE</span>
+      </div>
     </div>
-    
+
+    <!-- Links Grid -->
     <div class="grid md:grid-cols-2 gap-4 mb-12">
       {{socialLinks}}
     </div>
-    
+
+    <!-- Content Blocks -->
+    <div class="space-y-6">
+      {{contentBlocks}}
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="relative z-10 border-t border-cyan-500/30 py-8 mt-16">
+    <div class="max-w-4xl mx-auto px-6 text-center">
+      <p class="text-gray-500 text-sm font-mono">
+        © 2024 @{{username}} • <span class="text-cyan-400">NEROPAGE</span> v2.0
+      </p>
+    </div>
+  </footer>
+</div>`
+  },
+  {
+    name: 'Elegant Portfolio',
+    description: 'Sophisticated design perfect for creative professionals',
+    preview: '🎨',
+    color: 'from-amber-500 to-rose-500',
+    code: `<!-- Portfolio Hero -->
+<div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+  <div class="max-w-6xl mx-auto px-6 py-12">
+    <!-- Header -->
+    <header class="flex items-center justify-between mb-20 pb-8 border-b border-amber-500/20">
+      <div class="flex items-center gap-4">
+        <div class="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-rose-500"></div>
+        <div>
+          <h1 class="text-3xl font-serif font-bold text-amber-100">@{{username}}</h1>
+          <p class="text-sm text-gray-400">Creative Professional</p>
+        </div>
+      </div>
+      <div class="hidden md:flex gap-6 text-sm text-gray-400">
+        <a href="#work" class="hover:text-amber-400 transition-colors">Work</a>
+        <a href="#about" class="hover:text-amber-400 transition-colors">About</a>
+        <a href="#contact" class="hover:text-amber-400 transition-colors">Contact</a>
+      </div>
+    </header>
+
+    <!-- Bio Section -->
+    <div class="max-w-3xl mb-16">
+      <h2 class="text-5xl md:text-6xl font-serif font-bold mb-6 text-white leading-tight">
+        Crafting Digital Experiences
+      </h2>
+      <p class="text-xl text-gray-300 leading-relaxed">{{bio}}</p>
+    </div>
+
+    <!-- Featured Links -->
+    <div class="mb-16">
+      <h3 class="text-2xl font-serif font-bold mb-8 text-amber-100">Connect & Explore</h3>
+      <div class="grid md:grid-cols-3 gap-6">
+        {{socialLinks}}
+      </div>
+    </div>
+
+    <!-- Content Showcase -->
     <div class="space-y-8">
       {{contentBlocks}}
     </div>
   </div>
-</section>
 
-<!-- Footer -->
-<footer class="bg-black/50 backdrop-blur-lg border-t border-white/10 py-12">
-  <div class="max-w-5xl mx-auto px-8 text-center">
-    <div class="flex items-center justify-center gap-6 mb-6 text-gray-400">
-      <a href="#" class="hover:text-white transition-colors">About</a>
-      <span>•</span>
-      <a href="#" class="hover:text-white transition-colors">Contact</a>
-      <span>•</span>
-      <a href="#" class="hover:text-white transition-colors">Privacy</a>
-    </div>
-    <p class="text-gray-500 text-sm">
-      © 2024 @{{username}} • Powered by <span class="text-purple-400">Neropage</span>
-    </p>
-  </div>
-</footer>`
-  },
-  {
-    name: 'Split Screen Layout',
-    code: `<div class="grid md:grid-cols-2 min-h-screen">
-  <!-- Left Panel - Hero -->
-  <div class="bg-gradient-to-br from-purple-600 to-pink-600 p-12 flex items-center justify-center">
-    <div class="text-center">
-      <div class="w-32 h-32 rounded-full bg-white/20 backdrop-blur-lg mx-auto mb-8"></div>
-      <h1 class="text-5xl font-black text-white mb-4">@{{username}}</h1>
-      <p class="text-xl text-white/90">{{bio}}</p>
-    </div>
-  </div>
-  
-  <!-- Right Panel - Content -->
-  <div class="p-12 flex flex-col">
-    <div class="flex-1">
-      <h2 class="text-3xl font-bold mb-8">My Links</h2>
-      <div class="space-y-4 mb-12">
-        {{socialLinks}}
-      </div>
-      
-      <div class="space-y-6">
-        {{contentBlocks}}
-      </div>
-    </div>
-    
-    <!-- Footer -->
-    <footer class="pt-8 border-t border-white/10 text-center text-sm text-gray-400">
-      <p>© 2024 @{{username}}</p>
-    </footer>
-  </div>
-</div>`
-  },
-  {
-    name: 'Card Stack Layout',
-    code: `<!-- Hero -->
-<header class="min-h-[60vh] flex items-center justify-center bg-gradient-to-b from-purple-900/30 to-black p-8">
-  <div class="text-center">
-    <div class="w-28 h-28 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 mx-auto mb-6 rotate-6 shadow-2xl"></div>
-    <h1 class="text-5xl font-black mb-4">@{{username}}</h1>
-    <p class="text-xl text-gray-400 max-w-md mx-auto">{{bio}}</p>
-  </div>
-</header>
-
-<!-- Main Content -->
-<main class="max-w-3xl mx-auto px-6 py-12 -mt-20">
-  <div class="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl mb-8">
-    <h2 class="text-2xl font-bold mb-6 text-center">Connect With Me</h2>
-    <div class="space-y-4">
-      {{socialLinks}}
-    </div>
-  </div>
-  
-  <div class="space-y-6">
-    {{contentBlocks}}
-  </div>
-</main>
-
-<!-- Footer -->
-<footer class="py-16 bg-gradient-to-t from-purple-900/20 to-transparent border-t border-white/5">
-  <div class="max-w-3xl mx-auto px-6 text-center">
-    <div class="flex justify-center gap-8 mb-6 text-gray-400 text-sm">
-      <a href="#" class="hover:text-purple-400 transition-colors">Home</a>
-      <a href="#" class="hover:text-purple-400 transition-colors">About</a>
-      <a href="#" class="hover:text-purple-400 transition-colors">Contact</a>
-    </div>
-    <p class="text-gray-500 text-sm">
-      Made with ❤️ using <span class="text-purple-400 font-semibold">Neropage</span>
-    </p>
-  </div>
-</footer>`
-  },
-  {
-    name: 'Minimalist Full Page',
-    code: `<!-- Hero Section -->
-<div class="min-h-screen flex flex-col">
-  <header class="flex-1 flex items-center justify-center p-8">
-    <div class="max-w-2xl w-full text-center">
-      <div class="mb-12">
-        <div class="w-24 h-24 rounded-full bg-white/10 mx-auto mb-6"></div>
-        <h1 class="text-4xl font-light mb-3 tracking-wide">@{{username}}</h1>
-        <p class="text-gray-400 text-lg">{{bio}}</p>
-      </div>
-      
-      <div class="space-y-3 mb-16">
-        {{socialLinks}}
-      </div>
-      
-      <div class="space-y-4">
-        {{contentBlocks}}
-      </div>
-    </div>
-  </header>
-  
   <!-- Footer -->
-  <footer class="border-t border-white/5 py-8 text-center">
-    <p class="text-gray-500 text-sm">
-      @{{username}} • 2024
-    </p>
+  <footer class="border-t border-amber-500/20 py-12 mt-20">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+        <p class="text-gray-400 text-sm">© 2024 @{{username}}. All rights reserved.</p>
+        <p class="text-gray-500 text-sm">Designed with <span class="text-amber-400">Neropage</span></p>
+      </div>
+    </div>
   </footer>
 </div>`
+  },
+  {
+    name: 'Glassmorphism Pro',
+    description: 'Modern glass effect with depth and transparency',
+    preview: '💎',
+    color: 'from-blue-400 to-violet-500',
+    code: `<!-- Glass Hero -->
+<div class="min-h-screen relative overflow-hidden">
+  <!-- Animated Background -->
+  <div class="absolute inset-0 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500"></div>
+  <div class="absolute inset-0 backdrop-blur-3xl bg-black/30"></div>
+  
+  <!-- Floating Orbs -->
+  <div class="absolute top-20 left-20 w-72 h-72 bg-blue-400/30 rounded-full blur-3xl animate-pulse"></div>
+  <div class="absolute bottom-20 right-20 w-96 h-96 bg-purple-400/30 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
+
+  <div class="relative z-10 max-w-4xl mx-auto px-6 py-16">
+    <!-- Profile Card -->
+    <div class="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-10 mb-8 shadow-2xl">
+      <div class="text-center">
+        <div class="w-32 h-32 rounded-full bg-gradient-to-br from-white/40 to-white/10 backdrop-blur-sm border border-white/30 mx-auto mb-6 shadow-xl"></div>
+        <h1 class="text-6xl font-black mb-4 text-white drop-shadow-lg">
+          @{{username}}
+        </h1>
+        <p class="text-xl text-white/90 max-w-2xl mx-auto">{{bio}}</p>
+      </div>
+    </div>
+
+    <!-- Links Container -->
+    <div class="backdrop-blur-xl bg-white/5 border border-white/20 rounded-3xl p-8 mb-8 shadow-2xl">
+      <h2 class="text-2xl font-bold text-white mb-6 text-center">My Platforms</h2>
+      <div class="space-y-4">
+        {{socialLinks}}
+      </div>
+    </div>
+
+    <!-- Content Blocks -->
+    <div class="space-y-6">
+      {{contentBlocks}}
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="relative z-10 backdrop-blur-xl bg-black/20 border-t border-white/10 py-8 mt-16">
+    <div class="max-w-4xl mx-auto px-6 text-center">
+      <p class="text-white/60 text-sm">
+        © 2024 @{{username}} • Powered by <span class="text-white font-semibold">Neropage</span>
+      </p>
+    </div>
+  </footer>
+</div>`
+  },
+  {
+    name: 'Minimal Zen',
+    description: 'Clean, focused design with maximum simplicity',
+    preview: '⚪',
+    color: 'from-gray-400 to-gray-600',
+    code: `<!-- Zen Layout -->
+<div class="min-h-screen bg-white text-black">
+  <div class="max-w-2xl mx-auto px-6 py-20">
+    <!-- Minimal Header -->
+    <header class="mb-20 text-center">
+      <div class="w-20 h-20 rounded-full bg-black mx-auto mb-8"></div>
+      <h1 class="text-5xl font-light mb-4 tracking-tight">@{{username}}</h1>
+      <div class="w-16 h-px bg-black/20 mx-auto mb-6"></div>
+      <p class="text-lg text-gray-600 leading-relaxed">{{bio}}</p>
+    </header>
+
+    <!-- Clean Links -->
+    <div class="space-y-2 mb-16">
+      {{socialLinks}}
+    </div>
+
+    <!-- Content -->
+    <div class="space-y-12">
+      {{contentBlocks}}
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-black/10 py-12 mt-20">
+    <div class="max-w-2xl mx-auto px-6 text-center">
+      <p class="text-sm text-gray-400">@{{username}} • 2024</p>
+    </div>
+  </footer>
+</div>`
+  },
+  {
+    name: 'Dark Luxury',
+    description: 'Premium dark theme with golden accents',
+    preview: '🏆',
+    color: 'from-yellow-600 to-orange-600',
+    code: `<!-- Luxury Hero -->
+<div class="min-h-screen bg-gradient-to-b from-gray-900 via-black to-gray-900">
+  <!-- Subtle Pattern -->
+  <div class="absolute inset-0 opacity-5" style="background-image: radial-gradient(circle, #FFD700 1px, transparent 1px); background-size: 30px 30px;"></div>
+
+  <div class="relative z-10 max-w-5xl mx-auto px-6 py-16">
+    <!-- Luxury Header -->
+    <div class="text-center mb-16 pb-12 border-b border-yellow-600/20">
+      <div class="inline-block relative mb-8">
+        <div class="w-36 h-36 rounded-full bg-gradient-to-br from-yellow-600 via-yellow-500 to-orange-500 mx-auto shadow-[0_0_60px_rgba(234,179,8,0.4)]"></div>
+        <div class="absolute inset-0 rounded-full border-2 border-yellow-500/30 animate-ping"></div>
+      </div>
+      <h1 class="text-6xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-yellow-400 via-yellow-200 to-yellow-400 bg-clip-text text-transparent">
+        @{{username}}
+      </h1>
+      <p class="text-xl text-gray-300 max-w-2xl mx-auto italic">{{bio}}</p>
+      <div class="mt-8 flex items-center justify-center gap-3">
+        <div class="h-px w-16 bg-gradient-to-r from-transparent to-yellow-600/50"></div>
+        <span class="text-yellow-600 text-sm font-semibold tracking-widest">EXCLUSIVE</span>
+        <div class="h-px w-16 bg-gradient-to-l from-transparent to-yellow-600/50"></div>
+      </div>
+    </div>
+
+    <!-- Premium Links -->
+    <div class="mb-16">
+      <h2 class="text-3xl font-bold text-center mb-10 text-yellow-100">VIP Access</h2>
+      <div class="grid md:grid-cols-2 gap-6">
+        {{socialLinks}}
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="space-y-8">
+      {{contentBlocks}}
+    </div>
+  </div>
+
+  <!-- Luxury Footer -->
+  <footer class="relative z-10 border-t border-yellow-600/20 py-12 mt-20">
+    <div class="max-w-5xl mx-auto px-6">
+      <div class="flex flex-col items-center gap-4">
+        <div class="flex items-center gap-3 text-yellow-600">
+          <div class="w-8 h-px bg-yellow-600/50"></div>
+          <span class="text-sm font-semibold tracking-widest">PREMIUM</span>
+          <div class="w-8 h-px bg-yellow-600/50"></div>
+        </div>
+        <p class="text-gray-500 text-sm">© 2024 @{{username}} • Crafted with <span class="text-yellow-600">Neropage</span></p>
+      </div>
+    </div>
+  </footer>
+</div>`
+  },
+  {
+    name: 'Gradient Paradise',
+    description: 'Vibrant multi-color gradients with playful energy',
+    preview: '🌈',
+    color: 'from-pink-500 via-purple-500 to-indigo-500',
+    code: `<!-- Rainbow Hero -->
+<div class="min-h-screen relative overflow-hidden">
+  <!-- Animated Gradient Background -->
+  <div class="absolute inset-0 bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-600 animate-gradient-shift"></div>
+  <div class="absolute inset-0 bg-gradient-to-tl from-yellow-400/20 via-transparent to-cyan-400/20"></div>
+
+  <!-- Animated Shapes -->
+  <div class="absolute top-10 left-10 w-64 h-64 bg-white/10 rounded-full blur-3xl animate-float"></div>
+  <div class="absolute bottom-10 right-10 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-float" style="animation-delay: 2s;"></div>
+
+  <div class="relative z-10 max-w-5xl mx-auto px-6 py-16">
+    <!-- Playful Header -->
+    <div class="text-center mb-16">
+      <div class="relative inline-block mb-8">
+        <div class="w-40 h-40 rounded-3xl bg-white/20 backdrop-blur-md mx-auto transform -rotate-6 shadow-2xl border border-white/40"></div>
+        <div class="absolute top-2 right-2 w-12 h-12 bg-yellow-400 rounded-full"></div>
+        <div class="absolute bottom-2 left-2 w-8 h-8 bg-pink-400 rounded-full"></div>
+      </div>
+      <h1 class="text-7xl font-black mb-6 text-white drop-shadow-2xl">
+        @{{username}}
+      </h1>
+      <p class="text-2xl text-white/95 max-w-2xl mx-auto font-medium">{{bio}}</p>
+    </div>
+
+    <!-- Colorful Links -->
+    <div class="grid md:grid-cols-2 gap-4 mb-12">
+      {{socialLinks}}
+    </div>
+
+    <!-- Content Cards -->
+    <div class="space-y-6">
+      {{contentBlocks}}
+    </div>
+  </div>
+
+  <!-- Fun Footer -->
+  <footer class="relative z-10 backdrop-blur-xl bg-black/30 border-t border-white/20 py-10 mt-16">
+    <div class="max-w-5xl mx-auto px-6 text-center">
+      <div class="flex items-center justify-center gap-2 mb-4">
+        <span class="text-3xl">✨</span>
+        <p class="text-white text-lg font-bold">@{{username}}</p>
+        <span class="text-3xl">✨</span>
+      </div>
+      <p class="text-white/70 text-sm">
+        Made with 💖 using <span class="font-bold text-white">Neropage</span>
+      </p>
+    </div>
+  </footer>
+</div>
+
+<style>
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-30px); }
+}
+.animate-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+</style>`
   }
 ];
 
@@ -534,32 +715,103 @@ export function TemplateEditor({ profile, onUpdate }: TemplateEditorProps) {
         </TabsContent>
 
         <TabsContent value="templates" className="space-y-4">
-          <div className="space-y-3">
-            <h3 className="font-semibold">Pre-built Templates</h3>
-            <p className="text-sm text-muted-foreground">
-              Start with a professional template and customize it to your needs
-            </p>
-            <div className="grid gap-4">
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-semibold text-lg mb-2">Professional Landing Pages</h3>
+              <p className="text-sm text-muted-foreground">
+                Choose from 6 expertly designed templates. No coding required - just click "Use Template" and customize!
+              </p>
+            </div>
+            <div className="grid md:grid-cols-2 gap-6">
               {ADVANCED_TEMPLATES.map((template, index) => (
                 <div 
                   key={index}
-                  className="p-4 rounded-lg bg-muted/30 border border-border hover:border-primary/50 transition-colors"
+                  className="group relative rounded-xl bg-muted/30 border-2 border-border hover:border-primary/50 transition-all overflow-hidden hover:shadow-2xl hover:scale-[1.02]"
                 >
-                  <div className="flex items-start justify-between mb-3">
-                    <h4 className="font-semibold">{template.name}</h4>
-                    <Button
-                      size="sm"
-                      onClick={() => loadTemplate(template.code)}
-                    >
-                      Use Template
-                    </Button>
+                  {/* Preview Header */}
+                  <div className={`h-32 bg-gradient-to-r ${template.color} flex items-center justify-center relative overflow-hidden`}>
+                    <div className="absolute inset-0 bg-black/20"></div>
+                    <span className="text-6xl relative z-10 drop-shadow-lg">{template.preview}</span>
+                    <div className="absolute top-3 right-3 z-10">
+                      <Badge className="bg-black/50 border-white/20">
+                        <Sparkles className="w-3 h-3 mr-1" />
+                        Pro
+                      </Badge>
+                    </div>
                   </div>
-                  <pre className="text-xs bg-black/20 p-3 rounded overflow-x-auto max-h-32">
-                    <code>{template.code}</code>
-                  </pre>
+
+                  {/* Template Info */}
+                  <div className="p-5">
+                    <h4 className="font-bold text-lg mb-2">{template.name}</h4>
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                      {template.description}
+                    </p>
+
+                    {/* Features */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <Badge variant="outline" className="text-xs">
+                        Responsive
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        Animated
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        Modern
+                      </Badge>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => loadTemplate(template.code)}
+                      >
+                        <Eye className="w-4 h-4 mr-1" />
+                        Use Template
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          copyToClipboard(template.code, `template-${index}`);
+                          const event = new CustomEvent('toast', {
+                            detail: {
+                              title: 'Template copied!',
+                              description: 'Template code copied to clipboard.',
+                            }
+                          });
+                          window.dispatchEvent(event);
+                        }}
+                      >
+                        {copied === `template-${index}` ? (
+                          <Check className="w-4 h-4 text-green-500" />
+                        ) : (
+                          <Copy className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Hover Preview */}
+                  <div className="absolute inset-0 bg-black/95 opacity-0 group-hover:opacity-100 transition-opacity p-4 overflow-auto">
+                    <div className="text-xs font-mono text-gray-300">
+                      <pre className="whitespace-pre-wrap break-words">
+                        {template.code.substring(0, 300)}...
+                      </pre>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
+
+            {/* Help Text */}
+            <Alert className="mt-6">
+              <Sparkles className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Pro Tip:</strong> After selecting a template, you can customize colors, fonts, and content in the Editor tab. Your changes are saved automatically!
+              </AlertDescription>
+            </Alert>
           </div>
         </TabsContent>
       </Tabs>
