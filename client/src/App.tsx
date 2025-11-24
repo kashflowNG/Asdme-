@@ -9,7 +9,7 @@ import Login from "@/pages/login";
 import Signup from "@/pages/signup";
 import Dashboard from "@/pages/dashboard";
 import PublicProfile from "@/pages/public-profile";
-import ProtectedRoute from "./components/ProtectedRoute";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 function Router() {
   return (
