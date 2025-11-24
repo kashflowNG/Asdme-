@@ -25,6 +25,7 @@ import { SmartRecommendations } from "@/components/SmartRecommendations";
 import { ClickHeatmap } from "@/components/ClickHeatmap";
 import { LinkScheduleVisualizer } from "@/components/LinkScheduleVisualizer";
 import { EngagementAlerts } from "@/components/EngagementAlerts";
+import { AdUnit } from "@/components/AdUnit";
 import { getPlatform } from "@/lib/platforms";
 import { GripVertical, Trash2, Plus, Eye, Upload, Copy, Check, ExternalLink, LogOut, QrCode, BarChart3, Link2, Palette, Settings, Zap, Edit, EyeOff, FileCode } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
@@ -647,7 +648,7 @@ export default function Dashboard() {
 
           {/* Banner Ad Placement */}
           <div className="flex justify-center py-4 mt-4" data-testid="ad-banner-container">
-            <div className="w-full max-w-sm mx-auto"></div>
+            <AdUnit type="banner" />
           </div>
 
           <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-6">
