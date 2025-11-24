@@ -78,6 +78,7 @@ export default function Signup() {
         <title>Sign Up - Neropage</title>
         <meta name="description" content="Create your Neropage account and start sharing your links" />
         <script async data-cfasync="false" src="//pl28091865.effectivegatecpm.com/d3086215aaf6d1aac4a8cf2c4eda801b/invoke.js"></script>
+        <script type='text/javascript' src='//pl28091887.effectivegatecpm.com/cf/47/df/cf47df159320ecb4f3636e497a6d0d1f.js'></script>
       </Helmet>
 
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
