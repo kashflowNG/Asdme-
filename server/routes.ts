@@ -80,10 +80,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
-      const profile = await storage.getProfileByUsername(username);
+      let profile = await storage.getProfileByUsername(username);
       if (!profile) {
-        console.log('Profile not found for username:', username);
-        return res.status(500).json({ error: "Profile not found" });
+        console.log('Profile not found for username:', username, '- creating new profile');
+        // Create profile if it doesn't exist (data recovery)
+        profile = await storage.createProfile({
+          userId: user.id,
+          username,
+          bio: `Welcome to my link hub!`,
+          avatar: "",
+          theme: "neon",
+          primaryColor: "#8B5CF6",
+          backgroundColor: "#0A0A0F",
+          backgroundType: "color",
+          layout: "stacked",
+          fontFamily: "DM Sans",
+          buttonStyle: "rounded",
+          useCustomTemplate: 0,
+          hideBranding: 0,
+          verificationBadge: 0,
+        });
       }
 
       console.log('Login successful for:', profile.username);
