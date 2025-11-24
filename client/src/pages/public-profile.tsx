@@ -126,28 +126,28 @@ export default function PublicProfile() {
     // For maximum security, we prevent breaking out of <style> tag
     // and filter dangerous CSS patterns
     let sanitized = css;
-    
+
     // Prevent </style> tag injection and other HTML tag injections
     sanitized = sanitized.replace(/<\s*\/?\s*style[^>]*>/gi, '');
     sanitized = sanitized.replace(/<\s*script[^>]*>.*?<\s*\/\s*script\s*>/gis, '');
     sanitized = sanitized.replace(/<[^>]+>/g, ''); // Remove any remaining HTML tags
-    
+
     // Remove all at-rules (@import, @font-face, @keyframes, etc.) except @media
     sanitized = sanitized.replace(/@(?!media)[a-z-]+\s*[^{;]*[{;]/gi, '');
-    
+
     // Remove any URL references (to prevent data:, javascript:, and external resource loading)
     sanitized = sanitized.replace(/url\s*\([^)]*\)/gi, '');
-    
+
     // Remove expression() and other IE-specific hacks
     sanitized = sanitized.replace(/expression\s*\([^)]*\)/gi, '');
     sanitized = sanitized.replace(/-moz-binding\s*:/gi, '');
-    
+
     // Remove behavior property (IE)
     sanitized = sanitized.replace(/behavior\s*:/gi, '');
-    
+
     // Remove any javascript: or vbscript: protocol references
     sanitized = sanitized.replace(/(javascript|vbscript|data):/gi, '');
-    
+
     return sanitized;
   };
 
@@ -330,7 +330,7 @@ export default function PublicProfile() {
             <meta property="og:image:alt" content="Neropage Logo" />
           </>
         )}
-        
+
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:url" content={profileUrl} />
@@ -343,7 +343,7 @@ export default function PublicProfile() {
         ) : (
           <meta name="twitter:image" content={`${window.location.origin}/favicon.png`} />
         )}
-        
+
         {/* Additional SEO */}
         <meta name="robots" content="index, follow" />
         <meta name="googlebot" content="index, follow" />
@@ -380,12 +380,31 @@ export default function PublicProfile() {
           <style dangerouslySetInnerHTML={{ __html: sanitizeCSS(profile.customCSS) }} />
         )}
 
-        {/* Render custom template if enabled */}
-        {profile.useCustomTemplate && renderCustomTemplate() ? (
+        {/* Profile Content */}
+        {profile.useCustomTemplate && profile.templateHTML ? (
           <div 
-            className="custom-template-content"
-            dangerouslySetInnerHTML={{ __html: renderCustomTemplate() || "" }}
-            data-testid="custom-template-content"
+            className="min-h-screen"
+            dangerouslySetInnerHTML={{ 
+              __html: profile.templateHTML
+                .replace(/\{\{username\}\}/g, profile.username || '')
+                .replace(/\{\{bio\}\}/g, profile.bio || '')
+                .replace(/\{\{avatar\}\}/g, profile.avatar || '')
+                .replace(/\{\{primaryColor\}\}/g, profile.primaryColor || '#8B5CF6')
+                .replace(/\{\{backgroundColor\}\}/g, profile.backgroundColor || '#0a0a0a')
+                .replace(/\{\{fontFamily\}\}/g, profile.fontFamily || 'DM Sans')
+                .replace(/\{\{socialLinks\}\}/g, sortedLinks.length > 0 ? sortedLinks.map(link => `
+                  <a href="${link.url}" target="_blank" rel="noopener noreferrer" 
+                     class="block p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-all border border-white/10 hover:border-white/20 group">
+                    <span class="font-semibold">${link.icon} ${link.customTitle || link.platform}</span>
+                  </a>
+                `).join('') : '<p class="text-gray-400 text-center">No links added yet</p>')
+                .replace(/\{\{contentBlocks\}\}/g, sortedBlocks.length > 0 ? sortedBlocks.map(block => `
+                  <div class="p-6 rounded-lg bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20">
+                    <h3 class="font-bold mb-2">${block.title || 'Content Block'}</h3>
+                    <div class="text-sm text-gray-300">${block.content || ''}</div>
+                  </div>
+                `).join('') : '')
+            }}
           />
         ) : (
           <div className={`max-w-4xl mx-auto px-4 relative z-10 ${profile.layout === "minimal" ? "max-w-2xl" : ""}`}>

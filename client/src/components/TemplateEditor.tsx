@@ -16,20 +16,38 @@ interface TemplateEditorProps {
   onUpdate: (updates: Partial<Profile>) => void;
 }
 
-const DEFAULT_TEMPLATE_HTML = `<div class="profile-container">
-  <div class="profile-header">
-    <h1 class="profile-username">@{{username}}</h1>
-    <p class="profile-bio">{{bio}}</p>
+const DEFAULT_TEMPLATE_HTML = `<!-- Hero Section -->
+<header class="min-h-screen flex items-center justify-center p-6">
+  <div class="max-w-4xl w-full text-center">
+    <div class="mb-8">
+      <div class="w-32 h-32 rounded-full mx-auto mb-6 bg-gradient-to-br from-purple-500 to-pink-500"></div>
+      <h1 class="text-5xl font-bold mb-4">@{{username}}</h1>
+      <p class="text-xl text-gray-400">{{bio}}</p>
+    </div>
+    
+    <!-- Social Links -->
+    <div class="space-y-4 mb-12">
+      {{socialLinks}}
+    </div>
+    
+    <!-- Content Blocks -->
+    <div class="space-y-6">
+      {{contentBlocks}}
+    </div>
   </div>
-  
-  <div class="content-blocks">
-    {{contentBlocks}}
+</header>
+
+<!-- Footer Section -->
+<footer class="py-12 border-t border-white/10 text-center">
+  <div class="max-w-4xl mx-auto px-6">
+    <p class="text-gray-400 text-sm mb-4">
+      Created with <span class="text-purple-500">Neropage</span>
+    </p>
+    <p class="text-gray-500 text-xs">
+      © 2024 @{{username}}. All rights reserved.
+    </p>
   </div>
-  
-  <div class="social-links">
-    {{socialLinks}}
-  </div>
-</div>`;
+</footer>`;
 
 const TEMPLATE_VARIABLES = [
   { name: '{{username}}', description: 'User\'s username', example: '@johndoe' },
@@ -44,50 +62,146 @@ const TEMPLATE_VARIABLES = [
 
 const ADVANCED_TEMPLATES = [
   {
-    name: 'Minimal Card Layout',
-    code: `<div class="min-h-screen flex items-center justify-center p-4">
-  <div class="max-w-md w-full bg-white/5 backdrop-blur-lg rounded-3xl p-8 border border-white/10">
-    <div class="text-center mb-8">
-      <div class="w-24 h-24 rounded-full mx-auto mb-4 bg-gradient-to-br from-purple-500 to-pink-500"></div>
-      <h1 class="text-3xl font-bold mb-2">@{{username}}</h1>
-      <p class="text-gray-400">{{bio}}</p>
+    name: 'Modern Hero Page',
+    code: `<!-- Hero Section -->
+<section class="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900/20 via-black to-pink-900/20 p-8">
+  <div class="max-w-5xl w-full">
+    <div class="text-center mb-16">
+      <div class="inline-block relative mb-8">
+        <div class="w-40 h-40 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 mx-auto"></div>
+        <div class="absolute -bottom-4 -right-4 w-16 h-16 bg-green-500 rounded-full border-4 border-black"></div>
+      </div>
+      <h1 class="text-6xl md:text-7xl font-black mb-6 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+        @{{username}}
+      </h1>
+      <p class="text-2xl text-gray-300 mb-8 max-w-2xl mx-auto">{{bio}}</p>
     </div>
-    <div class="space-y-3">
+    
+    <div class="grid md:grid-cols-2 gap-4 mb-12">
       {{socialLinks}}
     </div>
+    
+    <div class="space-y-8">
+      {{contentBlocks}}
+    </div>
   </div>
-</div>`
+</section>
+
+<!-- Footer -->
+<footer class="bg-black/50 backdrop-blur-lg border-t border-white/10 py-12">
+  <div class="max-w-5xl mx-auto px-8 text-center">
+    <div class="flex items-center justify-center gap-6 mb-6 text-gray-400">
+      <a href="#" class="hover:text-white transition-colors">About</a>
+      <span>•</span>
+      <a href="#" class="hover:text-white transition-colors">Contact</a>
+      <span>•</span>
+      <a href="#" class="hover:text-white transition-colors">Privacy</a>
+    </div>
+    <p class="text-gray-500 text-sm">
+      © 2024 @{{username}} • Powered by <span class="text-purple-400">Neropage</span>
+    </p>
+  </div>
+</footer>`
   },
   {
-    name: 'Grid Layout',
-    code: `<div class="container mx-auto p-6">
-  <header class="text-center mb-12">
-    <h1 class="text-5xl font-black mb-4">{{username}}</h1>
-    <p class="text-xl text-gray-400">{{bio}}</p>
-  </header>
-  <div class="grid md:grid-cols-2 gap-6 mb-8">
-    {{socialLinks}}
-  </div>
-  <div class="mt-12">
-    {{contentBlocks}}
-  </div>
-</div>`
-  },
-  {
-    name: 'Sidebar Layout',
-    code: `<div class="flex min-h-screen">
-  <aside class="w-80 bg-gradient-to-b from-purple-900 to-black p-8 sticky top-0 h-screen">
+    name: 'Split Screen Layout',
+    code: `<div class="grid md:grid-cols-2 min-h-screen">
+  <!-- Left Panel - Hero -->
+  <div class="bg-gradient-to-br from-purple-600 to-pink-600 p-12 flex items-center justify-center">
     <div class="text-center">
-      <h2 class="text-2xl font-bold mb-2">@{{username}}</h2>
-      <p class="text-sm text-gray-300 mb-6">{{bio}}</p>
+      <div class="w-32 h-32 rounded-full bg-white/20 backdrop-blur-lg mx-auto mb-8"></div>
+      <h1 class="text-5xl font-black text-white mb-4">@{{username}}</h1>
+      <p class="text-xl text-white/90">{{bio}}</p>
     </div>
-    <nav class="space-y-3">
+  </div>
+  
+  <!-- Right Panel - Content -->
+  <div class="p-12 flex flex-col">
+    <div class="flex-1">
+      <h2 class="text-3xl font-bold mb-8">My Links</h2>
+      <div class="space-y-4 mb-12">
+        {{socialLinks}}
+      </div>
+      
+      <div class="space-y-6">
+        {{contentBlocks}}
+      </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="pt-8 border-t border-white/10 text-center text-sm text-gray-400">
+      <p>© 2024 @{{username}}</p>
+    </footer>
+  </div>
+</div>`
+  },
+  {
+    name: 'Card Stack Layout',
+    code: `<!-- Hero -->
+<header class="min-h-[60vh] flex items-center justify-center bg-gradient-to-b from-purple-900/30 to-black p-8">
+  <div class="text-center">
+    <div class="w-28 h-28 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 mx-auto mb-6 rotate-6 shadow-2xl"></div>
+    <h1 class="text-5xl font-black mb-4">@{{username}}</h1>
+    <p class="text-xl text-gray-400 max-w-md mx-auto">{{bio}}</p>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="max-w-3xl mx-auto px-6 py-12 -mt-20">
+  <div class="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl mb-8">
+    <h2 class="text-2xl font-bold mb-6 text-center">Connect With Me</h2>
+    <div class="space-y-4">
       {{socialLinks}}
-    </nav>
-  </aside>
-  <main class="flex-1 p-12">
+    </div>
+  </div>
+  
+  <div class="space-y-6">
     {{contentBlocks}}
-  </main>
+  </div>
+</main>
+
+<!-- Footer -->
+<footer class="py-16 bg-gradient-to-t from-purple-900/20 to-transparent border-t border-white/5">
+  <div class="max-w-3xl mx-auto px-6 text-center">
+    <div class="flex justify-center gap-8 mb-6 text-gray-400 text-sm">
+      <a href="#" class="hover:text-purple-400 transition-colors">Home</a>
+      <a href="#" class="hover:text-purple-400 transition-colors">About</a>
+      <a href="#" class="hover:text-purple-400 transition-colors">Contact</a>
+    </div>
+    <p class="text-gray-500 text-sm">
+      Made with ❤️ using <span class="text-purple-400 font-semibold">Neropage</span>
+    </p>
+  </div>
+</footer>`
+  },
+  {
+    name: 'Minimalist Full Page',
+    code: `<!-- Hero Section -->
+<div class="min-h-screen flex flex-col">
+  <header class="flex-1 flex items-center justify-center p-8">
+    <div class="max-w-2xl w-full text-center">
+      <div class="mb-12">
+        <div class="w-24 h-24 rounded-full bg-white/10 mx-auto mb-6"></div>
+        <h1 class="text-4xl font-light mb-3 tracking-wide">@{{username}}</h1>
+        <p class="text-gray-400 text-lg">{{bio}}</p>
+      </div>
+      
+      <div class="space-y-3 mb-16">
+        {{socialLinks}}
+      </div>
+      
+      <div class="space-y-4">
+        {{contentBlocks}}
+      </div>
+    </div>
+  </header>
+  
+  <!-- Footer -->
+  <footer class="border-t border-white/5 py-8 text-center">
+    <p class="text-gray-500 text-sm">
+      @{{username}} • 2024
+    </p>
+  </footer>
 </div>`
   }
 ];
@@ -101,6 +215,14 @@ export function TemplateEditor({ profile, onUpdate }: TemplateEditorProps) {
   );
   const [previewMode, setPreviewMode] = useState<'split' | 'preview'>('split');
   const [copied, setCopied] = useState<string | null>(null);
+
+  // Update local state when profile changes (after save)
+  useEffect(() => {
+    if (profile.templateHTML) {
+      setTemplateHTML(profile.templateHTML);
+    }
+    setUseCustomTemplate(profile.useCustomTemplate || false);
+  }, [profile.templateHTML, profile.useCustomTemplate]);
 
   // Generate live preview by replacing placeholders with sample data
   const previewHTML = useMemo(() => {
@@ -162,18 +284,35 @@ export function TemplateEditor({ profile, onUpdate }: TemplateEditorProps) {
 
   const validationErrors = useMemo(() => validateHTML(templateHTML), [templateHTML]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (validationErrors.length > 0) {
       return;
     }
     
     try {
-      onUpdate({
+      await onUpdate({
         templateHTML,
         useCustomTemplate,
       });
+      
+      // Show success feedback
+      const event = new CustomEvent('toast', {
+        detail: {
+          title: 'Template saved!',
+          description: 'Your custom template has been saved successfully.',
+        }
+      });
+      window.dispatchEvent(event);
     } catch (error) {
       console.error('Failed to save template:', error);
+      const event = new CustomEvent('toast', {
+        detail: {
+          title: 'Error',
+          description: 'Failed to save template. Please try again.',
+          variant: 'destructive',
+        }
+      });
+      window.dispatchEvent(event);
     }
   };
 
