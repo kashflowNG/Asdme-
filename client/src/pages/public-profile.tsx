@@ -410,95 +410,146 @@ export default function PublicProfile() {
         ) : (
           /* Beautiful Default Layout */
           <div className="max-w-5xl mx-auto px-4 py-8 relative z-10">
+            {/* Animated Background Orbs */}
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+              <div className="absolute top-20 left-1/4 w-[500px] h-[500px] bg-gradient-to-br from-purple-500/30 to-pink-500/30 rounded-full blur-3xl opacity-70 animate-pulse-slow" />
+              <div className="absolute top-40 right-1/4 w-[400px] h-[400px] bg-gradient-to-br from-cyan-500/25 to-blue-500/25 rounded-full blur-3xl opacity-60 animate-pulse-slow" style={{ animationDelay: '1.5s' }} />
+              <div className="absolute bottom-20 left-1/3 w-[350px] h-[350px] bg-gradient-to-br from-pink-500/20 to-purple-500/20 rounded-full blur-3xl opacity-50 animate-pulse-slow" style={{ animationDelay: '3s' }} />
+            </div>
+
             {/* Enhanced Hero Section */}
-            <div className="pt-16 pb-10 text-center animate-fade-in" data-testid="profile-header">
-              {/* Animated Background Elements */}
-              <div className="absolute top-10 left-1/4 w-96 h-96 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full blur-3xl opacity-60 animate-pulse-slow" />
-              <div className="absolute top-32 right-1/4 w-80 h-80 bg-gradient-to-br from-cyan-500/15 to-blue-500/15 rounded-full blur-3xl opacity-50 animate-pulse-slow" style={{ animationDelay: '1.5s' }} />
+            <div className="pt-16 pb-10 text-center animate-fade-in relative z-10" data-testid="profile-header">
 
-              {/* Main Profile Card */}
-              <div className="relative backdrop-blur-2xl bg-gradient-to-br from-white/10 to-white/5 border-2 border-white/20 rounded-[2rem] p-12 mb-10 shadow-2xl max-w-3xl mx-auto hover:shadow-[0_0_80px_rgba(139,92,246,0.3)] transition-all duration-500">
-                {/* Animated Border Gradient */}
-                <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-r from-purple-500/50 via-pink-500/50 to-cyan-500/50 opacity-0 blur-xl group-hover:opacity-100 transition-opacity duration-500 -z-10" />
+              {/* Main Profile Card with Enhanced Glassmorphism */}
+              <div className="relative backdrop-blur-3xl bg-gradient-to-br from-white/15 via-white/10 to-white/5 border-2 border-white/30 rounded-[2.5rem] p-12 mb-10 shadow-[0_20px_80px_rgba(0,0,0,0.3)] max-w-3xl mx-auto hover:shadow-[0_20px_100px_rgba(139,92,246,0.4)] transition-all duration-500 group">
+                {/* Multi-layered Animated Border Gradient */}
+                <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-r from-purple-500/60 via-pink-500/60 to-cyan-500/60 opacity-0 blur-2xl group-hover:opacity-100 transition-opacity duration-500 -z-10 animate-pulse-slow" />
+                <div className="absolute -inset-1 rounded-[2.5rem] bg-gradient-to-r from-purple-500/30 via-pink-500/30 to-cyan-500/30 blur-md opacity-60 -z-10" />
 
-                {/* Profile Avatar with Enhanced Glow */}
-                <div className="relative inline-block mb-8">
+                {/* Profile Avatar with Modern Floating Design */}
+                <div className="relative inline-block mb-8 animate-float">
+                  {/* Glowing Orb Background */}
                   <div 
-                    className="absolute -inset-4 rounded-full blur-3xl opacity-70 animate-pulse-slow"
+                    className="absolute -inset-6 rounded-full blur-3xl opacity-80 animate-pulse-slow"
                     style={{
-                      background: `radial-gradient(circle, ${profile.primaryColor || "#8B5CF6"}, transparent 70%)`,
+                      background: `radial-gradient(circle, ${profile.primaryColor || "#8B5CF6"}80, ${profile.primaryColor || "#8B5CF6"}40 50%, transparent 70%)`,
                     }}
                   />
-                  <Avatar className="relative w-40 h-40 border-[6px] border-white/40 shadow-[0_0_60px_rgba(255,255,255,0.3)] ring-4 ring-white/10">
-                    <AvatarImage src={profile.avatar || undefined} alt={profile.username} />
-                    <AvatarFallback 
-                      className="text-5xl font-black text-white"
-                      style={{ 
-                        background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}, ${profile.primaryColor || "#8B5CF6"}99)`,
-                      }}
-                    >
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  {/* Online Status Indicator */}
-                  <div className="absolute bottom-4 right-4 flex items-center justify-center">
-                    <div className="w-10 h-10 bg-emerald-400 border-[5px] border-white/60 rounded-full shadow-xl">
-                      <div className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-60" />
+                  {/* Secondary Glow Ring */}
+                  <div 
+                    className="absolute -inset-3 rounded-full opacity-60"
+                    style={{
+                      background: `conic-gradient(from 0deg, ${profile.primaryColor || "#8B5CF6"}80, #06B6D4, #EC4899, ${profile.primaryColor || "#8B5CF6"}80)`,
+                      filter: 'blur(20px)',
+                    }}
+                  />
+                  {/* Avatar Container */}
+                  <div className="relative">
+                    <Avatar className="w-44 h-44 border-[6px] border-white/50 shadow-[0_0_80px_rgba(255,255,255,0.4)] ring-[3px] ring-white/20 backdrop-blur-sm">
+                      <AvatarImage src={profile.avatar || undefined} alt={profile.username} />
+                      <AvatarFallback 
+                        className="text-6xl font-black text-white"
+                        style={{ 
+                          background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}, ${profile.primaryColor || "#8B5CF6"}CC, ${profile.primaryColor || "#8B5CF6"}99)`,
+                        }}
+                      >
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    {/* Animated Ring */}
+                    <div className="absolute inset-0 rounded-full border-2 border-white/30 animate-ping" style={{ animationDuration: '3s' }} />
+                  </div>
+                  {/* Enhanced Online Status Indicator */}
+                  <div className="absolute bottom-2 right-2 flex items-center justify-center z-10">
+                    <div className="relative">
+                      <div className="w-12 h-12 bg-emerald-400 border-[6px] border-white/80 rounded-full shadow-2xl shadow-emerald-500/50" />
+                      <div className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75" />
+                      <div className="absolute inset-2 rounded-full bg-white animate-pulse" />
                     </div>
                   </div>
                 </div>
 
-                {/* Username with Premium Styling */}
+                {/* Username with Premium Multi-Layer Gradient */}
                 <div className="mb-8 space-y-4">
-                  <h1 
-                    className="text-6xl md:text-7xl font-black mb-4 tracking-tight leading-none"
-                    style={{ 
-                      background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"} 0%, #ffffff 50%, ${profile.primaryColor || "#8B5CF6"} 100%)`,
-                      backgroundSize: '200% auto',
-                      WebkitBackgroundClip: "text",
-                      backgroundClip: "text",
-                      color: "transparent",
-                      animation: 'shimmer 3s linear infinite',
-                    }}
-                    data-testid="text-username"
-                  >
-                    @{profile.username}
-                  </h1>
+                  <div className="relative">
+                    {/* Background Text Shadow */}
+                    <h1 
+                      className="absolute inset-0 text-6xl md:text-7xl font-black tracking-tight leading-none blur-xl opacity-50"
+                      style={{ 
+                        background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}, #06B6D4, #EC4899)`,
+                        backgroundSize: '200% 200%',
+                        WebkitBackgroundClip: "text",
+                        backgroundClip: "text",
+                        color: "transparent",
+                      }}
+                      aria-hidden="true"
+                    >
+                      @{profile.username}
+                    </h1>
+                    {/* Main Username Text */}
+                    <h1 
+                      className="relative text-6xl md:text-7xl font-black tracking-tight leading-none drop-shadow-2xl"
+                      style={{ 
+                        background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"} 0%, #ffffff 30%, #06B6D4 50%, #EC4899 70%, ${profile.primaryColor || "#8B5CF6"} 100%)`,
+                        backgroundSize: '300% 300%',
+                        WebkitBackgroundClip: "text",
+                        backgroundClip: "text",
+                        color: "transparent",
+                        animation: 'shimmer 4s ease-in-out infinite',
+                      }}
+                      data-testid="text-username"
+                    >
+                      @{profile.username}
+                    </h1>
+                  </div>
                   
-                  {/* Decorative Line with Badge */}
-                  <div className="flex items-center justify-center gap-3 mb-6">
-                    <div className="h-[2px] w-20 bg-gradient-to-r from-transparent via-white/40 to-white/40 rounded-full" />
+                  {/* Enhanced Decorative Line with Animated Badge */}
+                  <div className="flex items-center justify-center gap-4 mb-6">
+                    <div className="h-[3px] w-24 bg-gradient-to-r from-transparent via-white/50 to-white/50 rounded-full relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent animate-pulse" />
+                    </div>
                     <Badge 
-                      className="px-5 py-2 text-sm font-bold backdrop-blur-md shadow-lg hover:scale-105 transition-transform"
+                      className="px-6 py-2.5 text-sm font-bold backdrop-blur-xl shadow-2xl hover:scale-110 transition-all duration-300 relative overflow-hidden group"
                       style={{
-                        background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}40, ${profile.primaryColor || "#8B5CF6"}60)`,
+                        background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}50, ${profile.primaryColor || "#8B5CF6"}70)`,
                         borderColor: `${profile.primaryColor || "#8B5CF6"}`,
                         borderWidth: '2px',
                         color: 'white',
                       }}
                     >
-                      <Zap className="w-4 h-4 mr-1.5 animate-pulse" />
-                      PRO MEMBER
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:translate-x-full transition-transform duration-1000" />
+                      <Zap className="w-4 h-4 mr-2 animate-pulse relative z-10" />
+                      <span className="relative z-10">PREMIUM</span>
                     </Badge>
-                    <div className="h-[2px] w-20 bg-gradient-to-l from-transparent via-white/40 to-white/40 rounded-full" />
+                    <div className="h-[3px] w-24 bg-gradient-to-l from-transparent via-white/50 to-white/50 rounded-full relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-l from-transparent via-white to-transparent animate-pulse" />
+                    </div>
                   </div>
                 </div>
 
-                {/* Bio Section */}
+                {/* Bio Section with Card Design */}
                 {profile.bio && (
                   <div className="max-w-2xl mx-auto mb-8">
-                    <p className="text-2xl leading-relaxed text-white/95 font-medium tracking-wide" data-testid="text-bio">
-                      {profile.bio}
-                    </p>
+                    <div className="relative backdrop-blur-xl bg-white/5 border border-white/20 rounded-2xl p-6 shadow-xl">
+                      <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-cyan-500/20 rounded-2xl blur-lg opacity-50" />
+                      <p className="relative text-xl leading-relaxed text-white/95 font-medium tracking-wide text-center" data-testid="text-bio">
+                        {profile.bio}
+                      </p>
+                    </div>
                   </div>
                 )}
 
-                {/* Live Stats Row */}
-                <div className="flex justify-center items-center gap-6 pt-6 border-t border-white/10">
-                  <LiveVisitorCounter username={profile.username} />
-                  <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                    <span className="text-sm text-white/70 font-medium">Available</span>
+                {/* Live Stats Row with Enhanced Design */}
+                <div className="flex flex-wrap justify-center items-center gap-4 pt-8 border-t border-white/20">
+                  <div className="backdrop-blur-xl bg-white/10 px-5 py-3 rounded-2xl border border-white/20 shadow-lg hover:shadow-xl transition-all">
+                    <LiveVisitorCounter username={profile.username} />
+                  </div>
+                  <div className="flex items-center gap-3 px-5 py-3 rounded-2xl backdrop-blur-xl bg-white/10 border border-white/20 shadow-lg hover:shadow-xl transition-all group">
+                    <div className="relative">
+                      <div className="w-3 h-3 bg-emerald-400 rounded-full shadow-lg shadow-emerald-500/50 animate-pulse" />
+                      <div className="absolute inset-0 bg-emerald-400 rounded-full animate-ping opacity-75" />
+                    </div>
+                    <span className="text-sm text-white/90 font-semibold">Online Now</span>
                   </div>
                 </div>
               </div>
