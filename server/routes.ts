@@ -145,9 +145,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         layout: "stacked",
         fontFamily: "DM Sans",
         buttonStyle: "rounded",
-        useCustomTemplate: false,
-        hideBranding: false,
-        verificationBadge: false,
+        useCustomTemplate: 0,
+        hideBranding: 0,
+        verificationBadge: 0,
       });
 
       const token = generateToken({ userId: user.id, username: user.username });
