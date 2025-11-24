@@ -471,10 +471,13 @@ export function TemplateEditor({ profile, onUpdate }: TemplateEditorProps) {
     }
 
     try {
-      await onUpdate({
-        templateHTML,
-        useCustomTemplate,
-      });
+      // Ensure we're sending valid data
+      const updates: any = {
+        templateHTML: templateHTML || '',
+        useCustomTemplate: useCustomTemplate,
+      };
+
+      await onUpdate(updates);
 
       // Show success feedback
       const event = new CustomEvent('toast', {
@@ -486,13 +489,14 @@ export function TemplateEditor({ profile, onUpdate }: TemplateEditorProps) {
       window.dispatchEvent(event);
 
       // Invalidate the profile query to refetch data
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
-    } catch (error) {
-      console.error('Failed to save template:', error);
+      queryClient.invalidateQueries({ queryKey: ['/api/profiles/me'] });
+    } catch (error: any) {
+      console.error('Template save error:', error);
+      const errorMessage = error?.message || error?.error || 'Failed to save template. Please try again.';
       const event = new CustomEvent('toast', {
         detail: {
           title: 'Error',
-          description: 'Failed to save template. Please try again.',
+          description: errorMessage,
           variant: 'destructive',
         }
       });
