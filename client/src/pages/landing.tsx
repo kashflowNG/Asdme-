@@ -48,27 +48,6 @@ export default function Landing() {
     }
   ];
 
-  const testimonials = [
-    {
-      name: "Sarah Chen",
-      role: "Content Creator",
-      image: "🎨",
-      quote: "Neropage transformed my online presence. The analytics help me understand my audience better!"
-    },
-    {
-      name: "Marcus Rodriguez",
-      role: "Musician",
-      image: "🎵",
-      quote: "The neon aesthetic perfectly matches my brand. My engagement has doubled since switching!"
-    },
-    {
-      name: "Aisha Patel",
-      role: "Entrepreneur",
-      image: "💼",
-      quote: "Clean, fast, and powerful. Everything I need to manage my business links in one place."
-    }
-  ];
-
   const stats = [
     { value: "10K+", label: "Active Users" },
     { value: "1M+", label: "Links Shared" },
@@ -286,32 +265,89 @@ export default function Landing() {
           </div>
         </div>
 
-        {/* Testimonials */}
+        {/* Use Cases Showcase */}
         <div className="max-w-6xl w-full mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-8">
-            Loved by Creators Worldwide
+            Perfect For Every Creator
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map((testimonial, i) => (
-              <Card 
-                key={i}
-                className="p-6 glass-card neon-glow hover-elevate transition-all"
-                style={{
-                  animation: `fadeIn 0.6s ease-out ${1.2 + i * 0.1}s both`,
-                }}
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-cyan-500/20 flex items-center justify-center text-2xl">
-                    {testimonial.image}
-                  </div>
-                  <div>
-                    <div className="font-semibold">{testimonial.name}</div>
-                    <div className="text-xs text-muted-foreground">{testimonial.role}</div>
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground italic">"{testimonial.quote}"</p>
-              </Card>
-            ))}
+            <Card 
+              className="p-6 glass-card neon-glow hover-elevate transition-all"
+              style={{
+                animation: `fadeIn 0.6s ease-out 1.2s both`,
+              }}
+            >
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center mb-4">
+                <Users className="w-6 h-6 text-purple-400" />
+              </div>
+              <h3 className="text-lg font-bold mb-3">Content Creators</h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                  <span>Consolidate all your social media profiles</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                  <span>Track which platforms drive the most engagement</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                  <span>Customize branding to match your style</span>
+                </li>
+              </ul>
+            </Card>
+
+            <Card 
+              className="p-6 glass-card neon-glow hover-elevate transition-all"
+              style={{
+                animation: `fadeIn 0.6s ease-out 1.3s both`,
+              }}
+            >
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center mb-4">
+                <TrendingUp className="w-6 h-6 text-cyan-400" />
+              </div>
+              <h3 className="text-lg font-bold mb-3">Business & Brands</h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                  <span>Drive traffic to your products and services</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                  <span>Use custom domains for professional presence</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                  <span>Analyze customer behavior with detailed analytics</span>
+                </li>
+              </ul>
+            </Card>
+
+            <Card 
+              className="p-6 glass-card neon-glow hover-elevate transition-all"
+              style={{
+                animation: `fadeIn 0.6s ease-out 1.4s both`,
+              }}
+            >
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500/20 to-green-500/20 flex items-center justify-center mb-4">
+                <Link2 className="w-6 h-6 text-emerald-400" />
+              </div>
+              <h3 className="text-lg font-bold mb-3">Artists & Musicians</h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                  <span>Showcase your portfolio and latest work</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                  <span>Link to streaming platforms and merchandise</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                  <span>Engage fans with custom HTML content blocks</span>
+                </li>
+              </ul>
+            </Card>
           </div>
         </div>
 
