@@ -89,11 +89,12 @@ export default function PublicProfile() {
         description: "Thank you for your submission.",
       });
       setEmailFormData({ name: "", email: "", message: "" });
+      queryClient.invalidateQueries({ queryKey: ["/api/profiles", username, "content-blocks"] });
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to send message. Please try again.",
+        description: error?.message || "Failed to send message. Please try again.",
         variant: "destructive",
       });
     },
@@ -109,8 +110,16 @@ export default function PublicProfile() {
     trackClickMutation.mutate(linkId);
   };
 
-  const handleFormSubmit = (e: React.FormEvent, blockId: string) => {
+  const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!emailFormData.email || !emailFormData.message) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
     submitFormMutation.mutate(emailFormData);
   };
 
@@ -520,24 +529,23 @@ export default function PublicProfile() {
                         <Mail className="w-6 h-6" style={{ color: profile.primaryColor || "#8B5CF6" }} />
                         <h3 className="text-xl font-bold">{block.title || "Get in Touch"}</h3>
                       </div>
-                      <form onSubmit={(e) => handleFormSubmit(e, block.id)} className="space-y-4">
+                      <form onSubmit={handleFormSubmit} className="space-y-4">
                         <Input
-                          placeholder="Your Name"
+                          placeholder="Your Name (Optional)"
                           value={emailFormData.name}
                           onChange={(e) => setEmailFormData({ ...emailFormData, name: e.target.value })}
-                          required
                           data-testid="input-form-name"
                         />
                         <Input
                           type="email"
-                          placeholder="Your Email"
+                          placeholder="Your Email *"
                           value={emailFormData.email}
                           onChange={(e) => setEmailFormData({ ...emailFormData, email: e.target.value })}
                           required
                           data-testid="input-form-email"
                         />
                         <Input
-                          placeholder="Your Message"
+                          placeholder="Your Message *"
                           value={emailFormData.message}
                           onChange={(e) => setEmailFormData({ ...emailFormData, message: e.target.value })}
                           required
