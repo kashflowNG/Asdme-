@@ -27,7 +27,7 @@ import { ClickHeatmap } from "@/components/ClickHeatmap";
 import { LinkScheduleVisualizer } from "@/components/LinkScheduleVisualizer";
 import { EngagementAlerts } from "@/components/EngagementAlerts";
 import { getPlatform } from "@/lib/platforms";
-import { GripVertical, Trash2, Plus, Eye, Upload, Copy, Check, ExternalLink, LogOut, QrCode, BarChart3, Link2, Palette, Settings, Zap, Edit, EyeOff, FileCode, Mail } from "lucide-react";
+import { GripVertical, Trash2, Plus, Eye, Upload, Copy, Check, ExternalLink, LogOut, QrCode, BarChart3, Link2, Palette, Settings, Zap, Edit, EyeOff, FileCode, Mail, Sparkles } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import {
   AlertDialog,
