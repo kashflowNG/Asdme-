@@ -170,6 +170,7 @@ export default function Dashboard() {
     avatar: "",
   });
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0); // State for upload progress
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const lastCommittedProfile = useRef<Profile | null>(null);
@@ -400,8 +401,8 @@ export default function Dashboard() {
     updateProfileMutation.mutate({ [field]: value });
   };
 
-  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (!file) return;
 
     // Validate file size (500MB max)
@@ -431,8 +432,20 @@ export default function Dashboard() {
     }
 
     setUploadingAvatar(true);
+    setUploadProgress(0);
 
     try {
+      // Simulate progress animation
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 200);
+
       const formData = new FormData();
       formData.append('image', file);
 
@@ -446,6 +459,10 @@ export default function Dashboard() {
         title: "Avatar uploaded",
         description: "Your profile picture has been updated successfully",
       });
+
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+
     } catch (error) {
       toast({
         title: "Error",
@@ -453,7 +470,10 @@ export default function Dashboard() {
         variant: "destructive",
       });
     } finally {
-      setUploadingAvatar(false);
+      setTimeout(() => {
+        setUploadingAvatar(false);
+        setUploadProgress(0);
+      }, 500);
       // Reset the input so the same file can be uploaded again
       if (avatarInputRef.current) {
         avatarInputRef.current.value = '';
@@ -975,7 +995,7 @@ export default function Dashboard() {
                       className="hidden"
                       data-testid="input-media-file"
                     />
-                    
+
                     {/* Upload Button with Progress */}
                     <div className="space-y-4">
                       <Button
@@ -999,18 +1019,18 @@ export default function Dashboard() {
                           </>
                         )}
                       </Button>
-                      
+
                       {uploadingAvatar && (
                         <div className="space-y-2">
                           <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                            <div className="h-full bg-gradient-to-r from-primary via-cyan-500 to-primary bg-[length:200%_100%] animate-[shimmer_2s_linear_infinite]" />
+                            <div className="h-full bg-gradient-to-r from-primary via-cyan-500 to-primary bg-[length:200%_100%] animate-[shimmer_2s_linear_infinite]" style={{ width: `${uploadProgress}%` }} />
                           </div>
                           <p className="text-xs text-center text-muted-foreground animate-pulse">
                             Optimizing and uploading your media...
                           </p>
                         </div>
                       )}
-                      
+
                       <div className="flex items-center justify-between text-xs text-muted-foreground px-2">
                         <span className="flex items-center gap-1">
                           <Check className="w-3 h-3 text-emerald-500" />
@@ -1033,7 +1053,7 @@ export default function Dashboard() {
                         </div>
                         <h3 className="text-lg font-bold text-emerald-500">Upload Successful!</h3>
                       </div>
-                      
+
                       <div className="space-y-3">
                         <div className="flex items-center gap-3 p-4 bg-background/80 backdrop-blur-sm rounded-xl border-2 border-emerald-500/20">
                           <div className="flex-1 min-w-0">
@@ -1058,19 +1078,19 @@ export default function Dashboard() {
                             Copy
                           </Button>
                         </div>
-                        
+
                         {/* Preview */}
                         <div className="p-4 bg-muted/30 rounded-lg">
                           <p className="text-xs font-semibold text-muted-foreground mb-2">Preview</p>
                           {profile.avatar.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                            <img 
-                              src={profile.avatar} 
-                              alt="Uploaded media" 
+                            <img
+                              src={profile.avatar}
+                              alt="Uploaded media"
                               className="max-h-32 rounded-lg border border-border"
                             />
                           ) : (
-                            <video 
-                              src={profile.avatar} 
+                            <video
+                              src={profile.avatar}
                               className="max-h-32 rounded-lg border border-border"
                               controls
                             />
