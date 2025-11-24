@@ -332,7 +332,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      const updatedProfile = await storage.updateProfile(profile.id, updates);
+      // Convert boolean fields to integers for database compatibility
+      const dbUpdates: any = { ...updates };
+      if (typeof updates.useCustomTemplate === 'boolean') {
+        dbUpdates.useCustomTemplate = updates.useCustomTemplate ? 1 : 0;
+      }
+      if (typeof updates.hideBranding === 'boolean') {
+        dbUpdates.hideBranding = updates.hideBranding ? 1 : 0;
+      }
+      if (typeof updates.verificationBadge === 'boolean') {
+        dbUpdates.verificationBadge = updates.verificationBadge ? 1 : 0;
+      }
+
+      const updatedProfile = await storage.updateProfile(profile.id, dbUpdates);
 
       if (!updatedProfile) {
         return res.status(404).json({ error: "Profile not found" });
@@ -640,7 +652,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      const updatedProfile = await storage.updateProfile(id, updates);
+      // Convert boolean fields to integers for database compatibility
+      const dbUpdates: any = { ...updates };
+      if (typeof updates.useCustomTemplate === 'boolean') {
+        dbUpdates.useCustomTemplate = updates.useCustomTemplate ? 1 : 0;
+      }
+      if (typeof updates.hideBranding === 'boolean') {
+        dbUpdates.hideBranding = updates.hideBranding ? 1 : 0;
+      }
+      if (typeof updates.verificationBadge === 'boolean') {
+        dbUpdates.verificationBadge = updates.verificationBadge ? 1 : 0;
+      }
+
+      const updatedProfile = await storage.updateProfile(id, dbUpdates);
 
       if (!updatedProfile) {
         return res.status(404).json({ error: "Profile not found" });

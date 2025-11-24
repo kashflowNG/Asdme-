@@ -223,7 +223,7 @@ export default function Dashboard() {
   }, [queryClient]);
 
   const updateProfileMutation = useMutation({
-    mutationFn: async (data: { username?: string; bio?: string; avatar?: string }) => {
+    mutationFn: async (data: Partial<Profile>) => {
       return await apiRequest("PATCH", "/api/profiles/me", data);
     },
     onSuccess: async (updatedProfile: Profile) => {
