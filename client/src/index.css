@@ -181,11 +181,29 @@
 
 @keyframes shimmer {
   0% {
-    background-position: -200% 0;
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
   }
   100% {
-    background-position: 200% 0;
+    background-position: 0% 50%;
   }
+}
+
+/* Custom template container styling */
+.custom-template-container {
+  width: 100%;
+  min-height: 100vh;
+}
+
+.custom-template-container * {
+  box-sizing: border-box;
+}
+
+.custom-template-container a {
+  text-decoration: none;
+  color: inherit;
 }
 
 @keyframes float {

@@ -327,6 +327,9 @@ export default function PublicProfile() {
 
         <meta name="robots" content="index, follow" />
         <meta name="googlebot" content="index, follow" />
+        
+        {/* Tailwind CSS for custom templates */}
+        <script src="https://cdn.tailwindcss.com"></script>
       </Helmet>
 
       <div 
@@ -363,37 +366,43 @@ export default function PublicProfile() {
         {/* Profile Content */}
         {profile.useCustomTemplate && profile.templateHTML ? (
           <div 
-            className="min-h-screen"
+            className="min-h-screen custom-template-container"
             dangerouslySetInnerHTML={{ 
               __html: DOMPurify.sanitize(
                 profile.templateHTML
-                  .replace(/\{\{username\}\}/g, escapeHtml(profile.username || ''))
-                  .replace(/\{\{bio\}\}/g, escapeHtml(profile.bio || ''))
-                  .replace(/\{\{avatar\}\}/g, escapeHtml(profile.avatar || ''))
-                  .replace(/\{\{primaryColor\}\}/g, escapeHtml(profile.primaryColor || '#8B5CF6'))
-                  .replace(/\{\{backgroundColor\}\}/g, escapeHtml(profile.backgroundColor || '#0a0a0a'))
-                  .replace(/\{\{fontFamily\}\}/g, escapeHtml(profile.fontFamily || 'DM Sans'))
+                  .replace(/\{\{username\}\}/g, profile.username || '')
+                  .replace(/\{\{bio\}\}/g, profile.bio || '')
+                  .replace(/\{\{avatar\}\}/g, profile.avatar || '')
+                  .replace(/\{\{primaryColor\}\}/g, profile.primaryColor || '#8B5CF6')
+                  .replace(/\{\{backgroundColor\}\}/g, profile.backgroundColor || '#0a0a0a')
+                  .replace(/\{\{fontFamily\}\}/g, profile.fontFamily || 'DM Sans')
                   .replace(/\{\{socialLinks\}\}/g, sortedLinks.length > 0 ? sortedLinks.map(link => {
                     const platform = getPlatform(link.platform);
-                    const icon = platform ? platform.name.charAt(0) : '🔗';
+                    const icon = platform ? platform.name : '🔗';
                     return `
-                      <a href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer" 
+                      <a href="${link.url}" target="_blank" rel="noopener noreferrer" 
                          class="block p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-all border border-white/10 hover:border-white/20 group">
-                        <span class="font-semibold">${icon} ${escapeHtml(link.customTitle || link.platform)}</span>
+                        <span class="font-semibold">${icon} ${link.customTitle || link.platform}</span>
                       </a>
                     `;
                   }).join('') : '<p class="text-gray-400 text-center">No links added yet</p>')
-                  .replace(/\{\{contentBlocks\}\}/g, sortedBlocks.length > 0 ? sortedBlocks.map(block => `
-                    <div class="p-6 rounded-lg bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20">
-                      <h3 class="font-bold mb-2">${escapeHtml(block.title || 'Content Block')}</h3>
-                      <div class="text-sm text-gray-300">${escapeHtml(block.content || '')}</div>
-                    </div>
-                  `).join('') : ''),
+                  .replace(/\{\{contentBlocks\}\}/g, sortedBlocks.length > 0 ? sortedBlocks.map(block => {
+                    if (block.type === 'text') {
+                      return `
+                        <div class="p-6 rounded-lg bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20">
+                          ${block.title ? `<h3 class="font-bold mb-2">${block.title}</h3>` : ''}
+                          <div class="text-sm text-gray-300">${block.content || ''}</div>
+                        </div>
+                      `;
+                    }
+                    return '';
+                  }).join('') : ''),
                 {
-                  ALLOWED_TAGS: ['div', 'span', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img', 'a', 'ul', 'ol', 'li', 'br', 'strong', 'em', 'u', 'header', 'footer', 'section', 'article', 'main', 'nav'],
+                  ALLOWED_TAGS: ['div', 'span', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img', 'a', 'ul', 'ol', 'li', 'br', 'strong', 'em', 'u', 'header', 'footer', 'section', 'article', 'main', 'nav', 'style'],
                   ALLOWED_ATTR: ['class', 'id', 'href', 'src', 'alt', 'target', 'rel', 'style'],
                   ALLOW_DATA_ATTR: false,
                   ALLOWED_URI_REGEXP: /^(?:(?:https?|ftp):\/\/|\/|#)/i,
+                  ADD_ATTR: ['target'],
                 }
               )
             }}
