@@ -936,27 +936,34 @@ export default function Dashboard() {
 
             {/* Media Tab */}
             <TabsContent value="media" className="space-y-6 mt-6">
-              <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card">
+              <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card bg-gradient-to-br from-background via-muted/5 to-primary/5">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-1">
-                      <h2 className="text-2xl font-bold">Media URL Generator</h2>
-                      <span className="text-xs px-2.5 py-1 bg-primary/10 text-primary rounded-md font-medium border border-primary/30">
-                        Pro Feature
-                      </span>
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="p-2 rounded-lg bg-primary/10 border border-primary/20">
+                        <Upload className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold">Media URL Generator</h2>
+                        <Badge variant="outline" className="mt-1">
+                          <Sparkles className="w-3 h-3 mr-1" />
+                          Pro Feature
+                        </Badge>
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground">Upload images and videos to get shareable URLs hosted on your domain</p>
+                    <p className="text-sm text-muted-foreground">Upload images and videos to get instant shareable URLs hosted on your domain</p>
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
-                    <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                      <Upload className="w-4 h-4" />
-                      Upload Media Files
+                <div className="space-y-6">
+                  {/* Upload Section */}
+                  <div className="p-6 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-2 border-primary/20 rounded-xl">
+                    <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                      <Upload className="w-5 h-5 text-primary" />
+                      Quick Upload
                     </h3>
-                    <p className="text-xs text-muted-foreground mb-4">
-                      Upload images (JPEG, PNG, GIF, WebP) or videos (MP4, WebM, MOV, AVI) to generate permanent URLs
+                    <p className="text-sm text-muted-foreground mb-6">
+                      Drag & drop or click to upload images (JPEG, PNG, GIF, WebP) or videos (MP4, WebM, MOV, AVI)
                     </p>
 
                     <input
@@ -967,71 +974,135 @@ export default function Dashboard() {
                       className="hidden"
                       data-testid="input-media-file"
                     />
-                    <Button
-                      variant="outline"
-                      onClick={() => avatarInputRef.current?.click()}
-                      disabled={uploadingAvatar}
-                      className="w-full gap-2"
-                      data-testid="button-upload-media"
-                    >
-                      <Upload className="w-4 h-4" />
-                      {uploadingAvatar ? "Uploading..." : "Choose Image or Video to Upload"}
-                    </Button>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Max size: 500MB per file
-                    </p>
-                  </div>
-
-                  {profile?.avatar && (
-                    <div className="p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-lg">
-                      <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                        <Check className="w-4 h-4 text-emerald-500" />
-                        Recent Upload
-                      </h3>
-                      <div className="flex items-center gap-3 p-3 bg-background rounded-lg border">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-mono text-muted-foreground truncate">
-                            {window.location.origin}{profile.avatar}
+                    
+                    {/* Upload Button with Progress */}
+                    <div className="space-y-4">
+                      <Button
+                        variant="default"
+                        size="lg"
+                        onClick={() => avatarInputRef.current?.click()}
+                        disabled={uploadingAvatar}
+                        className="w-full gap-2 h-14 text-base font-semibold relative overflow-hidden group"
+                        data-testid="button-upload-media"
+                      >
+                        {uploadingAvatar ? (
+                          <>
+                            <div className="absolute inset-0 bg-primary/20 animate-pulse" />
+                            <Upload className="w-5 h-5 animate-bounce" />
+                            <span>Processing Upload...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                            <span>Choose Media to Upload</span>
+                          </>
+                        )}
+                      </Button>
+                      
+                      {uploadingAvatar && (
+                        <div className="space-y-2">
+                          <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                            <div className="h-full bg-gradient-to-r from-primary via-cyan-500 to-primary bg-[length:200%_100%] animate-[shimmer_2s_linear_infinite]" />
+                          </div>
+                          <p className="text-xs text-center text-muted-foreground animate-pulse">
+                            Optimizing and uploading your media...
                           </p>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={async () => {
-                            await navigator.clipboard.writeText(`${window.location.origin}${profile.avatar}`);
-                            toast({
-                              title: "Copied!",
-                              description: "Media URL copied to clipboard",
-                            });
-                          }}
-                        >
-                          <Copy className="w-4 h-4" />
-                        </Button>
+                      )}
+                      
+                      <div className="flex items-center justify-between text-xs text-muted-foreground px-2">
+                        <span className="flex items-center gap-1">
+                          <Check className="w-3 h-3 text-emerald-500" />
+                          Max size: 500MB
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Zap className="w-3 h-3 text-primary" />
+                          Instant processing
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Recent Upload Success */}
+                  {profile?.avatar && (
+                    <div className="p-6 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent border-2 border-emerald-500/30 rounded-xl">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="p-2 rounded-lg bg-emerald-500/20 border border-emerald-500/30">
+                          <Check className="w-5 h-5 text-emerald-500" />
+                        </div>
+                        <h3 className="text-lg font-bold text-emerald-500">Upload Successful!</h3>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3 p-4 bg-background/80 backdrop-blur-sm rounded-xl border-2 border-emerald-500/20">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-muted-foreground mb-1">Your Media URL</p>
+                            <p className="text-sm font-mono text-foreground truncate">
+                              {window.location.origin}{profile.avatar}
+                            </p>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-2 border-emerald-500/30 hover:bg-emerald-500/10"
+                            onClick={async () => {
+                              await navigator.clipboard.writeText(`${window.location.origin}${profile.avatar}`);
+                              toast({
+                                title: "Copied!",
+                                description: "Media URL copied to clipboard",
+                              });
+                            }}
+                          >
+                            <Copy className="w-4 h-4" />
+                            Copy
+                          </Button>
+                        </div>
+                        
+                        {/* Preview */}
+                        <div className="p-4 bg-muted/30 rounded-lg">
+                          <p className="text-xs font-semibold text-muted-foreground mb-2">Preview</p>
+                          {profile.avatar.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                            <img 
+                              src={profile.avatar} 
+                              alt="Uploaded media" 
+                              className="max-h-32 rounded-lg border border-border"
+                            />
+                          ) : (
+                            <video 
+                              src={profile.avatar} 
+                              className="max-h-32 rounded-lg border border-border"
+                              controls
+                            />
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}
 
-                  <div className="p-4 bg-cyan-500/5 border border-cyan-500/20 rounded-lg">
-                    <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                      <ExternalLink className="w-4 h-4 text-cyan-500" />
-                      Where to Use Your Media URLs
-                    </h3>
-                    <div className="space-y-3">
-                      <div className="flex gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <Link2 className="w-4 h-4 text-primary" />
+                  {/* Usage Guide */}
+                  <div className="p-6 bg-gradient-to-br from-cyan-500/10 via-cyan-500/5 to-transparent border-2 border-cyan-500/20 rounded-xl">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="p-2 rounded-lg bg-cyan-500/20 border border-cyan-500/30">
+                        <ExternalLink className="w-5 h-5 text-cyan-500" />
+                      </div>
+                      <h3 className="text-lg font-bold">Where to Use Your Media URLs</h3>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="flex gap-4 p-4 bg-background/50 backdrop-blur-sm rounded-lg border border-border/50 hover:border-primary/30 transition-colors">
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <Link2 className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium">Platform Links</p>
+                          <p className="text-sm font-semibold mb-1">Platform Links</p>
                           <p className="text-xs text-muted-foreground">Use the URL in your social media links and custom link buttons</p>
                         </div>
                       </div>
-                      <div className="flex gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center flex-shrink-0">
-                          <Settings className="w-4 h-4 text-cyan-500" />
+                      <div className="flex gap-4 p-4 bg-background/50 backdrop-blur-sm rounded-lg border border-border/50 hover:border-cyan-500/30 transition-colors">
+                        <div className="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center flex-shrink-0">
+                          <FileCode className="w-5 h-5 text-cyan-500" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium">Content Blocks</p>
+                          <p className="text-sm font-semibold mb-1">Content Blocks</p>
                           <p className="text-xs text-muted-foreground">Embed images and videos in your content blocks for rich media displays</p>
                         </div>
                       </div>
@@ -1056,27 +1127,38 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  <div className="p-4 bg-yellow-500/5 border border-yellow-500/20 rounded-lg">
-                    <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                      <span className="text-yellow-500">💡</span>
-                      Pro Tips
-                    </h3>
-                    <ul className="space-y-2 text-xs text-muted-foreground">
-                      <li className="flex gap-2">
-                        <span className="text-yellow-500">•</span>
-                        <span>All uploaded media is permanently hosted and accessible via HTTPS</span>
+                  {/* Pro Tips */}
+                  <div className="p-6 bg-gradient-to-br from-yellow-500/10 via-yellow-500/5 to-transparent border-2 border-yellow-500/20 rounded-xl">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="p-2 rounded-lg bg-yellow-500/20 border border-yellow-500/30">
+                        <Sparkles className="w-5 h-5 text-yellow-500" />
+                      </div>
+                      <h3 className="text-lg font-bold">Pro Tips</h3>
+                    </div>
+                    <ul className="space-y-3 text-sm">
+                      <li className="flex gap-3 items-start">
+                        <div className="w-6 h-6 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Check className="w-3 h-3 text-yellow-500" />
+                        </div>
+                        <span className="text-muted-foreground">All uploaded media is permanently hosted and accessible via HTTPS</span>
                       </li>
-                      <li className="flex gap-2">
-                        <span className="text-yellow-500">•</span>
-                        <span>Use these URLs in the "Add Link" feature by selecting "Custom" platform</span>
+                      <li className="flex gap-3 items-start">
+                        <div className="w-6 h-6 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Check className="w-3 h-3 text-yellow-500" />
+                        </div>
+                        <span className="text-muted-foreground">Use these URLs in the "Add Link" feature by selecting "Custom" platform</span>
                       </li>
-                      <li className="flex gap-2">
-                        <span className="text-yellow-500">•</span>
-                        <span>Perfect for showcasing portfolios, products, or personal media galleries</span>
+                      <li className="flex gap-3 items-start">
+                        <div className="w-6 h-6 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Check className="w-3 h-3 text-yellow-500" />
+                        </div>
+                        <span className="text-muted-foreground">Perfect for showcasing portfolios, products, or personal media galleries</span>
                       </li>
-                      <li className="flex gap-2">
-                        <span className="text-yellow-500">•</span>
-                        <span>URLs remain active even if you update your profile or redeploy</span>
+                      <li className="flex gap-3 items-start">
+                        <div className="w-6 h-6 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Check className="w-3 h-3 text-yellow-500" />
+                        </div>
+                        <span className="text-muted-foreground">URLs remain active even if you update your profile or redeploy</span>
                       </li>
                     </ul>
                   </div>

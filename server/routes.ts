@@ -1,4 +1,3 @@
-
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
@@ -52,9 +51,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { username, password } = req.body;
-      
+
       console.log('Login attempt for username:', username);
-      
+
       if (!username || !password) {
         return res.status(400).json({ error: "Username and password are required" });
       }
@@ -91,7 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const token = generateToken({ userId: user.id, username: user.username });
 
-      res.json({ 
+      res.json({
         user: { id: user.id, username: user.username },
         profile,
         token
@@ -106,14 +105,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/signup", async (req, res) => {
     try {
       const { username, password } = req.body;
-      
+
       if (!username || !password) {
         return res.status(400).json({ error: "Username and password are required" });
       }
 
-      if (typeof username !== 'string' || 
-          username.length < 3 || 
-          username.length > 30 || 
+      if (typeof username !== 'string' ||
+          username.length < 3 ||
+          username.length > 30 ||
           !/^[a-zA-Z0-9_]+$/.test(username)) {
         return res.status(400).json({ error: "Username must be 3-30 characters and contain only letters, numbers, and underscores" });
       }
@@ -129,11 +128,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const passwordHash = await bcrypt.hash(password, 10);
 
-      const user = await storage.createUser({ 
-        username, 
+      const user = await storage.createUser({
+        username,
         passwordHash
       });
-      
+
       const profile = await storage.createProfile({
         userId: user.id,
         username,
@@ -146,7 +145,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const token = generateToken({ userId: user.id, username: user.username });
 
-      res.status(201).json({ 
+      res.status(201).json({
         user: { id: user.id, username: user.username },
         profile,
         token
@@ -161,7 +160,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/auth/me", async (req, res) => {
     try {
       const auth = authenticate(req);
-      
+
       if (!auth) {
         return res.status(401).json({ error: "Not authenticated" });
       }
@@ -171,9 +170,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Profile not found" });
       }
 
-      return res.json({ 
+      return res.json({
         user: { id: auth.userId, username: auth.username },
-        profile 
+        profile
       });
     } catch (error) {
       console.error('Error in /api/auth/me:', error);
@@ -210,16 +209,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!auth) {
         return res.status(401).json({ error: "Not authenticated" });
       }
-      
+
       const profile = await storage.getProfileByUsername(auth.username);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
-      
+
       if (profile.userId !== auth.userId) {
         return res.status(403).json({ error: "Access denied" });
       }
-      
+
       next();
     } catch (error) {
       return res.status(500).json({ error: "Authentication failed" });
@@ -375,18 +374,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Profile not found" });
       }
 
-      const linkData = { 
-        ...req.body, 
+      const linkData = {
+        ...req.body,
         profileId: profile.id,
       };
-      
+
       if (typeof req.body.isScheduled === 'boolean') {
         linkData.isScheduled = req.body.isScheduled ? 1 : 0;
       }
       if (typeof req.body.isPriority === 'boolean') {
         linkData.isPriority = req.body.isPriority ? 1 : 0;
       }
-      
+
       const validatedData = insertSocialLinkSchema.parse(linkData);
       const link = await storage.createSocialLink(validatedData);
       res.status(201).json(link);
@@ -419,7 +418,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const validatedUpdates = updateSocialLinkSchema.parse(req.body);
       const updates: any = { ...validatedUpdates };
-      
+
       if (typeof validatedUpdates.enabled === 'boolean') {
         updates.enabled = validatedUpdates.enabled ? 1 : 0;
       }
@@ -929,7 +928,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { webhookUrl, service } = req.body;
-      
+
       res.status(200).json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to configure webhook" });

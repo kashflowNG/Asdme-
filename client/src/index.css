@@ -172,40 +172,19 @@
 /* Neo-Neon Futuristic Animations */
 @keyframes neonPulse {
   0%, 100% {
-    filter: brightness(1) drop-shadow(0 0 10px rgba(139, 92, 246, 0.6));
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
   }
   50% {
-    filter: brightness(1.15) drop-shadow(0 0 20px rgba(139, 92, 246, 0.8));
-  }
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-5px) rotate(2deg);
+    box-shadow: 0 0 30px rgba(139, 92, 246, 0.8);
   }
 }
 
 @keyframes shimmer {
-  0%, 100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-@keyframes gradient-shift {
   0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
+    background-position: -200% 0;
   }
   100% {
-    background-position: 0% 50%;
+    background-position: 200% 0;
   }
 }
 
