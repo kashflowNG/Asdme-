@@ -152,6 +152,7 @@ export default function PublicProfile() {
   const profileUrl = `${window.location.origin}/user/${profile.username}`;
   const pageTitle = profile.seoTitle || `${profile.username} - Link Hub`;
   const pageDescription = profile.seoDescription || profile.bio || `Check out all of ${profile.username}'s social media links`;
+  const ogImage = profile.ogImage || profile.avatar || `${window.location.origin}/default-og-image.png`;
 
   return (
     <>
@@ -160,6 +161,22 @@ export default function PublicProfile() {
         <meta name="description" content={pageDescription} />
         <meta name="author" content={profile.username} />
         <link rel="canonical" href={profileUrl} />
+        
+        {/* Open Graph Tags for Social Sharing */}
+        <meta property="og:type" content="profile" />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:url" content={profileUrl} />
+        <meta property="og:image" content={ogImage} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:site_name" content="Neropage" />
+        
+        {/* Twitter Card Tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={pageDescription} />
+        <meta name="twitter:image" content={ogImage} />
       </Helmet>
 
       <div 

@@ -25,6 +25,7 @@ import { SmartRecommendations } from "@/components/SmartRecommendations";
 import { ClickHeatmap } from "@/components/ClickHeatmap";
 import { LinkScheduleVisualizer } from "@/components/LinkScheduleVisualizer";
 import { EngagementAlerts } from "@/components/EngagementAlerts";
+import { ImageToPNGConverter } from "@/components/ImageToPNGConverter";
 import { getPlatform } from "@/lib/platforms";
 import { GripVertical, Trash2, Plus, Eye, Upload, Copy, Check, ExternalLink, LogOut, QrCode, BarChart3, Link2, Palette, Settings, Zap, Edit, EyeOff, FileCode, Mail, Sparkles, Camera, Shield } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
@@ -1154,16 +1155,26 @@ export default function Dashboard() {
                         <Upload className="w-6 h-6 text-primary" />
                       </div>
                       <div>
-                        <h2 className="text-2xl font-bold">Media URL Generator</h2>
+                        <h2 className="text-2xl font-bold">SEO Image to PNG Converter</h2>
                         <Badge variant="outline" className="mt-1">
                           <Sparkles className="w-3 h-3 mr-1" />
-                          Pro Feature
+                          SEO Feature
                         </Badge>
                       </div>
                     </div>
-                    <p className="text-sm text-muted-foreground">Upload images and videos to get instant shareable URLs hosted on your domain</p>
+                    <p className="text-sm text-muted-foreground">Convert your image to PNG format for optimal social media sharing and SEO meta tags</p>
                   </div>
                 </div>
+
+                <ImageToPNGConverter
+                  onPNGConverted={(url) => {
+                    updateProfileMutation.mutate({ ogImage: url });
+                    toast({
+                      title: "Success",
+                      description: "PNG image set as SEO meta image. It will appear when your link is shared!",
+                    });
+                  }}
+                />
 
                 <div className="space-y-6">
                   {/* Upload Section */}
