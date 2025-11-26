@@ -1121,6 +1121,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) { res.status(500).json({ error: "Failed to fetch stats" }); }
   });
 
+  // Ready-Made Templates - Admin Create
+  app.post("/api/admin/templates/create", async (req, res) => {
+    try {
+      const auth = authenticate(req);
+      if (!auth) return res.status(401).json({ error: "Not authenticated" });
+      const user = await storage.getUserById(auth.userId);
+      if (!user?.isAdmin) return res.status(403).json({ error: "Not authorized" });
+      const template = await storage.createReadyMadeTemplate({ ...req.body, createdBy: auth.userId });
+      res.json(template);
+    } catch (error) { res.status(500).json({ error: "Failed to create template" }); }
+  });
+
+  // Ready-Made Templates - List for Users
+  app.get("/api/templates", async (req, res) => {
+    try {
+      const templates = await storage.getReadyMadeTemplates();
+      res.json(templates);
+    } catch (error) { res.status(500).json({ error: "Failed to fetch templates" }); }
+  });
+
+  // Apply template to profile
+  app.post("/api/profile/apply-template", async (req, res) => {
+    try {
+      const auth = authenticate(req);
+      if (!auth) return res.status(401).json({ error: "Not authenticated" });
+      const profile = await storage.getProfileByUsername(auth.username);
+      if (!profile) return res.status(404).json({ error: "Profile not found" });
+      const { templateId, htmlContent } = req.body;
+      await storage.updateTemplateUsage(templateId);
+      res.json({ success: true });
+    } catch (error) { res.status(500).json({ error: "Failed to apply template" }); }
+  });
+
+  // Admin - Delete template
+  app.delete("/api/admin/templates/:id", async (req, res) => {
+    try {
+      const auth = authenticate(req);
+      if (!auth) return res.status(401).json({ error: "Not authenticated" });
+      const user = await storage.getUserById(auth.userId);
+      if (!user?.isAdmin) return res.status(403).json({ error: "Not authorized" });
+      const deleted = await storage.deleteReadyMadeTemplate(req.params.id);
+      res.json({ success: deleted });
+    } catch (error) { res.status(500).json({ error: "Failed to delete template" }); }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
