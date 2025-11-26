@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -43,6 +43,8 @@ export function ContentBlockManager() {
     content: "",
     mediaUrl: "",
   });
+  const [uploadingGallery, setUploadingGallery] = useState(false);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const { data: blocks = [] } = useQuery<ContentBlock[]>({
     queryKey: ["/api/content-blocks"],
@@ -88,6 +90,47 @@ export function ContentBlockManager() {
       });
     },
   });
+
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.currentTarget.files;
+    if (!files) return;
+
+    setUploadingGallery(true);
+    try {
+      const uploadedUrls: string[] = [];
+      for (const file of Array.from(files)) {
+        const formData = new FormData();
+        formData.append("file", file);
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+        });
+        if (response.ok) {
+          const data = await response.json();
+          uploadedUrls.push(data.url);
+        }
+      }
+      if (uploadedUrls.length > 0) {
+        const existingUrls = blockData.content.split("\n").filter(url => url.trim());
+        const newContent = [...existingUrls, ...uploadedUrls].join("\n");
+        setBlockData({ ...blockData, content: newContent });
+        toast({
+          title: "Images added",
+          description: `${uploadedUrls.length} image(s) added to gallery`,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload gallery images",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingGallery(false);
+      if (galleryInputRef.current) galleryInputRef.current.value = "";
+    }
+  };
 
   const handleAddBlock = () => {
     createBlockMutation.mutate({
@@ -184,7 +227,7 @@ export function ContentBlockManager() {
               <div className="space-y-2">
                 <Label htmlFor="content">
                   {selectedType === "text" ? "Text Content" : 
-                   selectedType === "gallery" ? "Image URLs (one per line)" : "Embed Code"}
+                   selectedType === "gallery" ? "Image URLs or Uploads (one per line)" : "Embed Code"}
                 </Label>
                 <Textarea
                   id="content"
@@ -199,6 +242,36 @@ export function ContentBlockManager() {
                   onChange={(e) => setBlockData({ ...blockData, content: e.target.value })}
                   className="min-h-32"
                 />
+              </div>
+            )}
+
+            {selectedType === "gallery" && (
+              <div className="space-y-2">
+                <Label htmlFor="gallery-upload">Or Upload Images</Label>
+                <input
+                  ref={galleryInputRef}
+                  type="file"
+                  id="gallery-upload"
+                  accept="image/*"
+                  multiple
+                  onChange={handleGalleryUpload}
+                  disabled={uploadingGallery}
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => galleryInputRef.current?.click()}
+                  disabled={uploadingGallery}
+                  className="w-full"
+                >
+                  {uploadingGallery ? "Uploading..." : "Choose Images to Upload"}
+                </Button>
+                {blockData.content && (
+                  <div className="text-xs text-muted-foreground p-2 bg-muted rounded">
+                    {blockData.content.split("\n").filter(u => u.trim()).length} image(s) in gallery
+                  </div>
+                )}
               </div>
             )}
 

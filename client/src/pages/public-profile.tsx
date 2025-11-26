@@ -298,7 +298,11 @@ export default function PublicProfile() {
                   {block.type === "text" && block.content && (
                     <div>
                       {block.title && <h3 className="text-lg font-bold mb-3 text-white">{block.title}</h3>}
-                      <p className="text-gray-300 whitespace-pre-wrap text-sm">{block.content}</p>
+                      <div className="text-gray-300 text-sm leading-relaxed space-y-3">
+                        {block.content.split("\n\n").map((paragraph, idx) => (
+                          <p key={idx} className="whitespace-pre-wrap">{paragraph}</p>
+                        ))}
+                      </div>
                     </div>
                   )}
 
