@@ -227,18 +227,20 @@ export class DatabaseStorage implements IStorage {
         views: 0,
         backgroundImage: null,
         backgroundVideo: null,
-        backgroundType: "color",
+        backgroundType: insertProfile.backgroundType || "color",
         customCSS: null,
-        layout: "stacked",
-        fontFamily: "DM Sans",
-        buttonStyle: "rounded",
+        layout: insertProfile.layout || "stacked",
+        fontFamily: insertProfile.fontFamily || "DM Sans",
+        buttonStyle: insertProfile.buttonStyle || "rounded",
+        templateHTML: null,
+        useCustomTemplate: insertProfile.useCustomTemplate ?? false,
         seoTitle: null,
         seoDescription: null,
         ogImage: null,
         customDomain: null,
-        hideBranding: 0,
-        verificationBadge: 0,
-      } as Profile;
+        hideBranding: insertProfile.hideBranding ?? false,
+        verificationBadge: insertProfile.verificationBadge ?? false,
+      };
       this.memoryStore.profiles.set(newProfile.id, newProfile);
       this.memoryStore.profiles.set(newProfile.username, newProfile);
       return newProfile;
@@ -613,7 +615,7 @@ export class DatabaseStorage implements IStorage {
       linkCount: links.length,
       formSubmissions: submissions.length,
       topLinks,
-      recentViews: views.map(v => ({
+      recentViews: views.map((v: { timestamp: string; userAgent: string | null; referrer: string | null }) => ({
         timestamp: v.timestamp,
         userAgent: v.userAgent || undefined,
         referrer: v.referrer || undefined,

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -23,15 +23,15 @@ export const profiles = pgTable("profiles", {
   // Advanced Appearance
   backgroundImage: text("background_image"),
   backgroundVideo: text("background_video"),
-  backgroundType: text("background_type").default("color"), // color, gradient, image, video
+  backgroundType: text("background_type").default("color"),
   customCSS: text("custom_css"),
-  layout: text("layout").default("stacked"), // stacked, grid, minimal
+  layout: text("layout").default("stacked"),
   fontFamily: text("font_family").default("DM Sans"),
-  buttonStyle: text("button_style").default("rounded"), // rounded, square, pill
+  buttonStyle: text("button_style").default("rounded"),
   
   // Custom Template (HTML only for security - CSS disabled)
   templateHTML: text("template_html"),
-  useCustomTemplate: integer("use_custom_template", { mode: 'boolean' }).notNull().default(sql`0`),
+  useCustomTemplate: boolean("use_custom_template").notNull().default(false),
   
   // SEO & Metadata
   seoTitle: text("seo_title"),
@@ -40,8 +40,8 @@ export const profiles = pgTable("profiles", {
   
   // Branding
   customDomain: text("custom_domain"),
-  hideBranding: integer("hide_branding", { mode: 'boolean' }).notNull().default(sql`0`),
-  verificationBadge: integer("verification_badge", { mode: 'boolean' }).notNull().default(sql`0`),
+  hideBranding: boolean("hide_branding").notNull().default(false),
+  verificationBadge: boolean("verification_badge").notNull().default(false),
 });
 
 export const linkGroups = pgTable("link_groups", {
@@ -49,7 +49,7 @@ export const linkGroups = pgTable("link_groups", {
   profileId: varchar("profile_id").notNull(),
   name: text("name").notNull(),
   order: integer("order").notNull().default(0),
-  isCollapsed: integer("is_collapsed", { mode: 'boolean' }).notNull().default(sql`0`),
+  isCollapsed: boolean("is_collapsed").notNull().default(false),
 });
 
 export const socialLinks = pgTable("social_links", {
@@ -60,16 +60,16 @@ export const socialLinks = pgTable("social_links", {
   customTitle: text("custom_title"),
   order: integer("order").notNull().default(0),
   clicks: integer("clicks").notNull().default(0),
-  isScheduled: integer("is_scheduled", { mode: 'boolean' }).notNull().default(sql`0`),
+  isScheduled: boolean("is_scheduled").notNull().default(false),
   scheduleStart: text("schedule_start"),
   scheduleEnd: text("schedule_end"),
   thumbnail: text("thumbnail"),
-  enabled: integer("enabled", { mode: 'boolean' }).notNull().default(sql`1`),
+  enabled: boolean("enabled").notNull().default(true),
   
   // Enhanced Features
   groupId: varchar("group_id"),
-  isPriority: integer("is_priority", { mode: 'boolean' }).notNull().default(sql`0`),
-  badge: text("badge"), // "new", "popular", "limited", "hot"
+  isPriority: boolean("is_priority").notNull().default(false),
+  badge: text("badge"),
   description: text("description"),
 });
 
@@ -92,33 +92,33 @@ export const profileViews = pgTable("profile_views", {
 export const contentBlocks = pgTable("content_blocks", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   profileId: varchar("profile_id").notNull(),
-  type: text("type").notNull(), // video, image, gallery, text, embed, form, payment, product
+  type: text("type").notNull(),
   order: integer("order").notNull().default(0),
   
   // Generic Content
   title: text("title"),
-  content: text("content"), // JSON string for flexible data storage
+  content: text("content"),
   
   // Media
   mediaUrl: text("media_url"),
   thumbnailUrl: text("thumbnail_url"),
   
   // Settings
-  isVisible: integer("is_visible", { mode: 'boolean' }).notNull().default(sql`1`),
-  settings: text("settings"), // JSON string for block-specific settings
+  isVisible: boolean("is_visible").notNull().default(true),
+  settings: text("settings"),
 });
 
 export const formSubmissions = pgTable("form_submissions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   profileId: varchar("profile_id").notNull(),
-  blockId: varchar("block_id"), // Optional: reference to content block if from a form block
+  blockId: varchar("block_id"),
   
   // Submission Data
   email: text("email"),
   name: text("name"),
   phone: text("phone"),
   message: text("message"),
-  customFields: text("custom_fields"), // JSON string for additional fields
+  customFields: text("custom_fields"),
   
   timestamp: text("timestamp").notNull(),
   userAgent: text("user_agent"),
@@ -145,9 +145,9 @@ export const updateProfileSchema = z.object({
   fontFamily: z.string().optional(),
   buttonStyle: z.string().optional(),
   
-  // Custom Template (HTML only for security - allow long strings)
-  templateHTML: z.string().optional(), // No length limit for now
-  useCustomTemplate: z.union([z.boolean(), z.number()]).optional(), // Accept both boolean and integer (0/1)
+  // Custom Template
+  templateHTML: z.string().optional(),
+  useCustomTemplate: z.boolean().optional(),
   
   // SEO
   seoTitle: z.string().optional(),
@@ -156,8 +156,8 @@ export const updateProfileSchema = z.object({
   
   // Branding
   customDomain: z.string().optional(),
-  hideBranding: z.union([z.boolean(), z.number()]).optional(), // Accept both boolean and integer (0/1)
-  verificationBadge: z.union([z.boolean(), z.number()]).optional(), // Accept both boolean and integer (0/1)
+  hideBranding: z.boolean().optional(),
+  verificationBadge: z.boolean().optional(),
 });
 
 export const insertSocialLinkSchema = createInsertSchema(socialLinks).omit({

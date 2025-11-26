@@ -2,10 +2,9 @@ import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { connectDB } from "./storage";
 
 const app = express();
-app.set('trust proxy', 1); // Trust first proxy (Vite dev server)
+app.set('trust proxy', 1);
 
 declare module 'http' {
   interface IncomingMessage {
@@ -13,10 +12,21 @@ declare module 'http' {
   }
 }
 
-// Enable CORS with credentials
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+  : [];
+
 app.use(cors({
-  origin: true, // Allow all origins in development
-  credentials: true, // Allow cookies to be sent
+  origin: (origin, callback) => {
+    if (process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));

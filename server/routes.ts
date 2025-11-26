@@ -13,7 +13,16 @@ import crypto from "crypto";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || 'neropage-jwt-secret-change-in-production';
+function getJWTSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('JWT_SECRET environment variable is required in production');
+    }
+    return 'dev-only-secret-do-not-use-in-production';
+  }
+  return secret;
+}
 
 interface JWTPayload {
   userId: string;
@@ -21,12 +30,12 @@ interface JWTPayload {
 }
 
 function generateToken(payload: JWTPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '30d' });
+  return jwt.sign(payload, getJWTSecret(), { expiresIn: '30d' });
 }
 
 function verifyToken(token: string): JWTPayload | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as JWTPayload;
+    return jwt.verify(token, getJWTSecret()) as JWTPayload;
   } catch {
     return null;
   }
@@ -96,13 +105,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           layout: "stacked",
           fontFamily: "DM Sans",
           buttonStyle: "rounded",
-          useCustomTemplate: 0,
-          hideBranding: 0,
-          verificationBadge: 0,
+          useCustomTemplate: false,
+          hideBranding: false,
+          verificationBadge: false,
         });
       }
-
-      console.log('Login successful for:', profile.username);
 
       const token = generateToken({ userId: user.id, username: user.username });
 
@@ -161,9 +168,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         layout: "stacked",
         fontFamily: "DM Sans",
         buttonStyle: "rounded",
-        useCustomTemplate: 0,
-        hideBranding: 0,
-        verificationBadge: 0,
+        useCustomTemplate: false,
+        hideBranding: false,
+        verificationBadge: false,
       });
 
       const token = generateToken({ userId: user.id, username: user.username });
