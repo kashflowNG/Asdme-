@@ -1172,9 +1172,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!auth) return res.status(401).json({ error: "Not authenticated" });
       const profile = await storage.getProfileByUsername(auth.username);
       if (!profile) return res.status(404).json({ error: "Profile not found" });
-      const { templateId, htmlContent } = req.body;
+      const { templateId } = req.body;
+      
+      const template = await storage.getReadyMadeTemplate(templateId);
+      if (!template) return res.status(404).json({ error: "Template not found" });
+      
       await storage.updateTemplateUsage(templateId);
-      res.json({ success: true });
+      
+      const updatedProfile = await storage.updateProfile(profile.id, {
+        templateHTML: template.htmlContent,
+        useCustomTemplate: true,
+      });
+      
+      res.json({ success: true, profile: updatedProfile });
     } catch (error) { res.status(500).json({ error: "Failed to apply template" }); }
   });
 

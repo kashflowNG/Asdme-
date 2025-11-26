@@ -203,6 +203,15 @@ export class DatabaseStorage implements IStorage {
     return await this.db.select().from(readyMadeTemplates).where(eq(readyMadeTemplates.isActive, true));
   }
 
+  async getReadyMadeTemplate(templateId: string): Promise<ReadyMadeTemplate | undefined> {
+    if (this.memoryStore) {
+      const templates = (this.memoryStore as any).templates || new Map();
+      return templates.get(templateId);
+    }
+    const result = await this.db.select().from(readyMadeTemplates).where(eq(readyMadeTemplates.id, templateId)).limit(1);
+    return result[0];
+  }
+
   async updateTemplateUsage(templateId: string): Promise<void> {
     if (this.memoryStore) return;
     await this.db.update(readyMadeTemplates).set({ usageCount: drizzleSql`usage_count + 1` }).where(eq(readyMadeTemplates.id, templateId));
