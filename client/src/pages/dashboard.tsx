@@ -19,7 +19,6 @@ import { SEOEditor } from "@/components/SEOEditor";
 import { ContentBlockManager } from "@/components/ContentBlockManager";
 import { CustomDomainManager } from "@/components/CustomDomainManager";
 import { LinkGroupManager } from "@/components/LinkGroupManager";
-import { TemplateSelector } from "@/components/TemplateSelector";
 import { TemplateEditor } from "@/components/TemplateEditor";
 import { ABTestManager } from "@/components/ABTestManager";
 import { SmartRecommendations } from "@/components/SmartRecommendations";
@@ -1367,8 +1366,6 @@ export default function Dashboard() {
                   updateProfile={updateProfileMutation.mutateAsync}
                 />
               )}
-
-              <TemplateSelector />
             </TabsContent>
 
             {/* Template Tab */}
