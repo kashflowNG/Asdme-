@@ -174,6 +174,7 @@ export const updateProfileSchema = z.object({
   // Custom Template
   templateHTML: z.string().optional(),
   useCustomTemplate: z.boolean().optional(),
+  appliedTemplateId: z.string().optional(),
   
   // SEO
   seoTitle: z.string().optional(),
