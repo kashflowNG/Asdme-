@@ -310,7 +310,7 @@ export function AppearanceEditor({ profile, onUpdate, updateProfile }: Appearanc
               <div>
                 <Label className="text-sm font-medium mb-2 block">Upload & Trim Video</Label>
                 <VideoTrimmer
-                  initialUrl={profile.backgroundVideo}
+                  initialUrl={(profile.backgroundVideo as string | undefined) || undefined}
                   onVideoTrimmed={(url) => {
                     onUpdate({ backgroundVideo: url });
                     toast({ title: "Success", description: "Background video updated!" });
