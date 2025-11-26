@@ -255,6 +255,19 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getProfileByCustomDomain(customDomain: string): Promise<Profile | undefined> {
+    if (this.memoryStore) {
+      return Array.from(this.memoryStore.profiles.values()).find(p => p.customDomain === customDomain);
+    }
+    try {
+      const result = await this.db.select().from(profiles).where(eq(profiles.customDomain, customDomain)).limit(1);
+      return result[0];
+    } catch (error) {
+      console.error("getProfileByCustomDomain error:", error);
+      return undefined;
+    }
+  }
+
   async getDefaultProfile(): Promise<Profile | undefined> {
     if (this.memoryStore) {
       return Array.from(this.memoryStore.profiles.values())[0];
