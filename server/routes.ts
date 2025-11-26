@@ -8,11 +8,13 @@ import {
 import { z } from "zod";
 import multer from "multer";
 import path from "path";
-import { promises as fs } from "fs";
+import { promises as fs, promises as fsp } from "fs";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
+import { exec } from "child_process";
+import { promisify } from "util";
 
 const authRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -29,6 +31,8 @@ const uploadRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+const execAsync = promisify(exec);
 
 const apiRateLimiter = rateLimit({
   windowMs: 60 * 1000,
@@ -252,6 +256,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Configure multer for video uploads
+  const videoUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 100 * 1024 * 1024 }, // 100MB limit
+    fileFilter: (_req, file, cb) => {
+      const allowedTypes = [
+        'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'
+      ];
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Invalid file type. Only MP4, WebM, OGG videos are allowed.'));
+      }
+    }
+  });
+
   // Image upload endpoint
   app.post("/api/upload-image", uploadRateLimiter, async (req, res, next) => {
     try {
@@ -295,12 +315,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Serve uploaded images
+  // Video upload with trimming endpoint
+  app.post("/api/upload-video", uploadRateLimiter, async (req, res, next) => {
+    try {
+      const auth = authenticate(req);
+      if (!auth) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const profile = await storage.getProfileByUsername(auth.username);
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+
+      if (profile.userId !== auth.userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      next();
+    } catch (error) {
+      return res.status(500).json({ error: "Authentication failed" });
+    }
+  }, videoUpload.single('video'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No video file provided" });
+      }
+
+      const startTime = parseFloat(req.body.startTime || "0");
+      const endTime = parseFloat(req.body.endTime || "5");
+
+      const uploadsDir = path.join(process.cwd(), 'data', 'uploads');
+      await fs.mkdir(uploadsDir, { recursive: true });
+
+      // Save original video temporarily
+      const tempFileName = `temp_${crypto.randomBytes(8).toString('hex')}.mp4`;
+      const tempFilePath = path.join(uploadsDir, tempFileName);
+      await fs.writeFile(tempFilePath, req.file.buffer);
+
+      // Trim video using ffmpeg
+      const outputFileName = `${crypto.randomBytes(16).toString('hex')}.mp4`;
+      const outputFilePath = path.join(uploadsDir, outputFileName);
+      
+      const ffmpegCmd = `ffmpeg -i "${tempFilePath}" -ss ${startTime} -to ${endTime} -c:v libx264 -crf 23 -c:a aac -y "${outputFilePath}" 2>&1`;
+      
+      try {
+        await execAsync(ffmpegCmd);
+      } catch (error) {
+        // If ffmpeg fails, just copy the original
+        await fsp.copyFile(tempFilePath, outputFilePath);
+      }
+
+      // Clean up temp file
+      try {
+        await fs.unlink(tempFilePath);
+      } catch {}
+
+      const videoUrl = `/uploads/${outputFileName}`;
+      res.json({ url: videoUrl, success: true });
+    } catch (error) {
+      console.error('Video upload error:', error);
+      res.status(500).json({ error: "Failed to upload video" });
+    }
+  });
+
+  // Serve uploaded images and videos
   app.use('/uploads', (req, res, next) => {
     const uploadsPath = path.join(process.cwd(), 'data', 'uploads');
     res.sendFile(path.join(uploadsPath, req.path), (err) => {
       if (err) {
-        res.status(404).json({ error: "Image not found" });
+        res.status(404).json({ error: "File not found" });
       }
     });
   });

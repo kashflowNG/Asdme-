@@ -15,6 +15,7 @@ import {
 import { Palette, Image, Video, Code, Type, Layout, Sparkles } from "lucide-react";
 import type { Profile } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
+import { VideoTrimmer } from "./VideoTrimmer";
 
 interface AppearanceEditorProps {
   profile: Profile;
@@ -273,19 +274,32 @@ export function AppearanceEditor({ profile, onUpdate, updateProfile }: Appearanc
           )}
 
           {backgroundType === "video" && (
-            <div className="space-y-2">
-              <Label htmlFor="bg-video">Background Video URL</Label>
-              <Input
-                id="bg-video"
-                type="url"
-                placeholder="https://example.com/background.mp4"
-                value={profile.backgroundVideo || ""}
-                onChange={(e) => onUpdate({ backgroundVideo: e.target.value })}
-                data-testid="input-background-video"
-              />
-              <p className="text-xs text-muted-foreground">
-                Use MP4 format. Keep videos under 10MB for fast loading
-              </p>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="bg-video">Background Video URL or Upload</Label>
+                <Input
+                  id="bg-video"
+                  type="url"
+                  placeholder="https://example.com/background.mp4"
+                  value={profile.backgroundVideo || ""}
+                  onChange={(e) => onUpdate({ backgroundVideo: e.target.value })}
+                  data-testid="input-background-video"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Paste a URL or upload below
+                </p>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium mb-2 block">Upload & Trim Video</Label>
+                <VideoTrimmer
+                  initialUrl={profile.backgroundVideo}
+                  onVideoTrimmed={(url) => {
+                    onUpdate({ backgroundVideo: url });
+                    toast({ title: "Success", description: "Background video updated!" });
+                  }}
+                />
+              </div>
             </div>
           )}
         </TabsContent>
