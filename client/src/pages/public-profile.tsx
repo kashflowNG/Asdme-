@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Globe, Mail, Share2, CheckCircle2 } from "lucide-react";
+import { Globe, Mail, Share2, CheckCircle2, TrendingUp, Zap, Award, Clock, Users, Eye } from "lucide-react";
 import type { Profile, SocialLink, ContentBlock } from "@shared/schema";
 import { useMemo, useEffect, useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
@@ -105,6 +105,25 @@ export default function PublicProfile() {
     e.preventDefault();
     submitFormMutation.mutate(emailFormData);
   };
+
+  // Get top performing links
+  const topLinks = useMemo(() => {
+    return [...sortedLinks]
+      .sort((a, b) => (b.clicks || 0) - (a.clicks || 0))
+      .slice(0, 3);
+  }, [sortedLinks]);
+
+  // Get link groups
+  const getGroupedLinks = (groupId?: string) => {
+    return sortedLinks.filter(link => link.groupId === groupId);
+  };
+
+  // Mock testimonials (in real app, would fetch from database)
+  const testimonials = [
+    { name: "Sarah M.", text: "This link page converted better than my old one!", avatar: "SM" },
+    { name: "Alex R.", text: "Love the clean design and animations!", avatar: "AR" },
+    { name: "Jordan L.", text: "Best Linktree alternative I've found.", avatar: "JL" },
+  ];
 
   const sanitizeCSS = (css: string): string => {
     let sanitized = css;
@@ -223,6 +242,26 @@ export default function PublicProfile() {
               <Share2 className="w-4 h-4" />
               Copy Link
             </Button>
+
+            {/* Premium Badge */}
+            {profile.verificationBadge && (
+              <div className="flex items-center justify-center gap-1 px-3 py-1.5 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-full w-fit mx-auto">
+                <Award className="w-4 h-4 text-amber-400" />
+                <span className="text-xs font-semibold text-amber-300">Pro Member</span>
+              </div>
+            )}
+
+            {/* Stats Summary */}
+            <div className="grid grid-cols-2 gap-2 pt-4">
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-2 text-center">
+                <div className="text-lg font-bold text-blue-400">{sortedLinks.reduce((sum, l) => sum + (l.clicks || 0), 0)}</div>
+                <div className="text-xs text-gray-400">Total Clicks</div>
+              </div>
+              <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-2 text-center">
+                <div className="text-lg font-bold text-purple-400">{sortedLinks.length}</div>
+                <div className="text-xs text-gray-400">Links</div>
+              </div>
+            </div>
           </div>
 
           {/* Content Blocks */}
@@ -303,7 +342,28 @@ export default function PublicProfile() {
             </div>
           )}
 
-          {/* Links Section */}
+          {/* Top Performing Links */}
+          {topLinks.length > 0 && (
+            <div className="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <TrendingUp className="w-4 h-4 text-emerald-400" />
+                <h3 className="text-sm font-semibold text-emerald-300">Most Popular</h3>
+              </div>
+              <div className="space-y-2">
+                {topLinks.map((link, idx) => (
+                  <div key={link.id} className="flex items-center justify-between text-xs">
+                    <span className="text-gray-300">{link.customTitle || link.platform}</span>
+                    <div className="flex items-center gap-1 text-emerald-400 font-bold">
+                      <Eye className="w-3 h-3" />
+                      {link.clicks || 0}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Links Section with Analytics */}
           {sortedLinks.length === 0 ? (
             <div className="text-center py-8">
               <Globe className="w-8 h-8 mx-auto mb-2" style={{ color: profile.primaryColor || "#8B5CF6" }} />
@@ -320,35 +380,67 @@ export default function PublicProfile() {
 
                 if (!isActive) return null;
 
+                const isTopPerformer = (link.clicks || 0) > 10;
+
                 return (
                   <div key={link.id} className="group relative">
                     <div 
                       className="absolute -inset-0.5 rounded-xl opacity-0 group-hover:opacity-30 blur-sm transition-opacity"
-                      style={{ background: profile.primaryColor || "#8B5CF6" }}
+                      style={{ background: isTopPerformer ? "#10b981" : (profile.primaryColor || "#8B5CF6") }}
                     />
-                    {link.badge && link.badge !== "none" && (
-                      <div className="absolute -top-2 -right-2 z-10">
-                        <Badge className="text-[10px] font-bold uppercase px-2 py-0.5 text-white" style={{ background: profile.primaryColor || "#8B5CF6" }}>
-                          {link.badge}
-                        </Badge>
+                    <div className="relative flex items-end gap-3">
+                      <div className="flex-1">
+                        {link.badge && link.badge !== "none" && (
+                          <div className="mb-2">
+                            <Badge className="text-[10px] font-bold uppercase px-2 py-0.5 text-white" style={{ background: profile.primaryColor || "#8B5CF6" }}>
+                              {link.badge}
+                            </Badge>
+                          </div>
+                        )}
+                        {isTopPerformer && (
+                          <div className="mb-2">
+                            <Badge className="text-[10px] font-bold uppercase px-2 py-0.5 text-white bg-emerald-600">
+                              🔥 Popular
+                            </Badge>
+                          </div>
+                        )}
+                        <SocialLinkButton
+                          platformId={link.platform}
+                          url={link.url}
+                          customTitle={link.customTitle}
+                          onClick={() => handleLinkClick(link.id)}
+                        />
+                        {link.description && (
+                          <p className="text-xs text-gray-400 mt-1 px-4 pb-2">{link.description}</p>
+                        )}
                       </div>
-                    )}
-                    <div className="relative">
-                      <SocialLinkButton
-                        platformId={link.platform}
-                        url={link.url}
-                        customTitle={link.customTitle}
-                        onClick={() => handleLinkClick(link.id)}
-                      />
-                      {link.description && (
-                        <p className="text-xs text-gray-400 mt-1 px-4 pb-2">{link.description}</p>
-                      )}
+                      {/* Click Counter Badge */}
+                      <div className="flex items-center gap-1 px-2 py-1 bg-gray-800/50 rounded-lg whitespace-nowrap">
+                        <Eye className="w-3 h-3 text-gray-400" />
+                        <span className="text-xs font-semibold text-gray-300">{link.clicks || 0}</span>
+                      </div>
                     </div>
                   </div>
                 );
               })}
             </div>
           )}
+
+          {/* Testimonials Carousel */}
+          <div className="bg-gradient-to-br from-pink-500/10 to-rose-500/10 border border-pink-500/20 rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-pink-300 mb-3 flex items-center gap-2">
+              <Award className="w-4 h-4" />
+              What People Say
+            </h3>
+            <div className="space-y-2">
+              {testimonials.map((test, idx) => (
+                <div key={idx} className="text-sm text-gray-300 italic">
+                  "{test.text}"
+                  <div className="text-xs text-gray-500 mt-1">— {test.name}</div>
+                </div>
+              ))}
+            </div>
+          </div>
 
           {/* About & Business Info */}
           {(profile.aboutMe || profile.businessInfo) && (
