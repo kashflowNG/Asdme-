@@ -168,6 +168,8 @@ export default function Dashboard() {
     username: "",
     bio: "",
     avatar: "",
+    aboutMe: "",
+    businessInfo: "",
   });
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -206,6 +208,8 @@ export default function Dashboard() {
         username: profile.username,
         bio: profile.bio || "",
         avatar: profile.avatar || "",
+        aboutMe: profile.aboutMe || "",
+        businessInfo: profile.businessInfo || "",
       };
       setProfileForm(profileData);
       lastCommittedProfile.current = profile;
@@ -244,6 +248,8 @@ export default function Dashboard() {
           username: lastCommittedProfile.current.username,
           bio: lastCommittedProfile.current.bio || "",
           avatar: lastCommittedProfile.current.avatar || "",
+          aboutMe: lastCommittedProfile.current.aboutMe || "",
+          businessInfo: lastCommittedProfile.current.businessInfo || "",
         });
       }
       toast({
@@ -378,7 +384,7 @@ export default function Dashboard() {
     }
   };
 
-  const handleUpdateProfile = (field: "username" | "bio" | "avatar") => {
+  const handleUpdateProfile = (field: "username" | "bio" | "avatar" | "aboutMe" | "businessInfo") => {
     const value = profileForm[field];
 
     if (!lastCommittedProfile.current) {
