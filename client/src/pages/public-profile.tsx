@@ -342,6 +342,32 @@ export default function PublicProfile() {
                       </form>
                     </div>
                   )}
+
+                  {block.type === "embed" && block.content && (
+                    <div>
+                      {block.title && <h3 className="text-lg font-bold mb-3 text-white">{block.title}</h3>}
+                      <div 
+                        className="embed-container rounded-lg border border-gray-700/50 overflow-hidden"
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(block.content) }}
+                      />
+                    </div>
+                  )}
+
+                  {block.type === "gallery" && block.content && (
+                    <div>
+                      {block.title && <h3 className="text-lg font-bold mb-3 text-white">{block.title}</h3>}
+                      <div className="grid grid-cols-2 gap-3">
+                        {block.content.split("\n").filter(url => url.trim()).map((imageUrl, idx) => (
+                          <img 
+                            key={idx}
+                            src={imageUrl.trim()} 
+                            alt={`Gallery ${idx + 1}`} 
+                            className="w-full rounded-lg border border-gray-700/50 hover:border-primary/50 transition-colors"
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
