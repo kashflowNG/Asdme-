@@ -1069,10 +1069,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  const httpServer = createServer(app);
-  return httpServer;
-}
-
   // Admin endpoints
   app.get("/api/admin/check", async (req, res) => {
     try {
