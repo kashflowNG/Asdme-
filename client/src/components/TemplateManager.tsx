@@ -26,6 +26,7 @@ interface Template {
   badgeColor: string;
   category: string | null;
   usageCount: number;
+  htmlContent: string;
 }
 
 const CHRISTMAS_TEMPLATE = {
@@ -61,10 +62,10 @@ export function TemplateManager() {
     category: "general",
   });
 
-  const handleCopyTemplateId = (templateId: string) => {
-    navigator.clipboard.writeText(templateId);
-    setCopiedId(templateId);
-    toast({ title: "Copied!", description: "Template ID copied to clipboard" });
+  const handleCopyTemplateCode = (htmlContent: string, templateName: string) => {
+    navigator.clipboard.writeText(htmlContent);
+    setCopiedId(templateName);
+    toast({ title: "Copied!", description: "Template source code copied to clipboard" });
     setTimeout(() => setCopiedId(null), 2000);
   };
 
@@ -282,13 +283,13 @@ export function TemplateManager() {
             <div className="text-xs text-gray-500">
               <p>Used {template.usageCount} times</p>
               {template.category && <p className="capitalize">Category: {template.category}</p>}
-              <div className="mt-2 p-2 bg-gray-100 dark:bg-gray-800 rounded text-gray-700 dark:text-gray-300 font-mono break-all text-[10px]">
-                ID: {template.id}
+              <div className="mt-2 p-2 bg-gray-100 dark:bg-gray-800 rounded max-h-24 overflow-y-auto text-gray-700 dark:text-gray-300 font-mono break-all text-[9px] leading-tight">
+                {template.htmlContent.substring(0, 200)}...
               </div>
             </div>
             <div className="flex gap-2">
               <Button
-                onClick={() => handleCopyTemplateId(template.id)}
+                onClick={() => handleCopyTemplateCode(template.htmlContent, template.id)}
                 variant="outline"
                 size="sm"
                 className="flex-1"
@@ -301,7 +302,7 @@ export function TemplateManager() {
                 ) : (
                   <>
                     <Copy className="w-4 h-4 mr-2" />
-                    Copy ID
+                    Copy Code
                   </>
                 )}
               </Button>
