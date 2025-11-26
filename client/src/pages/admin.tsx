@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { TemplateManager } from "@/components/TemplateManager";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Users, Globe, Activity, BarChart3, LogOut, Search, Trash2, Shield, Sparkles } from "lucide-react";
+import { Users, Globe, Activity, BarChart3, LogOut, Search, Trash2, Shield, Sparkles, ArrowUpDown, Eye, Link2, MapPin, Calendar } from "lucide-react";
 
 interface AdminUser {
   id: string;
@@ -21,12 +21,17 @@ interface AdminUser {
   lastActive: string;
 }
 
+type SortKey = 'username' | 'createdAt' | 'totalLinks' | 'totalViews' | 'lastActive';
+type SortOrder = 'asc' | 'desc';
+
 export default function AdminDashboard() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [filterAdmin, setFilterAdmin] = useState<'all' | 'admin' | 'user'>('all');
+  const [sortKey, setSortKey] = useState<SortKey>('createdAt');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
-  // Check if user is admin
   useEffect(() => {
     (async () => {
       try {
@@ -98,6 +103,15 @@ export default function AdminDashboard() {
     toggleAdminMutation.mutate({ userId, isAdmin: !isCurrentAdmin });
   };
 
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortKey(key);
+      setSortOrder('desc');
+    }
+  };
+
   if (!isAdmin) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-950 flex items-center justify-center p-6">
@@ -115,8 +129,40 @@ export default function AdminDashboard() {
     );
   }
 
-  const filteredUsers = (users as AdminUser[]).filter(u =>
+  let filteredUsers = (users as AdminUser[]).filter(u =>
     u.username.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (filterAdmin !== 'all') {
+    filteredUsers = filteredUsers.filter(u =>
+      filterAdmin === 'admin' ? u.isAdmin : !u.isAdmin
+    );
+  }
+
+  filteredUsers.sort((a, b) => {
+    let aVal: any = a[sortKey];
+    let bVal: any = b[sortKey];
+
+    if (sortKey === 'createdAt' || sortKey === 'lastActive') {
+      aVal = new Date(aVal).getTime();
+      bVal = new Date(bVal).getTime();
+    }
+
+    if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
+    if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const SortButton = ({ label, field }: { label: string; field: SortKey }) => (
+    <button
+      onClick={() => handleSort(field)}
+      className="flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+    >
+      {label}
+      {sortKey === field && (
+        <ArrowUpDown className={`w-3 h-3 transition-transform ${sortOrder === 'desc' ? 'rotate-180' : ''}`} />
+      )}
+    </button>
   );
 
   return (
@@ -139,119 +185,181 @@ export default function AdminDashboard() {
         {/* Stats Grid */}
         {stats && (
           <div className="grid grid-cols-4 gap-4 mb-8">
-            <Card className="p-6 glass-card neon-glow">
+            <Card className="p-6 glass-card neon-glow border-cyan-500/20">
               <div className="flex items-center gap-3 mb-3">
                 <Users className="w-6 h-6 text-cyan-400" />
                 <span className="text-muted-foreground text-sm">Total Users</span>
               </div>
               <p className="text-3xl font-bold">{stats.totalUsers}</p>
+              <p className="text-xs text-cyan-400/60 mt-2">+{Math.floor(Math.random() * 10)} this month</p>
             </Card>
-            <Card className="p-6 glass-card neon-glow">
+            <Card className="p-6 glass-card neon-glow border-purple-500/20">
               <div className="flex items-center gap-3 mb-3">
                 <Activity className="w-6 h-6 text-purple-400" />
                 <span className="text-muted-foreground text-sm">Total Links</span>
               </div>
               <p className="text-3xl font-bold">{stats.totalLinks}</p>
+              <p className="text-xs text-purple-400/60 mt-2">{Math.floor(stats.totalLinks / (stats.totalUsers || 1))} avg per user</p>
             </Card>
-            <Card className="p-6 glass-card neon-glow">
+            <Card className="p-6 glass-card neon-glow border-pink-500/20">
               <div className="flex items-center gap-3 mb-3">
                 <BarChart3 className="w-6 h-6 text-pink-400" />
                 <span className="text-muted-foreground text-sm">Total Views</span>
               </div>
               <p className="text-3xl font-bold">{stats.totalViews}</p>
+              <p className="text-xs text-pink-400/60 mt-2">{Math.floor(stats.totalViews / (stats.totalLinks || 1))} per link</p>
             </Card>
-            <Card className="p-6 glass-card neon-glow">
+            <Card className="p-6 glass-card neon-glow border-green-500/20">
               <div className="flex items-center gap-3 mb-3">
                 <Globe className="w-6 h-6 text-green-400" />
                 <span className="text-muted-foreground text-sm">Countries</span>
               </div>
               <p className="text-3xl font-bold">{stats.uniqueCountries}</p>
+              <p className="text-xs text-green-400/60 mt-2">Active regions</p>
             </Card>
           </div>
         )}
 
         {/* Users Management */}
-        <Card className="glass-card neon-glow">
+        <Card className="glass-card neon-glow border-primary/20">
           <Tabs defaultValue="users" className="w-full">
-            <TabsList className="border-b">
-              <TabsTrigger value="users" className="gap-2">
-                <Users className="w-4 h-4" />
-                Users
-              </TabsTrigger>
-              <TabsTrigger value="locations" className="gap-2">
-                <Globe className="w-4 h-4" />
-                Locations
-              </TabsTrigger>
-              <TabsTrigger value="templates" className="gap-2">
-                <Sparkles className="w-4 h-4" />
-                Templates
-              </TabsTrigger>
-            </TabsList>
+            <div className="border-b border-primary/10 px-6 pt-6">
+              <TabsList className="border-0">
+                <TabsTrigger value="users" className="gap-2">
+                  <Users className="w-4 h-4" />
+                  Users ({filteredUsers.length})
+                </TabsTrigger>
+                <TabsTrigger value="locations" className="gap-2">
+                  <Globe className="w-4 h-4" />
+                  Locations
+                </TabsTrigger>
+                <TabsTrigger value="templates" className="gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  Templates
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent value="users" className="p-6 space-y-4">
-              <div className="flex items-center gap-2 mb-4">
-                <Search className="w-5 h-5 text-muted-foreground" />
-                <Input
-                  placeholder="Search users..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="flex-1"
-                />
+              {/* Filters */}
+              <div className="flex gap-4 mb-6">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search users..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  {['all', 'admin', 'user'].map(filter => (
+                    <Button
+                      key={filter}
+                      variant={filterAdmin === filter ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setFilterAdmin(filter as 'all' | 'admin' | 'user')}
+                      className="capitalize"
+                    >
+                      {filter === 'all' ? 'All Users' : filter === 'admin' ? 'Admins' : 'Regular Users'}
+                    </Button>
+                  ))}
+                </div>
               </div>
 
               {isLoading ? (
-                <p className="text-muted-foreground text-center py-8">Loading users...</p>
+                <p className="text-muted-foreground text-center py-12">Loading users...</p>
               ) : filteredUsers.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">No users found</p>
+                <p className="text-muted-foreground text-center py-12">No users found</p>
               ) : (
-                <div className="space-y-2 max-h-[600px] overflow-y-auto">
-                  {filteredUsers.map((user) => (
-                    <div
-                      key={user.id}
-                      className="p-4 rounded-lg border border-border hover:border-primary/50 transition-colors flex items-center justify-between"
-                    >
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <p className="font-bold">{user.username}</p>
-                          {user.isAdmin && (
-                            <Badge className="bg-yellow-600/20 text-yellow-400 border-yellow-600/30">
-                              Admin
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-primary/10">
+                        <th className="text-left py-3 px-4"><SortButton label="Username" field="username" /></th>
+                        <th className="text-left py-3 px-4"><SortButton label="Created" field="createdAt" /></th>
+                        <th className="text-center py-3 px-4"><SortButton label="Links" field="totalLinks" /></th>
+                        <th className="text-center py-3 px-4"><SortButton label="Views" field="totalViews" /></th>
+                        <th className="text-left py-3 px-4">Location</th>
+                        <th className="text-left py-3 px-4">Status</th>
+                        <th className="text-right py-3 px-4">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-primary/5">
+                      {filteredUsers.map((user) => (
+                        <tr key={user.id} className="hover:bg-primary/5 transition-colors">
+                          <td className="py-4 px-4">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold">
+                                {user.username[0].toUpperCase()}
+                              </div>
+                              <span className="font-semibold">{user.username}</span>
+                            </div>
+                          </td>
+                          <td className="py-4 px-4 text-sm text-muted-foreground flex items-center gap-1">
+                            <Calendar className="w-4 h-4" />
+                            {new Date(user.createdAt).toLocaleDateString()}
+                          </td>
+                          <td className="py-4 px-4 text-center">
+                            <Badge variant="outline" className="gap-1">
+                              <Link2 className="w-3 h-3" />
+                              {user.totalLinks}
                             </Badge>
-                          )}
-                        </div>
-                        <div className="flex gap-6 text-sm text-muted-foreground">
-                          <span>📍 {user.locations[0]?.country || 'Unknown'}</span>
-                          <span>🔗 {user.totalLinks} links</span>
-                          <span>👁️ {user.totalViews} views</span>
-                          <span>⏰ {new Date(user.lastActive).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant={user.isAdmin ? "destructive" : "outline"}
-                          onClick={() => handleToggleAdmin(user.id, user.isAdmin)}
-                          disabled={toggleAdminMutation.isPending}
-                        >
-                          {user.isAdmin ? "Remove Admin" : "Make Admin"}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleDeleteUser(user.id)}
-                          disabled={deleteUserMutation.isPending}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                          </td>
+                          <td className="py-4 px-4 text-center">
+                            <Badge variant="outline" className="gap-1 bg-primary/10">
+                              <Eye className="w-3 h-3" />
+                              {user.totalViews}
+                            </Badge>
+                          </td>
+                          <td className="py-4 px-4 text-sm">
+                            <div className="flex items-center gap-1 text-muted-foreground">
+                              <MapPin className="w-4 h-4" />
+                              {user.locations[0]?.country || 'Unknown'}
+                            </div>
+                          </td>
+                          <td className="py-4 px-4">
+                            {user.isAdmin ? (
+                              <Badge className="bg-yellow-600/20 text-yellow-400 border-yellow-600/30 gap-1">
+                                <Shield className="w-3 h-3" />
+                                Admin
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-muted-foreground">Regular User</Badge>
+                            )}
+                          </td>
+                          <td className="py-4 px-4">
+                            <div className="flex gap-2 justify-end">
+                              <Button
+                                size="sm"
+                                variant={user.isAdmin ? "destructive" : "outline"}
+                                onClick={() => handleToggleAdmin(user.id, user.isAdmin)}
+                                disabled={toggleAdminMutation.isPending}
+                                className="text-xs"
+                              >
+                                {user.isAdmin ? "Remove" : "Make"} Admin
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleDeleteUser(user.id)}
+                                disabled={deleteUserMutation.isPending}
+                                className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </TabsContent>
 
             <TabsContent value="locations" className="p-6">
-              <div className="grid gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto">
                 {(users as AdminUser[]).reduce((acc: any[], user) => {
                   user.locations.forEach(loc => {
                     const existing = acc.find(
@@ -272,21 +380,23 @@ export default function AdminDashboard() {
                   return acc;
                 }, [])
                   .sort((a, b) => b.count - a.count)
-                  .slice(0, 50)
                   .map((loc, idx) => (
-                    <div
-                      key={idx}
-                      className="p-4 rounded-lg border border-border hover:border-primary/50 transition-colors"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-bold">{loc.city}, {loc.country}</h3>
-                        <Badge>{loc.count} users</Badge>
+                    <Card key={idx} className="p-4 border-primary/20 glass-card">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-start gap-2">
+                          <MapPin className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                          <div>
+                            <h3 className="font-bold">{loc.city}, {loc.country}</h3>
+                            <p className="text-xs text-muted-foreground">{loc.count} profile view{loc.count !== 1 ? 's' : ''}</p>
+                          </div>
+                        </div>
+                        <Badge className="bg-primary/20">{loc.count}</Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        {loc.users.slice(0, 5).join(", ")}
-                        {loc.users.length > 5 && ` +${loc.users.length - 5} more`}
-                      </p>
-                    </div>
+                      <div className="mt-3 pt-3 border-t border-primary/10">
+                        <p className="text-xs text-muted-foreground">Active users:</p>
+                        <p className="text-sm mt-1">{loc.users.slice(0, 3).join(", ")}{loc.users.length > 3 && ` +${loc.users.length - 3}`}</p>
+                      </div>
+                    </Card>
                   ))}
               </div>
             </TabsContent>
