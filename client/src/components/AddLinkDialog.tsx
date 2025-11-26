@@ -112,6 +112,7 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
       const response = await fetch('/api/upload-image', {
         method: 'POST',
         body: uploadFormData,
+        credentials: 'include',
       });
 
       if (!response.ok) throw new Error('Upload failed');
