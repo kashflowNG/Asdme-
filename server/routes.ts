@@ -1145,24 +1145,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) { res.status(500).json({ error: "Failed to fetch stats" }); }
   });
 
-  // Ready-Made Templates - Admin Create
+  // Ready-Made Templates - Admin Create (Defaults to Draft/Inactive)
   app.post("/api/admin/templates/create", async (req, res) => {
     try {
       const auth = authenticate(req);
       if (!auth) return res.status(401).json({ error: "Not authenticated" });
       const user = await storage.getUserById(auth.userId);
       if (!user?.isAdmin) return res.status(403).json({ error: "Not authorized" });
-      const template = await storage.createReadyMadeTemplate({ ...req.body, createdBy: auth.userId });
+      const template = await storage.createReadyMadeTemplate({ ...req.body, createdBy: auth.userId, isActive: false });
       res.json(template);
     } catch (error) { res.status(500).json({ error: "Failed to create template" }); }
   });
 
-  // Ready-Made Templates - List for Users
+  // Ready-Made Templates - Admin View All (Active + Draft)
+  app.get("/api/admin/templates", async (req, res) => {
+    try {
+      const auth = authenticate(req);
+      if (!auth) return res.status(401).json({ error: "Not authenticated" });
+      const user = await storage.getUserById(auth.userId);
+      if (!user?.isAdmin) return res.status(403).json({ error: "Not authorized" });
+      const templates = await storage.db.select().from(storage.readyMadeTemplates || require("@shared/schema").readyMadeTemplates);
+      res.json(templates);
+    } catch (error) { res.status(500).json({ error: "Failed to fetch admin templates" }); }
+  });
+
+  // Ready-Made Templates - List for Users (Active Only)
   app.get("/api/templates", async (req, res) => {
     try {
       const templates = await storage.getReadyMadeTemplates();
       res.json(templates);
     } catch (error) { res.status(500).json({ error: "Failed to fetch templates" }); }
+  });
+
+  // Deploy/Activate Template
+  app.patch("/api/admin/templates/:id/activate", async (req, res) => {
+    try {
+      const auth = authenticate(req);
+      if (!auth) return res.status(401).json({ error: "Not authenticated" });
+      const user = await storage.getUserById(auth.userId);
+      if (!user?.isAdmin) return res.status(403).json({ error: "Not authorized" });
+      const templateId = req.params.id;
+      const template = await storage.getReadyMadeTemplate(templateId);
+      if (!template) return res.status(404).json({ error: "Template not found" });
+      const updated = await storage.updateReadyMadeTemplate(templateId, { isActive: true });
+      res.json(updated);
+    } catch (error) { res.status(500).json({ error: "Failed to activate template" }); }
   });
 
   // Apply template to profile

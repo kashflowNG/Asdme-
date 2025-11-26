@@ -27,6 +27,7 @@ interface Template {
   category: string | null;
   usageCount: number;
   htmlContent: string;
+  isActive: boolean;
 }
 
 const CHRISTMAS_TEMPLATE = {
@@ -70,15 +71,15 @@ export function TemplateManager() {
   };
 
   const { data: templates = [], isLoading } = useQuery({
-    queryKey: ["/api/templates"],
-    queryFn: () => apiRequest("GET", "/api/templates"),
+    queryKey: ["/api/admin/templates"],
+    queryFn: () => apiRequest("GET", "/api/admin/templates"),
   });
 
   const createMutation = useMutation({
     mutationFn: (data: typeof formData) => apiRequest("POST", "/api/admin/templates/create", data),
     onSuccess: () => {
-      toast({ title: "Success", description: "Template created" });
-      queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
+      toast({ title: "Success", description: "Template created in draft mode" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/templates"] });
       setOpen(false);
       setFormData({
         name: "",
@@ -97,9 +98,19 @@ export function TemplateManager() {
     mutationFn: (id: string) => apiRequest("DELETE", `/api/admin/templates/${id}`),
     onSuccess: () => {
       toast({ title: "Success", description: "Template deleted" });
-      queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/templates"] });
     },
     onError: () => toast({ title: "Error", description: "Failed to delete template", variant: "destructive" }),
+  });
+
+  const activateMutation = useMutation({
+    mutationFn: (id: string) => apiRequest("PATCH", `/api/admin/templates/${id}/activate`, {}),
+    onSuccess: () => {
+      toast({ title: "Success", description: "Template deployed to users!" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/templates"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
+    },
+    onError: () => toast({ title: "Error", description: "Failed to deploy template", variant: "destructive" }),
   });
 
   const handleSubmit = () => {
@@ -266,59 +277,138 @@ export function TemplateManager() {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {templates.map((template: Template) => (
-          <Card key={template.id} className="p-4 space-y-3 border-purple-200">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h4 className="font-semibold">{template.name}</h4>
-                {template.description && <p className="text-sm text-gray-600">{template.description}</p>}
-              </div>
-              {template.badge && (
-                <Badge style={{ backgroundColor: template.badgeColor }} className="text-white ml-2">
-                  {template.badge}
-                </Badge>
-              )}
+      <div className="space-y-6">
+        {/* Active Templates */}
+        {templates.some((t: Template) => t.isActive) && (
+          <div>
+            <h3 className="text-lg font-bold text-green-500 mb-4 flex items-center gap-2">
+              ✅ Live Templates ({templates.filter((t: Template) => t.isActive).length})
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {templates.filter((t: Template) => t.isActive).map((template: Template) => (
+                <Card key={template.id} className="p-4 space-y-3 border-green-300 bg-green-50/5 dark:bg-green-950/10">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-green-400 flex items-center gap-2">{template.name} <Badge className="bg-green-600 text-white text-xs">Live</Badge></h4>
+                      {template.description && <p className="text-sm text-gray-600 dark:text-gray-400">{template.description}</p>}
+                    </div>
+                    {template.badge && (
+                      <Badge style={{ backgroundColor: template.badgeColor }} className="text-white ml-2">
+                        {template.badge}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    <p>Used {template.usageCount} times</p>
+                    {template.category && <p className="capitalize">Category: {template.category}</p>}
+                    <div className="mt-2 p-2 bg-gray-100 dark:bg-gray-800 rounded max-h-24 overflow-y-auto text-gray-700 dark:text-gray-300 font-mono break-all text-[9px] leading-tight">
+                      {template.htmlContent.substring(0, 200)}...
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => handleCopyTemplateCode(template.htmlContent, template.id)}
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                    >
+                      {copiedId === template.id ? (
+                        <>
+                          <Check className="w-4 h-4 mr-2" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-4 h-4 mr-2" />
+                          Copy Code
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={() => deleteMutation.mutate(template.id)}
+                      disabled={deleteMutation.isPending}
+                      variant="destructive"
+                      size="sm"
+                      className="flex-1"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete
+                    </Button>
+                  </div>
+                </Card>
+              ))}
             </div>
-            <div className="text-xs text-gray-500">
-              <p>Used {template.usageCount} times</p>
-              {template.category && <p className="capitalize">Category: {template.category}</p>}
-              <div className="mt-2 p-2 bg-gray-100 dark:bg-gray-800 rounded max-h-24 overflow-y-auto text-gray-700 dark:text-gray-300 font-mono break-all text-[9px] leading-tight">
-                {template.htmlContent.substring(0, 200)}...
-              </div>
+          </div>
+        )}
+
+        {/* Draft Templates */}
+        {templates.some((t: Template) => !t.isActive) && (
+          <div>
+            <h3 className="text-lg font-bold text-yellow-500 mb-4 flex items-center gap-2">
+              📝 Draft Templates ({templates.filter((t: Template) => !t.isActive).length})
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {templates.filter((t: Template) => !t.isActive).map((template: Template) => (
+                <Card key={template.id} className="p-4 space-y-3 border-yellow-300 bg-yellow-50/5 dark:bg-yellow-950/10 opacity-75">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-yellow-400 flex items-center gap-2">{template.name} <Badge className="bg-yellow-600 text-white text-xs">Draft</Badge></h4>
+                      {template.description && <p className="text-sm text-gray-600 dark:text-gray-400">{template.description}</p>}
+                    </div>
+                    {template.badge && (
+                      <Badge style={{ backgroundColor: template.badgeColor }} className="text-white ml-2">
+                        {template.badge}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    <p>Used {template.usageCount} times</p>
+                    {template.category && <p className="capitalize">Category: {template.category}</p>}
+                    <div className="mt-2 p-2 bg-gray-100 dark:bg-gray-800 rounded max-h-24 overflow-y-auto text-gray-700 dark:text-gray-300 font-mono break-all text-[9px] leading-tight">
+                      {template.htmlContent.substring(0, 200)}...
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => handleCopyTemplateCode(template.htmlContent, template.id)}
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                    >
+                      {copiedId === template.id ? (
+                        <>
+                          <Check className="w-4 h-4 mr-2" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-4 h-4 mr-2" />
+                          Copy Code
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={() => activateMutation.mutate(template.id)}
+                      disabled={activateMutation.isPending}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      🚀 Deploy Now
+                    </Button>
+                    <Button
+                      onClick={() => deleteMutation.mutate(template.id)}
+                      disabled={deleteMutation.isPending}
+                      variant="destructive"
+                      size="sm"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </Card>
+              ))}
             </div>
-            <div className="flex gap-2">
-              <Button
-                onClick={() => handleCopyTemplateCode(template.htmlContent, template.id)}
-                variant="outline"
-                size="sm"
-                className="flex-1"
-              >
-                {copiedId === template.id ? (
-                  <>
-                    <Check className="w-4 h-4 mr-2" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy Code
-                  </>
-                )}
-              </Button>
-              <Button
-                onClick={() => deleteMutation.mutate(template.id)}
-                disabled={deleteMutation.isPending}
-                variant="destructive"
-                size="sm"
-                className="flex-1"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete
-              </Button>
-            </div>
-          </Card>
-        ))}
+          </div>
+        )}
+      </div>
       </div>
 
       {templates.length === 0 && (
