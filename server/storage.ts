@@ -163,6 +163,18 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getAllUsers(): Promise<User[]> {
+    if (this.memoryStore) {
+      return Array.from(this.memoryStore.users.values()).filter(u => u.id?.startsWith('user-'));
+    }
+    try {
+      return await this.db.select().from(users);
+    } catch (error) {
+      console.error("getAllUsers error:", error);
+      return [];
+    }
+  }
+
   async getProfile(id: string): Promise<Profile | undefined> {
     if (this.memoryStore) {
       return this.memoryStore.profiles.get(id);

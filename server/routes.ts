@@ -1089,7 +1089,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!auth) return res.status(401).json({ error: "Not authenticated" });
       const user = await storage.getUserById(auth.userId);
       if (!user?.isAdmin) return res.status(403).json({ error: "Not authorized" });
-      
       const allUsers = await storage.getAllUsers();
       const usersWithStats = await Promise.all(allUsers.map(async (u: any) => {
         const profile = await storage.getProfileByUserId(u.id);
@@ -1111,7 +1110,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!auth) return res.status(401).json({ error: "Not authenticated" });
       const user = await storage.getUserById(auth.userId);
       if (!user?.isAdmin) return res.status(403).json({ error: "Not authorized" });
-      
       const allUsers = await storage.getAllUsers();
       let totalLinks = 0, totalViews = 0;
       for (const u of allUsers) {

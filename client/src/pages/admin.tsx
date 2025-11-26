@@ -42,7 +42,7 @@ export default function AdminDashboard() {
     enabled: isAdmin,
   });
 
-  const { data: stats } = useQuery({
+  const { data: stats = { totalUsers: 0, totalLinks: 0, totalViews: 0, uniqueCountries: 0 } } = useQuery({
     queryKey: ["/api/admin/stats"],
     enabled: isAdmin,
   });
