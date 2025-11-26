@@ -168,6 +168,10 @@ export default function AdminDashboard() {
                 <Globe className="w-4 h-4" />
                 Locations
               </TabsTrigger>
+              <TabsTrigger value="templates" className="gap-2">
+                <Sparkles className="w-4 h-4" />
+                Templates
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="users" className="p-6 space-y-4">
@@ -267,6 +271,10 @@ export default function AdminDashboard() {
                     </div>
                   ))}
               </div>
+            </TabsContent>
+
+            <TabsContent value="templates" className="p-6">
+              <TemplateManager />
             </TabsContent>
           </Tabs>
         </Card>

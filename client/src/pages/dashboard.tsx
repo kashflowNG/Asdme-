@@ -762,9 +762,9 @@ export default function Dashboard() {
                 <Palette className="w-4 h-4" />
                 <span className="hidden sm:inline">Appearance</span>
               </TabsTrigger>
-              <TabsTrigger value="template" className="gap-2 py-3">
-                <FileCode className="w-4 h-4" />
-                <span className="hidden sm:inline">Template</span>
+              <TabsTrigger value="templates" className="gap-2 py-3">
+                <Sparkles className="w-4 h-4" />
+                <span className="hidden sm:inline">Templates</span>
               </TabsTrigger>
               <TabsTrigger value="advanced" className="gap-2 py-3">
                 <Zap className="w-4 h-4" />
