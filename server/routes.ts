@@ -1072,3 +1072,135 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   return httpServer;
 }
+  // Admin endpoints
+  app.get("/api/admin/check", async (req, res) => {
+    try {
+      const auth = authenticate(req);
+      if (!auth) {
+        return res.status(401).json({ error: "Not authenticated", isAdmin: false });
+      }
+      const user = await storage.getUserById(auth.userId);
+      res.json({ isAdmin: user?.isAdmin || false });
+    } catch {
+      res.json({ isAdmin: false });
+    }
+  });
+
+  // Get all users with stats
+  app.get("/api/admin/users", async (req, res) => {
+    try {
+      const auth = authenticate(req);
+      if (!auth) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      const user = await storage.getUserById(auth.userId);
+      if (!user?.isAdmin) {
+        return res.status(403).json({ error: "Not authorized" });
+      }
+      
+      const allUsers = await storage.getAllUsers();
+      const usersWithStats = await Promise.all(allUsers.map(async (u) => {
+        const profile = await storage.getProfileByUserId(u.id);
+        const links = profile ? await storage.getSocialLinks(profile.id) : [];
+        const analytics = profile ? await storage.getProfileAnalytics(profile.id) : { views: 0, totalClicks: 0, linkCount: 0 };
+        
+        return {
+          id: u.id,
+          username: u.username,
+          isAdmin: u.isAdmin || false,
+          createdAt: (u as any).createdAt || new Date().toISOString(),
+          totalLinks: links.length,
+          totalViews: analytics.views,
+          locations: [{ country: "Unknown", city: "Unknown", count: 1 }],
+          lastActive: new Date().toISOString(),
+        };
+      }));
+      
+      res.json(usersWithStats);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ error: "Failed to fetch users" });
+    }
+  });
+
+  // Get admin stats
+  app.get("/api/admin/stats", async (req, res) => {
+    try {
+      const auth = authenticate(req);
+      if (!auth) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      const user = await storage.getUserById(auth.userId);
+      if (!user?.isAdmin) {
+        return res.status(403).json({ error: "Not authorized" });
+      }
+
+      const allUsers = await storage.getAllUsers();
+      let totalLinks = 0, totalViews = 0, uniqueCountries = new Set();
+
+      for (const u of allUsers) {
+        const profile = await storage.getProfileByUserId(u.id);
+        if (profile) {
+          const links = await storage.getSocialLinks(profile.id);
+          const analytics = await storage.getProfileAnalytics(profile.id);
+          totalLinks += links.length;
+          totalViews += analytics.views;
+          uniqueCountries.add("Global");
+        }
+      }
+
+      res.json({
+        totalUsers: allUsers.length,
+        totalLinks,
+        totalViews,
+        uniqueCountries: uniqueCountries.size,
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch stats" });
+    }
+  });
+
+  // Delete user
+  app.delete("/api/admin/users/:id", async (req, res) => {
+    try {
+      const auth = authenticate(req);
+      if (!auth) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      const user = await storage.getUserById(auth.userId);
+      if (!user?.isAdmin) {
+        return res.status(403).json({ error: "Not authorized" });
+      }
+
+      // Delete user data
+      const profile = await storage.getProfileByUserId(req.params.id);
+      if (profile) {
+        const links = await storage.getSocialLinks(profile.id);
+        for (const link of links) {
+          await storage.deleteSocialLink(link.id);
+        }
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete user" });
+    }
+  });
+
+  // Toggle admin
+  app.patch("/api/admin/users/:id", async (req, res) => {
+    try {
+      const auth = authenticate(req);
+      if (!auth) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      const user = await storage.getUserById(auth.userId);
+      if (!user?.isAdmin) {
+        return res.status(403).json({ error: "Not authorized" });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update user" });
+    }
+  });

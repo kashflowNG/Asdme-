@@ -7,6 +7,8 @@ export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
+  isAdmin: boolean("is_admin").notNull().default(false),
+  createdAt: text("created_at").notNull().default(sql`now()`),
 });
 
 export const profiles = pgTable("profiles", {
@@ -92,6 +94,9 @@ export const profileViews = pgTable("profile_views", {
   timestamp: text("timestamp").notNull(),
   userAgent: text("user_agent"),
   referrer: text("referrer"),
+  ipAddress: text("ip_address"),
+  country: text("country"),
+  city: text("city"),
 });
 
 export const contentBlocks = pgTable("content_blocks", {
