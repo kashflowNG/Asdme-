@@ -612,7 +612,39 @@ export default function PublicProfile() {
                     </div>
                   )}
 
-                  {/* Links Section */}
+                  {/* Stats Cards - Advanced UI */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                    <div className="relative group">
+                      <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg blur opacity-0 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
+                      <div className="relative bg-gradient-to-br from-gray-900 to-gray-950 rounded-lg p-3 sm:p-4 border border-gray-700/50 hover:border-purple-500/50 transition-all">
+                        <div className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">{profile.views || 0}</div>
+                        <div className="text-lg sm:text-2xl font-bold text-white">Views</div>
+                      </div>
+                    </div>
+                    <div className="relative group">
+                      <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-lg blur opacity-0 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
+                      <div className="relative bg-gradient-to-br from-gray-900 to-gray-950 rounded-lg p-3 sm:p-4 border border-gray-700/50 hover:border-cyan-500/50 transition-all">
+                        <div className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">{sortedLinks.length}</div>
+                        <div className="text-lg sm:text-2xl font-bold text-white">Links</div>
+                      </div>
+                    </div>
+                    <div className="relative group">
+                      <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-lg blur opacity-0 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
+                      <div className="relative bg-gradient-to-br from-gray-900 to-gray-950 rounded-lg p-3 sm:p-4 border border-gray-700/50 hover:border-emerald-500/50 transition-all">
+                        <div className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">{sortedBlocks.length}</div>
+                        <div className="text-lg sm:text-2xl font-bold text-white">Content</div>
+                      </div>
+                    </div>
+                    <div className="relative group">
+                      <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-600 to-red-600 rounded-lg blur opacity-0 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
+                      <div className="relative bg-gradient-to-br from-gray-900 to-gray-950 rounded-lg p-3 sm:p-4 border border-gray-700/50 hover:border-orange-500/50 transition-all">
+                        <div className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">Pro</div>
+                        <div className="text-lg sm:text-2xl font-bold text-white">Member</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Links Section - Advanced UI */}
                   <div className="bg-gradient-to-br from-gray-900/80 to-gray-950/80 backdrop-blur-xl rounded-xl sm:rounded-2xl border border-gray-800/50 p-4 sm:p-6">
                     <h3 className="text-base sm:text-lg font-bold text-white mb-4 sm:mb-6 flex items-center gap-2">
                       <Globe className="w-4 sm:w-5 h-4 sm:h-5" style={{ color: profile.primaryColor || "#8B5CF6" }} />
@@ -620,7 +652,7 @@ export default function PublicProfile() {
                     </h3>
                     
                     {sortedLinks.length === 0 ? (
-                      <div className="text-center py-8 sm:py-12">
+                      <div className="text-center py-12 sm:py-16">
                         <div 
                           className="w-14 sm:w-16 h-14 sm:h-16 mx-auto mb-4 rounded-xl sm:rounded-2xl flex items-center justify-center"
                           style={{ background: `${profile.primaryColor || "#8B5CF6"}20` }}
