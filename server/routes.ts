@@ -12,6 +12,31 @@ import { promises as fs } from "fs";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import rateLimit from "express-rate-limit";
+
+const authRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: "Too many login attempts, please try again later" },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const uploadRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 20,
+  message: { error: "Too many uploads, please try again later" },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const apiRateLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 100,
+  message: { error: "Too many requests, please slow down" },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 function getJWTSecret(): string {
   const secret = process.env.JWT_SECRET;
@@ -56,19 +81,18 @@ function authenticate(req: any): JWTPayload | null {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  app.use('/api/', apiRateLimiter);
+  
   // Login endpoint
-  app.post("/api/auth/login", async (req, res) => {
+  app.post("/api/auth/login", authRateLimiter, async (req, res) => {
     try {
       const { username, password } = req.body;
-
-      console.log('Login attempt for username:', username);
 
       if (!username || !password) {
         return res.status(400).json({ error: "Username and password are required" });
       }
 
       if (typeof username !== 'string' || username.length > 30 || !/^[a-zA-Z0-9_]+$/.test(username)) {
-        console.log('Invalid username format:', username);
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
@@ -78,20 +102,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const user = await storage.getUserByUsername(username);
       if (!user) {
-        console.log('User not found for username:', username);
         await bcrypt.compare(password, '$2b$10$invalidhashtopreventtimingattack');
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
       const passwordValid = await bcrypt.compare(password, user.passwordHash);
       if (!passwordValid) {
-        console.log('Invalid password for username:', username);
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
       let profile = await storage.getProfileByUsername(username);
       if (!profile) {
-        console.log('Profile not found for username:', username, '- creating new profile');
         // Create profile if it doesn't exist (data recovery)
         profile = await storage.createProfile({
           userId: user.id,
@@ -125,7 +146,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Signup endpoint
-  app.post("/api/auth/signup", async (req, res) => {
+  app.post("/api/auth/signup", authRateLimiter, async (req, res) => {
     try {
       const { username, password } = req.body;
 
@@ -215,25 +236,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ success: true, message: "Logged out successfully" });
   });
 
-  // Configure multer for image and video uploads
+  // Configure multer for image uploads
   const upload = multer({
     storage: multer.memoryStorage(),
-    limits: { fileSize: 500 * 1024 * 1024 }, // 500MB limit
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
     fileFilter: (_req, file, cb) => {
       const allowedTypes = [
-        'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-        'video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp'
       ];
       if (allowedTypes.includes(file.mimetype)) {
         cb(null, true);
       } else {
-        cb(new Error('Invalid file type. Only JPEG, PNG, GIF, WebP images and MP4, WebM, MOV, AVI videos are allowed.'));
+        cb(new Error('Invalid file type. Only JPEG, PNG, GIF, WebP images are allowed.'));
       }
     }
   });
 
   // Image upload endpoint
-  app.post("/api/upload-image", async (req, res, next) => {
+  app.post("/api/upload-image", uploadRateLimiter, async (req, res, next) => {
     try {
       const auth = authenticate(req);
       if (!auth) {
