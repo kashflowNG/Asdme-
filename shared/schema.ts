@@ -32,9 +32,8 @@ export const profiles = pgTable("profiles", {
   fontFamily: text("font_family").default("DM Sans"),
   buttonStyle: text("button_style").default("rounded"),
   
-  // Custom Template (HTML only for security - CSS disabled)
-  templateHTML: text("template_html"),
-  useCustomTemplate: boolean("use_custom_template").notNull().default(false),
+  // Applied Theme Template
+  appliedTemplateId: varchar("applied_template_id"),
   
   // SEO & Metadata
   seoTitle: text("seo_title"),

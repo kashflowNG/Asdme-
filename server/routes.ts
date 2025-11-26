@@ -1180,12 +1180,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.updateTemplateUsage(templateId);
       
       const updatedProfile = await storage.updateProfile(profile.id, {
-        templateHTML: template.htmlContent,
-        useCustomTemplate: true,
+        appliedTemplateId: templateId,
       });
       
       res.json({ success: true, profile: updatedProfile });
     } catch (error) { res.status(500).json({ error: "Failed to apply template" }); }
+  });
+
+  // Remove/Reset template from profile
+  app.post("/api/profile/reset-template", async (req, res) => {
+    try {
+      const auth = authenticate(req);
+      if (!auth) return res.status(401).json({ error: "Not authenticated" });
+      const profile = await storage.getProfileByUsername(auth.username);
+      if (!profile) return res.status(404).json({ error: "Profile not found" });
+      
+      const updatedProfile = await storage.updateProfile(profile.id, {
+        appliedTemplateId: null,
+      });
+      
+      res.json({ success: true, profile: updatedProfile });
+    } catch (error) { res.status(500).json({ error: "Failed to reset template" }); }
   });
 
   // Admin - Delete template
