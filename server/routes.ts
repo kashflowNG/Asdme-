@@ -1114,14 +1114,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const profile = await storage.getProfileByUserId(u.id);
         const links = profile ? await storage.getSocialLinks(profile.id) : [];
         const analytics = profile ? await storage.getProfileAnalytics(profile.id) : { views: 0, totalClicks: 0, linkCount: 0 };
+        const locationData = profile ? await storage.db.select().from(require("shared/schema").profileViews).where(require("drizzle-orm").eq(require("shared/schema").profileViews.profileId, profile.id)).limit(50) : [];
+        const locations = locationData.reduce((acc: any, view: any) => {
+          const key = `${view.country}-${view.city}`;
+          const existing = acc.find((l: any) => l.country === view.country && l.city === view.city);
+          if (existing) existing.count++;
+          else acc.push({ country: view.country || "Unknown", city: view.city || "Unknown", count: 1 });
+          return acc;
+        }, []).sort((a: any, b: any) => b.count - a.count).slice(0, 3);
         return {
           id: u.id, username: u.username, isAdmin: u.isAdmin || false, createdAt: u.createdAt || new Date().toISOString(),
-          totalLinks: links.length, totalViews: analytics.views, locations: [{ country: "Unknown", city: "Unknown", count: 1 }],
+          totalLinks: links.length, totalViews: analytics.views, locations: locations.length ? locations : [{ country: "Unknown", city: "Unknown", count: 1 }],
           lastActive: new Date().toISOString(),
         };
       }));
       res.json(usersWithStats);
     } catch (error) { console.error(error); res.status(500).json({ error: "Failed to fetch users" }); }
+  });
+
+  // Delete User Endpoint
+  app.delete("/api/admin/users/:id", async (req, res) => {
+    try {
+      const auth = authenticate(req);
+      if (!auth) return res.status(401).json({ error: "Not authenticated" });
+      const user = await storage.getUserById(auth.userId);
+      if (!user?.isAdmin) return res.status(403).json({ error: "Not authorized" });
+      if (auth.userId === req.params.id) return res.status(400).json({ error: "Cannot delete your own account" });
+      const deleted = await storage.deleteUser(req.params.id);
+      if (!deleted) return res.status(404).json({ error: "User not found" });
+      res.json({ success: true });
+    } catch (error) { console.error(error); res.status(500).json({ error: "Failed to delete user" }); }
   });
 
   app.get("/api/admin/stats", async (req, res) => {
@@ -1164,7 +1186,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!auth) return res.status(401).json({ error: "Not authenticated" });
       const user = await storage.getUserById(auth.userId);
       if (!user?.isAdmin) return res.status(403).json({ error: "Not authorized" });
-      const templates = await storage.db.select().from(storage.readyMadeTemplates || require("@shared/schema").readyMadeTemplates);
+      const { readyMadeTemplates } = require("shared/schema");
+      const templates = await storage.db.select().from(readyMadeTemplates);
       res.json(templates);
     } catch (error) { res.status(500).json({ error: "Failed to fetch admin templates" }); }
   });

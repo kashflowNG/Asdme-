@@ -217,6 +217,21 @@ export class DatabaseStorage implements IStorage {
     await this.db.update(readyMadeTemplates).set({ usageCount: drizzleSql`usage_count + 1` }).where(eq(readyMadeTemplates.id, templateId));
   }
 
+  async updateReadyMadeTemplate(templateId: string, updates: Partial<ReadyMadeTemplate>): Promise<ReadyMadeTemplate | undefined> {
+    if (this.memoryStore) {
+      const templates = (this.memoryStore as any).templates || new Map();
+      const template = templates.get(templateId);
+      if (template) {
+        const updated = { ...template, ...updates };
+        templates.set(templateId, updated);
+        return updated;
+      }
+      return undefined;
+    }
+    const result = await this.db.update(readyMadeTemplates).set(updates).where(eq(readyMadeTemplates.id, templateId)).returning();
+    return result[0];
+  }
+
   async deleteReadyMadeTemplate(templateId: string): Promise<boolean> {
     if (this.memoryStore) {
       const templates = (this.memoryStore as any).templates || new Map();
@@ -224,6 +239,33 @@ export class DatabaseStorage implements IStorage {
     }
     const result = await this.db.delete(readyMadeTemplates).where(eq(readyMadeTemplates.id, templateId));
     return !!result;
+  }
+
+  async deleteUser(userId: string): Promise<boolean> {
+    if (this.memoryStore) {
+      const user = await this.getUserById(userId);
+      if (user) {
+        this.memoryStore.users.delete(userId);
+        this.memoryStore.users.delete(user.username);
+        const profile = Array.from(this.memoryStore.profiles.values()).find(p => p.userId === userId);
+        if (profile) this.memoryStore.profiles.delete(profile.id);
+        return true;
+      }
+      return false;
+    }
+    const userToDelete = await this.getUserById(userId);
+    if (!userToDelete) return false;
+    const profile = await this.getProfileByUserId(userId);
+    if (profile) {
+      await this.db.delete(socialLinks).where(eq(socialLinks.profileId, profile.id));
+      await this.db.delete(linkGroups).where(eq(linkGroups.profileId, profile.id));
+      await this.db.delete(contentBlocks).where(eq(contentBlocks.profileId, profile.id));
+      await this.db.delete(linkClicks).where(eq(linkClicks.linkId, sql`(SELECT id FROM social_links WHERE profile_id = ${profile.id})`));
+      await this.db.delete(profileViews).where(eq(profileViews.profileId, profile.id));
+      await this.db.delete(profiles).where(eq(profiles.id, profile.id));
+    }
+    await this.db.delete(users).where(eq(users.id, userId));
+    return true;
   }
 
   async getProfile(id: string): Promise<Profile | undefined> {
