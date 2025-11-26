@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { TemplateManager } from "@/components/TemplateManager";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Users, Globe, Activity, BarChart3, LogOut, Search, Trash2, Shield, Sparkles } from "lucide-react";
 
@@ -38,9 +38,11 @@ export default function AdminDashboard() {
     })();
   }, []);
 
-  const { data: users = [], isLoading } = useQuery({
+  const { data: users = [], isLoading, refetch } = useQuery<AdminUser[]>({
     queryKey: ["/api/admin/users"],
+    queryFn: () => apiRequest("GET", "/api/admin/users"),
     enabled: isAdmin,
+    refetchInterval: 30000,
   });
 
   const { data: stats } = useQuery<{ totalUsers: number; totalLinks: number; totalViews: number; uniqueCountries: number }>({
@@ -49,39 +51,51 @@ export default function AdminDashboard() {
     initialData: { totalUsers: 0, totalLinks: 0, totalViews: 0, uniqueCountries: 0 },
   });
 
-  const handleDeleteUser = async (userId: string) => {
-    if (!confirm("Are you sure you want to delete this user?")) return;
-    try {
-      await apiRequest("DELETE", `/api/admin/users/${userId}`);
+  const deleteUserMutation = useMutation({
+    mutationFn: (userId: string) => apiRequest("DELETE", `/api/admin/users/${userId}`),
+    onSuccess: () => {
+      refetch();
+      queryClient.refetchQueries({ queryKey: ["/api/admin/stats"] });
       toast({
         title: "User deleted",
         description: "The user has been removed from the system.",
       });
-    } catch (error) {
+    },
+    onError: () => {
       toast({
         title: "Error",
         description: "Failed to delete user",
         variant: "destructive",
       });
-    }
-  };
+    },
+  });
 
-  const handleToggleAdmin = async (userId: string, isCurrentAdmin: boolean) => {
-    try {
-      await apiRequest("PATCH", `/api/admin/users/${userId}`, {
-        isAdmin: !isCurrentAdmin,
-      });
+  const toggleAdminMutation = useMutation({
+    mutationFn: (data: { userId: string; isAdmin: boolean }) =>
+      apiRequest("PATCH", `/api/admin/users/${data.userId}`, { isAdmin: data.isAdmin }),
+    onSuccess: () => {
+      refetch();
       toast({
         title: "Updated",
-        description: `User admin status changed`,
+        description: "User admin status changed",
       });
-    } catch (error) {
+    },
+    onError: () => {
       toast({
         title: "Error",
         description: "Failed to update user",
         variant: "destructive",
       });
-    }
+    },
+  });
+
+  const handleDeleteUser = (userId: string) => {
+    if (!confirm("Are you sure you want to delete this user?")) return;
+    deleteUserMutation.mutate(userId);
+  };
+
+  const handleToggleAdmin = (userId: string, isCurrentAdmin: boolean) => {
+    toggleAdminMutation.mutate({ userId, isAdmin: !isCurrentAdmin });
   };
 
   if (!isAdmin) {
@@ -187,6 +201,8 @@ export default function AdminDashboard() {
 
               {isLoading ? (
                 <p className="text-muted-foreground text-center py-8">Loading users...</p>
+              ) : filteredUsers.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">No users found</p>
               ) : (
                 <div className="space-y-2 max-h-[600px] overflow-y-auto">
                   {filteredUsers.map((user) => (
@@ -215,6 +231,7 @@ export default function AdminDashboard() {
                           size="sm"
                           variant={user.isAdmin ? "destructive" : "outline"}
                           onClick={() => handleToggleAdmin(user.id, user.isAdmin)}
+                          disabled={toggleAdminMutation.isPending}
                         >
                           {user.isAdmin ? "Remove Admin" : "Make Admin"}
                         </Button>
@@ -222,6 +239,7 @@ export default function AdminDashboard() {
                           size="sm"
                           variant="ghost"
                           onClick={() => handleDeleteUser(user.id)}
+                          disabled={deleteUserMutation.isPending}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
