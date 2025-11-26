@@ -63,7 +63,9 @@ export function SEOEditor({ profile, onUpdate }: SEOEditorProps) {
     return null;
   }
 
-  const profileUrl = `${window.location.origin}/user/${profile.username}`;
+  const profileUrl = typeof window !== 'undefined' 
+    ? `${window.location.protocol}//${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}/user/${profile.username}`
+    : `https://neropage.com/user/${profile.username}`;
 
   return (
     <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card" data-testid="card-seo-editor">

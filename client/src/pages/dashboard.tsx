@@ -1317,6 +1317,7 @@ export default function Dashboard() {
                       await queryClient.refetchQueries({ queryKey: ["/api/profiles/me"] });
                     }
                   }}
+                  updateProfile={updateProfileMutation.mutateAsync}
                 />
               )}
 
