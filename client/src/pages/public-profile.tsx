@@ -711,7 +711,6 @@ export default function PublicProfile() {
               </footer>
             )}
           </>
-        )}
       </div>
     </>
   );

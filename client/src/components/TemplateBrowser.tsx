@@ -40,6 +40,16 @@ export function TemplateBrowser() {
     }
   };
 
+  const handleResetTemplate = async () => {
+    try {
+      await apiRequest("POST", "/api/profile/reset-template", {});
+      toast({ title: "Success", description: "Template reset to default" });
+      window.location.reload();
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to reset template", variant: "destructive" });
+    }
+  };
+
   if (isLoading) return <div className="p-4">Loading templates...</div>;
 
   return (
@@ -84,6 +94,18 @@ export function TemplateBrowser() {
       {templates.length === 0 && (
         <div className="text-center py-12 text-gray-500">
           <p>No templates available yet. Check back soon!</p>
+        </div>
+      )}
+
+      {templates.length > 0 && (
+        <div className="mt-6 pt-6 border-t border-gray-200">
+          <Button
+            onClick={handleResetTemplate}
+            variant="outline"
+            className="w-full"
+          >
+            ↺ Reset to Default Template
+          </Button>
         </div>
       )}
     </div>
