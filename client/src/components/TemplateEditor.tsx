@@ -393,6 +393,192 @@ const ADVANCED_TEMPLATES = [
   animation: float 6s ease-in-out infinite;
 }
 </style>`
+  },
+  {
+    name: 'Interactive 3D Card Stack',
+    description: 'Premium 3D effect with interactive hover animations and depth',
+    preview: '🎭',
+    color: 'from-violet-600 to-cyan-600',
+    code: `<!-- 3D Card Stack Premium -->
+<div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black relative overflow-hidden">
+  <!-- Animated Background Elements -->
+  <div class="absolute inset-0">
+    <div class="absolute top-20 left-1/4 w-96 h-96 bg-violet-600/20 rounded-full blur-3xl opacity-50"></div>
+    <div class="absolute bottom-20 right-1/4 w-80 h-80 bg-cyan-600/20 rounded-full blur-3xl opacity-50"></div>
+  </div>
+
+  <div class="relative z-10 max-w-6xl mx-auto px-6 py-20">
+    <!-- Premium Header -->
+    <div class="text-center mb-20">
+      <div class="relative inline-block mb-8">
+        <div class="absolute -inset-4 bg-gradient-to-r from-violet-600 to-cyan-600 rounded-2xl opacity-25 blur-2xl"></div>
+        <div class="relative w-48 h-48 rounded-2xl bg-gradient-to-br from-violet-600 to-cyan-600 shadow-2xl transform hover:scale-105 transition-transform duration-300 flex items-center justify-center">
+          <span class="text-7xl font-black text-white">@</span>
+        </div>
+      </div>
+      <h1 class="text-6xl md:text-7xl font-black mt-8 mb-4 bg-gradient-to-r from-violet-400 via-cyan-400 to-violet-400 bg-clip-text text-transparent">@{{username}}</h1>
+      <p class="text-xl text-gray-300 max-w-2xl mx-auto mb-4">{{bio}}</p>
+      <p class="text-sm text-gray-400 font-mono">🚀 Premium Profile • Neropage v2.0</p>
+    </div>
+
+    <!-- About & Business Section -->
+    <div class="grid md:grid-cols-2 gap-6 mb-12">
+      {{aboutMe ? \`<div class="backdrop-blur-xl bg-white/5 border border-white/20 rounded-2xl p-8 hover:border-violet-500/50 transition-colors">
+        <h3 class="text-xl font-bold text-violet-400 mb-4">📝 About Me</h3>
+        <p class="text-gray-300 leading-relaxed">{{aboutMe}}</p>
+      </div>\` : ''}}
+      {{businessInfo ? \`<div class="backdrop-blur-xl bg-white/5 border border-white/20 rounded-2xl p-8 hover:border-cyan-500/50 transition-colors">
+        <h3 class="text-xl font-bold text-cyan-400 mb-4">💼 Business</h3>
+        <p class="text-gray-300 leading-relaxed whitespace-pre-line">{{businessInfo}}</p>
+      </div>\` : ''}}
+    </div>
+
+    <!-- Premium Links Grid -->
+    <div class="mb-12">
+      <h2 class="text-3xl font-bold text-center mb-8 text-white">Connect With Me</h2>
+      <div class="grid md:grid-cols-3 gap-4">
+        {{socialLinks}}
+      </div>
+    </div>
+
+    <!-- Content Showcase -->
+    <div class="space-y-6">
+      {{contentBlocks}}
+    </div>
+  </div>
+
+  <!-- Premium Footer -->
+  <footer class="relative z-10 border-t border-white/10 bg-gradient-to-t from-black via-slate-900/50 to-transparent py-12 mt-20">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl font-black bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">N</span>
+          <p class="text-gray-400">Powered by Neropage</p>
+        </div>
+        <p class="text-gray-500 text-sm">© 2024 @{{username}} • Premium Edition</p>
+      </div>
+    </div>
+  </footer>
+</div>`
+  },
+  {
+    name: 'Bold & Vibrant Web3',
+    description: 'Modern Web3 aesthetic with crypto vibes and bold typography',
+    preview: '🔥',
+    color: 'from-orange-500 via-pink-500 to-rose-500',
+    code: `<!-- Web3 Crypto Premium -->
+<div class="min-h-screen bg-black relative overflow-hidden">
+  <!-- Animated Grid Background -->
+  <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 1px); background-size: 50px 50px;"></div>
+  
+  <!-- Glowing Orbs -->
+  <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-orange-500/30 rounded-full blur-3xl animate-pulse"></div>
+  <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-pink-500/30 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
+
+  <div class="relative z-10 max-w-6xl mx-auto px-6 py-20">
+    <!-- Bold Typography Header -->
+    <div class="text-center mb-20">
+      <div class="mb-8">
+        <div class="inline-block">
+          <span class="text-9xl font-black tracking-tighter" style="background: linear-gradient(135deg, #FF6B35, #FF006E, #FFB703); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">@{{username}}</span>
+        </div>
+      </div>
+      <p class="text-2xl text-gray-300 max-w-3xl mx-auto font-semibold mb-4">{{bio}}</p>
+      <div class="flex items-center justify-center gap-3 mb-8">
+        <div class="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
+        <span class="text-lg font-bold text-transparent bg-gradient-to-r from-orange-400 via-pink-400 to-rose-400 bg-clip-text">ONLINE • ACTIVE</span>
+        <div class="w-3 h-3 bg-pink-500 rounded-full animate-pulse" style="animation-delay: 0.5s;"></div>
+      </div>
+    </div>
+
+    <!-- Info Sections -->
+    <div class="grid md:grid-cols-2 gap-6 mb-16">
+      {{aboutMe ? \`<div class="border-2 border-orange-500/50 rounded-xl p-8 bg-gradient-to-br from-orange-500/10 to-transparent">
+        <h3 class="text-2xl font-black text-orange-400 mb-3 uppercase tracking-wide">About</h3>
+        <p class="text-gray-300 leading-relaxed">{{aboutMe}}</p>
+      </div>\` : ''}}
+      {{businessInfo ? \`<div class="border-2 border-pink-500/50 rounded-xl p-8 bg-gradient-to-br from-pink-500/10 to-transparent">
+        <h3 class="text-2xl font-black text-pink-400 mb-3 uppercase tracking-wide">Services</h3>
+        <p class="text-gray-300 leading-relaxed whitespace-pre-line">{{businessInfo}}</p>
+      </div>\` : ''}}
+    </div>
+
+    <!-- Bold CTA Links -->
+    <div class="mb-16">
+      <h2 class="text-5xl font-black text-center mb-10 text-white uppercase tracking-tighter">Join My Network</h2>
+      <div class="grid md:grid-cols-2 gap-4">
+        {{socialLinks}}
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="space-y-6">
+      {{contentBlocks}}
+    </div>
+  </div>
+
+  <!-- Bold Footer -->
+  <footer class="relative z-10 border-t-2 border-orange-500/30 bg-gradient-to-t from-black to-transparent py-12 mt-20">
+    <div class="max-w-6xl mx-auto px-6 text-center">
+      <h3 class="text-3xl font-black mb-2 text-transparent bg-gradient-to-r from-orange-400 via-pink-400 to-rose-400 bg-clip-text">NEROPAGE PREMIUM</h3>
+      <p class="text-gray-500">© 2024 @{{username}} • Web3 Edition</p>
+    </div>
+  </footer>
+</div>`
+  },
+  {
+    name: 'Minimalist Sidebar',
+    description: 'Executive-style sidebar layout with professional navigation',
+    preview: '💼',
+    color: 'from-slate-600 to-slate-700',
+    code: `<!-- Executive Sidebar Layout -->
+<div class="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 flex">
+  <!-- Sidebar -->
+  <div class="w-80 bg-gradient-to-b from-slate-800 to-slate-900 border-r border-slate-700 p-8 flex flex-col">
+    <!-- Profile Section -->
+    <div class="mb-12">
+      <div class="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 mx-auto mb-6 shadow-lg border-4 border-slate-700"></div>
+      <h1 class="text-3xl font-bold text-center text-white">@{{username}}</h1>
+      <p class="text-center text-gray-400 mt-2 text-sm">Professional</p>
+    </div>
+
+    <!-- About Card -->
+    {{aboutMe ? \`<div class="mb-8 pb-8 border-b border-slate-700">
+      <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">About</h3>
+      <p class="text-sm text-gray-300 leading-relaxed">{{aboutMe}}</p>
+    </div>\` : ''}}
+
+    <!-- Business Info -->
+    {{businessInfo ? \`<div class="mb-8 pb-8 border-b border-slate-700">
+      <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Services</h3>
+      <p class="text-sm text-gray-300 leading-relaxed whitespace-pre-line">{{businessInfo}}</p>
+    </div>\` : ''}}
+
+    <!-- Links Section -->
+    <div class="flex-1">
+      <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Connect</h3>
+      <div class="space-y-2">
+        {{socialLinks}}
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="flex-1 p-12 overflow-auto">
+    <div class="max-w-4xl mx-auto">
+      <!-- Hero Section -->
+      <div class="mb-16">
+        <h2 class="text-6xl font-bold mb-4 text-white">Welcome</h2>
+        <p class="text-xl text-gray-400 leading-relaxed">{{bio}}</p>
+      </div>
+
+      <!-- Content Blocks -->
+      <div class="space-y-8">
+        {{contentBlocks}}
+      </div>
+    </div>
+  </div>
+</div>`
   }
 ];
 
@@ -814,7 +1000,7 @@ export function TemplateEditor({ profile, onUpdate }: TemplateEditorProps) {
               <li>• Use <code className="font-mono">style</code> attribute for inline CSS styling</li>
               <li>• Tailwind CSS classes work perfectly in templates</li>
               <li>• All HTML elements are supported (except script tags for security)</li>
-              <li>• Variables are case-sensitive: use <code className="font-mono">{{'{{'}}username{{'}}'}}</code> exactly</li>
+              <li>• Variables are case-sensitive: use <code className="font-mono">{`{{username}}`}</code> exactly</li>
               <li>• Test your template in the Live Preview before saving</li>
             </ul>
           </Card>
