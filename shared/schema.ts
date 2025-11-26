@@ -134,6 +134,22 @@ export const formSubmissions = pgTable("form_submissions", {
   userAgent: text("user_agent"),
 });
 
+export const readyMadeTemplates = pgTable("ready_made_templates", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description"),
+  htmlContent: text("html_content").notNull(),
+  preview: text("preview"),
+  badge: text("badge"),
+  badgeColor: text("badge_color").default("#8B5CF6"),
+  createdBy: varchar("created_by").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  category: text("category").default("general"),
+  createdAt: text("created_at").notNull().default(sql`now()`),
+  updatedAt: text("updated_at").notNull().default(sql`now()`),
+  usageCount: integer("usage_count").notNull().default(0),
+});
+
 export const insertProfileSchema = createInsertSchema(profiles).omit({
   id: true,
 });
@@ -237,3 +253,13 @@ export type ContentBlock = typeof contentBlocks.$inferSelect;
 export type InsertContentBlock = z.infer<typeof insertContentBlockSchema>;
 export type FormSubmission = typeof formSubmissions.$inferSelect;
 export type InsertFormSubmission = z.infer<typeof insertFormSubmissionSchema>;
+export type ReadyMadeTemplate = typeof readyMadeTemplates.$inferSelect;
+
+export const insertReadyMadeTemplateSchema = createInsertSchema(readyMadeTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  usageCount: true,
+});
+
+export type InsertReadyMadeTemplate = z.infer<typeof insertReadyMadeTemplateSchema>;
