@@ -5,7 +5,8 @@ import {
   type ContentBlock, type InsertContentBlock,
   type FormSubmission, type InsertFormSubmission,
   type User, type InsertUser,
-  profiles, socialLinks, linkGroups, contentBlocks, formSubmissions, linkClicks, profileViews, users
+  type ReadyMadeTemplate, type InsertReadyMadeTemplate,
+  profiles, socialLinks, linkGroups, contentBlocks, formSubmissions, linkClicks, profileViews, users, readyMadeTemplates
 } from "@shared/schema";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -173,6 +174,46 @@ export class DatabaseStorage implements IStorage {
       console.error("getAllUsers error:", error);
       return [];
     }
+  }
+
+  // Ready-Made Templates
+  async createReadyMadeTemplate(template: InsertReadyMadeTemplate): Promise<ReadyMadeTemplate> {
+    if (this.memoryStore) {
+      const newTemplate: ReadyMadeTemplate = {
+        id: `tpl-${Date.now()}`,
+        ...template,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        usageCount: 0,
+      };
+      (this.memoryStore as any).templates = (this.memoryStore as any).templates || new Map();
+      (this.memoryStore as any).templates.set(newTemplate.id, newTemplate);
+      return newTemplate;
+    }
+    const result = await this.db.insert(readyMadeTemplates).values(template).returning();
+    return result[0];
+  }
+
+  async getReadyMadeTemplates(): Promise<ReadyMadeTemplate[]> {
+    if (this.memoryStore) {
+      const templates = (this.memoryStore as any).templates || new Map();
+      return Array.from(templates.values());
+    }
+    return await this.db.select().from(readyMadeTemplates).where(eq(readyMadeTemplates.isActive, true));
+  }
+
+  async updateTemplateUsage(templateId: string): Promise<void> {
+    if (this.memoryStore) return;
+    await this.db.update(readyMadeTemplates).set({ usageCount: drizzleSql`usage_count + 1` }).where(eq(readyMadeTemplates.id, templateId));
+  }
+
+  async deleteReadyMadeTemplate(templateId: string): Promise<boolean> {
+    if (this.memoryStore) {
+      const templates = (this.memoryStore as any).templates || new Map();
+      return templates.delete(templateId);
+    }
+    const result = await this.db.delete(readyMadeTemplates).where(eq(readyMadeTemplates.id, templateId));
+    return !!result;
   }
 
   async getProfile(id: string): Promise<Profile | undefined> {
