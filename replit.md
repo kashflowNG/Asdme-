@@ -8,29 +8,55 @@ Neropage is a modern, neon-themed platform for creating personalized social medi
 
 **Target Use Case**: Content creators, influencers, and professionals who need a simple way to share multiple links through a single, visually appealing page.
 
-## Recent Changes (November 21, 2025)
+## Recent Changes (November 26, 2025)
 
-### Authentication System Overhaul
-- **Fixed Critical Issue**: Replaced all `getDefaultProfile()` calls with proper session-based authentication
-  - Previously, all logged-in users were modifying the same default profile
-  - Now each user only accesses and modifies their own profile data
-- **Session-Based Authorization**: All protected endpoints now verify `req.session.username` before allowing access
-- **Ownership Verification**: Added ownership checks to all destructive operations (delete/update) to prevent cross-account modifications
-- **Affected Endpoints**: Profile management, links, link groups, content blocks, form submissions, analytics, and file uploads
+### Video Background Trimmer Feature (COMPLETE)
+- **Interactive Video Trimmer Component** - Users can upload videos and select exactly which 5-second clip they want
+  - Real-time timeline visualization with drag-to-select
+  - Shows start/end times in MM:SS format
+  - Play/pause controls for preview
+  - Visual timeline bar showing selected region
+- **Backend Video Processing** - FFmpeg-based trimming on server side
+  - `/api/upload-video` endpoint accepts video uploads with start/end times
+  - Trims video to user-selected 5-second clip
+  - Supports MP4, WebM, OGG formats (up to 100MB)
+  - Falls back gracefully if FFmpeg unavailable
+- **Integrated into Dashboard** - Added VideoTrimmer component to Appearance settings
+  - Users can still paste URL OR upload & trim file
+  - Background video field stores both trimmed and URL sources
+  - Toast notifications on upload success/failure
 
-### SEO Improvements
-- Updated meta title to: "Neropage - Your Ultimate Link-in-Bio Solution | All Your Links, One Page"
-- Enhanced meta description with better keywords and value proposition
-- Added additional Open Graph metadata (image dimensions, locale)
-- Improved Twitter Card metadata with creator and site tags
+### Landing Page Redesign (COMPLETE)
+- **Linktree/Beacons-Style Layout** - Replaced Facebook-style overlapping design with clean centered layout
+  - Single column, focused design
+  - Avatar centered at top with verification badge
+  - Username, bio, and links all center-aligned
+  - Mobile-optimized for all screen sizes
+- **Removed Metrics per User Request**
+  - NO click counts displayed on public profile
+  - NO view counts or analytics visible to visitors
+  - NO stats summary boxes
+  - NO testimonials section
+  - NO popular links widget
+  - Focus purely on content and links
 
-### Known Limitations
-- Password verification is currently simplified (accepts any password) - this is by design for development
-- For production use, implement proper password hashing (bcrypt) and verification in the login endpoint
+### User Preferences Implemented
+- **NO stats on public landing pages** - All analytics hidden from public view
+- **NO testimonials** - Removed social proof testimonials section
+- **Design choice**: Linktree/Beacons-style centered layout instead of complex overlapping design
+- **Clean, minimal focus** - Profile page focused solely on user content and links
 
-## User Preferences
+## Production Status
 
-Preferred communication style: Simple, everyday language.
+**Deployment Configuration**: Autoscale with automatic build
+- Build command: `npm run build`
+- Run command: `node dist/index.js`
+- Ready to publish via Replit deployment
+
+**Build Status**: ✅ Production build succeeds
+- Frontend: 743.26 kB (gzip: 223.58 kB)
+- Backend: 79.4 kB
+- All assets optimized
 
 ## System Architecture
 
@@ -43,129 +69,103 @@ Preferred communication style: Simple, everyday language.
 - **UI Components**: Shadcn/ui component library built on Radix UI primitives
 - **Styling**: TailwindCSS with custom neo-neon theme configuration
 
-**Design Rationale**: The choice of Vite provides extremely fast hot module replacement during development, while React Query eliminates the need for complex state management libraries by handling server state, caching, and synchronization automatically. Wouter was chosen over React Router for its minimal bundle size and simplicity.
-
 **Key Pages**:
 - Dashboard (`/`) - Profile editor and link management interface
 - Public Profile (`/user/:username`) - Publicly viewable landing page with all social links
 
-**Offline Support**: 
-- Service Worker implementation for caching static assets and API responses
-- TanStack Query persistence layer stores cached data in localStorage
-- Users can view their profile and links even without internet connection
-
-**Drag-and-Drop**: Uses @dnd-kit library for reordering social links with keyboard accessibility support.
+**Key Components**:
+- `VideoTrimmer.tsx` - Interactive video selection with timeline slider
+- `AppearanceEditor.tsx` - Profile customization including video background upload
+- `public-profile.tsx` - Clean Linktree-style landing page rendering
 
 ### Backend Architecture
 
 **Framework**: Express.js with TypeScript
-- **Server Setup**: Custom Vite middleware integration for development HMR
+- **Database**: PostgreSQL with Drizzle ORM (Neon Database)
 - **API Design**: RESTful endpoints for profile and social link management
 - **Validation**: Zod schemas for runtime type validation
+- **File Upload**: Multer with rate limiting (20 uploads/hour per user)
 
-**Storage Layer**: Currently file-based JSON storage (FileStorage class)
-- **Profile Data**: `data/profiles.json`
-- **Social Links**: `data/links.json`
-- **Design Decision**: File-based storage chosen for simplicity and easy migration path to database
-- **Interface Pattern**: IStorage interface abstracts storage implementation, making it trivial to swap to PostgreSQL/Drizzle later
+**Key Endpoints**:
+- `GET /api/profiles/me` - Fetch current user's profile
+- `PATCH /api/profiles/me` - Update profile including appearance settings
+- `GET /api/profiles/:username` - Fetch public profile by username
+- `POST /api/upload-image` - Upload avatar/background images
+- `POST /api/upload-video` - Upload and trim background videos
+- `GET /api/links` - Fetch user's links
+- `POST /api/links` - Create new link
+- `DELETE /api/links/:id` - Delete link
 
-**API Endpoints**:
-- `GET /api/profiles/me` - Fetch default profile
-- `GET /api/profiles/:username` - Fetch profile by username
-- `PATCH /api/profiles/me` - Update profile
-- `GET /api/profiles/:username/links` - Fetch social links
-- `POST /api/links` - Create new social link
-- `DELETE /api/links/:id` - Delete social link
-- `PATCH /api/links/reorder` - Reorder links via drag-and-drop
-
-**Development vs Production**:
-- Development: Vite dev server with HMR middleware
-- Production: Compiled Express server serving static assets from `dist/public`
+**Video Processing**:
+- Uses FFmpeg for video trimming
+- Stores videos in `data/uploads` directory
+- Serves via `/uploads` endpoint with proper MIME types
+- Supports multiple video formats with fallback handling
 
 ### Data Models
 
-**Database Schema** (Drizzle ORM):
-- **profiles** table: id, username (unique), bio, avatar
-- **social_links** table: id, profileId, platform, url, customTitle, order
-
-**Type Safety**: TypeScript types generated from Drizzle schemas and shared between client/server via `shared/schema.ts`
-
-**Migration Ready**: Drizzle configuration present (`drizzle.config.ts`) for future PostgreSQL migration via Neon Database
+**Core Tables** (Drizzle ORM):
+- **profiles**: User profile data including username, bio, avatar, background video/image
+- **social_links**: Social media links with ordering, scheduling, and click tracking
+- **content_blocks**: User-created content blocks (videos, images, text, forms)
+- **form_submissions**: Contact form submissions from public profiles
+- **ready_made_templates**: Admin-curated template library with draft/deploy workflow
 
 ### Design System
 
 **Neo-Neon Theme**:
-- Primary colors: Neon Purple (#8B5CF6), Electric Blue (#3B82F6), Cyber Cyan (#06B6D4), Soft Magenta (#EC4899)
+- Primary colors: Neon Purple (#8B5CF6), Electric Blue (#3B82F6), Cyber Cyan (#06B6D4)
 - Dark backgrounds: Deep Midnight Black (#0A0F1F), Carbon Slate Gray (#1E293B)
-- Visual effects: Neon glows, gradient borders, blur-glass cards, floating animations
-- Typography: DM Sans/Inter for modern, clean readability
+- Visual effects: Neon glows, gradient borders, blur-glass cards
 
 **Component Strategy**: 
 - Shadcn/ui provides unstyled, accessible primitives
 - Custom theme variables in CSS override default Shadcn colors
-- Consistent spacing system using Tailwind utilities (2, 4, 6, 8, 12, 16px units)
-
-**Responsive Design**: Mobile-first approach with max-width containers and single-column layouts optimized for social sharing.
+- Consistent spacing and responsive design
 
 ## External Dependencies
 
-### Third-Party Services
+### Video Processing
+- **ffmpeg-static**: FFmpeg binaries for server-side video trimming and compression
 
-**Neon Database** (Configured but not yet active):
-- PostgreSQL-compatible serverless database
-- Connection via `@neondatabase/serverless` driver
-- Environment variable: `DATABASE_URL`
-- **Current Status**: Drizzle schema and config ready; currently using file storage
-
-### Frontend Libraries
-
-**UI & Interaction**:
-- **Radix UI**: Accessible component primitives (dialogs, dropdowns, tooltips, etc.)
-- **@dnd-kit**: Drag-and-drop functionality with accessibility support
-- **react-icons**: Icon library including SimpleIcons for social platform logos
-- **lucide-react**: Modern icon set for UI elements
-
-**Data Management**:
-- **TanStack Query**: Server state management with automatic caching
-- **@tanstack/query-sync-storage-persister**: Persist cache to localStorage for offline support
-- **Zod**: Runtime schema validation shared between client and server
-
-**Styling**:
-- **TailwindCSS**: Utility-first CSS framework
-- **class-variance-authority**: Type-safe component variant management
-- **tailwind-merge**: Intelligent class merging utility
-
-### Backend Libraries
-
-**Server Framework**:
-- **Express.js**: Web server and API routing
-- **Vite**: Development server with HMR middleware integration
-
-**Database & ORM** (Prepared for migration):
+### Database
+- **Neon Database**: PostgreSQL serverless backend
 - **Drizzle ORM**: Type-safe SQL query builder
-- **drizzle-kit**: Schema migrations and management
 - **@neondatabase/serverless**: PostgreSQL driver for Neon
 
-**Build & Development**:
-- **tsx**: TypeScript execution for development
-- **esbuild**: Fast bundling for production server code
+### Frontend Libraries
+- **Radix UI**: Accessible component primitives
+- **@dnd-kit**: Drag-and-drop for link reordering
+- **TanStack Query**: Server state management with offline support
+- **TailwindCSS**: Utility-first CSS framework
 
-### PWA Capabilities
+### Backend Libraries
+- **Express.js**: Web server and API routing
+- **Multer**: File upload handling with validation
+- **bcrypt**: Password hashing and verification
+- **jsonwebtoken**: JWT authentication tokens
 
-**Service Worker**: Custom implementation in `client/public/service-worker.js`
-- Caches static assets and API responses
-- Network-first strategy for API calls with cache fallback
-- Cache versioning for automatic updates
+## Completed Features
 
-**Web App Manifest**: `client/public/manifest.json`
-- Defines app name, icons, theme colors
-- Enables "Add to Home Screen" on mobile devices
-- Standalone display mode for app-like experience
+- ✅ User authentication (signup/login/logout)
+- ✅ Profile customization (avatar, bio, theme, colors)
+- ✅ Social link management with drag-and-drop reordering
+- ✅ Link scheduling (show/hide links by date range)
+- ✅ Content blocks (videos, images, text, contact forms)
+- ✅ Contact form submissions tracking
+- ✅ Admin dashboard with user management
+- ✅ Custom domain support
+- ✅ SEO optimization (meta tags, OG tags)
+- ✅ Video background upload with interactive 5-second trimmer
+- ✅ Template system with draft/deploy workflow
+- ✅ Link analytics (admin only)
+- ✅ User deletion with cascading deletes
+- ✅ Location tracking for user logins (admin view)
+- ✅ Linktree/Beacons-style public profile layout
 
-### Font Loading
+## User Preferences
 
-**Google Fonts**: Preconnected in HTML for performance
-- DM Sans: Primary UI font
-- Fira Code: Monospace font for code elements
-- Geist Mono: Alternative monospace option
-- Architects Daughter: Decorative font option
+- Simple, everyday language communication style
+- Focus on clean, minimal design without analytics on public profiles
+- Interactive features like video trimming that give users control
+- Production-ready from day one
