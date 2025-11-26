@@ -23,6 +23,7 @@ export interface IStorage {
   getProfile(id: string): Promise<Profile | undefined>;
   getProfileByUsername(username: string): Promise<Profile | undefined>;
   getProfileByUserId(userId: string): Promise<Profile | undefined>;
+  getProfileByCustomDomain(customDomain: string): Promise<Profile | undefined>;
   getDefaultProfile(): Promise<Profile | undefined>;
   createProfile(profile: InsertProfile): Promise<Profile>;
   updateProfile(id: string, profile: Partial<Profile>): Promise<Profile | undefined>;

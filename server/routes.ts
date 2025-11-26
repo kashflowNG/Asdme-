@@ -323,11 +323,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get profile by username
+  // Middleware to check for custom domain - check before username routes
+  app.use((req, res, next) => {
+    const host = req.headers.host || '';
+    const isReplit = host.includes('replit.dev') || host.includes('localhost') || host.includes('127.0.0.1');
+    if (!isReplit && host) {
+      // Store custom domain in req for later use
+      (req as any).customDomain = host.split(':')[0];
+    }
+    next();
+  });
+
+  // Get profile by username (also checks custom domain)
   app.get("/api/profiles/:username", async (req, res) => {
     try {
       const { username } = req.params;
-      const profile = await storage.getProfileByUsername(username);
+      
+      // Check if request is for a custom domain
+      const customDomain = (req as any).customDomain;
+      let profile = null;
+      
+      if (customDomain) {
+        profile = await storage.getProfileByCustomDomain(customDomain);
+      }
+      
+      // Fall back to username lookup if no custom domain match
+      if (!profile) {
+        profile = await storage.getProfileByUsername(username);
+      }
+      
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
