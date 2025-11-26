@@ -130,7 +130,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           layout: "stacked",
           fontFamily: "DM Sans",
           buttonStyle: "rounded",
-          useCustomTemplate: false,
           hideBranding: false,
           verificationBadge: false,
         });
@@ -193,7 +192,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         layout: "stacked",
         fontFamily: "DM Sans",
         buttonStyle: "rounded",
-        useCustomTemplate: false,
         hideBranding: false,
         verificationBadge: false,
       });
@@ -1198,7 +1196,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const profile = await storage.getProfileByUserId(u.id);
         const links = profile ? await storage.getSocialLinks(profile.id) : [];
         const analytics = profile ? await storage.getProfileAnalytics(profile.id) : { views: 0, totalClicks: 0, linkCount: 0 };
-        const locationData = profile ? await storage.db.select().from(require("shared/schema").profileViews).where(require("drizzle-orm").eq(require("shared/schema").profileViews.profileId, profile.id)).limit(50) : [];
+        const locationData = profile ? await storage.getProfileViewsByProfileId(profile.id, 50) : [];
         const locations = locationData.reduce((acc: any, view: any) => {
           const key = `${view.country}-${view.city}`;
           const existing = acc.find((l: any) => l.country === view.country && l.city === view.city);
@@ -1270,8 +1268,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!auth) return res.status(401).json({ error: "Not authenticated" });
       const user = await storage.getUserById(auth.userId);
       if (!user?.isAdmin) return res.status(403).json({ error: "Not authorized" });
-      const { readyMadeTemplates } = require("shared/schema");
-      const templates = await storage.db.select().from(readyMadeTemplates);
+      const templates = await storage.getAllReadyMadeTemplates();
       res.json(templates);
     } catch (error) { res.status(500).json({ error: "Failed to fetch admin templates" }); }
   });

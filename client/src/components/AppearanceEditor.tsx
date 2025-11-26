@@ -104,13 +104,12 @@ export function AppearanceEditor({ profile, onUpdate, updateProfile }: Appearanc
         primaryColor: "#8B5CF6",
         backgroundColor: "#0A0A0F",
         backgroundType: "color",
-        backgroundImage: undefined,
-        backgroundVideo: undefined,
+        backgroundImage: "",
+        backgroundVideo: "",
         layout: "stacked",
         fontFamily: "DM Sans",
         buttonStyle: "rounded",
-        customCSS: undefined,
-        useCustomTemplate: false,
+        customCSS: "",
       });
       toast({
         title: "Reset to defaults",
@@ -281,7 +280,7 @@ export function AppearanceEditor({ profile, onUpdate, updateProfile }: Appearanc
                   id="bg-video"
                   type="url"
                   placeholder="https://example.com/background.mp4"
-                  value={profile.backgroundVideo || ""}
+                  value={(profile.backgroundVideo as string | undefined) || ""}
                   onChange={(e) => onUpdate({ backgroundVideo: e.target.value })}
                   data-testid="input-background-video"
                 />

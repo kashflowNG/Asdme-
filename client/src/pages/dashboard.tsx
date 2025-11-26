@@ -801,7 +801,7 @@ export default function Dashboard() {
             <TabsContent value="overview" className="space-y-6 mt-6">
               <AnalyticsDashboard />
               <ClickHeatmap />
-              <LinkScheduleVisualizer links={sortedLinks} />
+              <LinkScheduleVisualizer links={sortedLinks.map(l => ({ ...l, scheduleStart: l.scheduleStart || undefined, scheduleEnd: l.scheduleEnd || undefined }))} />
               <SmartRecommendations
                 existingPlatforms={links.map(l => l.platform)}
                 onAddPlatform={() => setShowAddDialog(true)}
@@ -1398,7 +1398,9 @@ export default function Dashboard() {
                       await queryClient.refetchQueries({ queryKey: ["/api/profiles/me"] });
                     }
                   }}
-                  updateProfile={updateProfileMutation.mutateAsync}
+                  updateProfile={async (updates) => {
+                    await updateProfileMutation.mutateAsync(updates);
+                  }}
                 />
               )}
             </TabsContent>
