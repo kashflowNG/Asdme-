@@ -160,6 +160,10 @@ export const updateProfileSchema = z.object({
   seoDescription: z.string().optional(),
   ogImage: z.string().optional(),
   
+  // About & Business
+  aboutMe: z.string().optional(),
+  businessInfo: z.string().optional(),
+  
   // Branding
   customDomain: z.string().optional(),
   hideBranding: z.boolean().optional(),
