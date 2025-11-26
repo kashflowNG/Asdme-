@@ -5,8 +5,16 @@ import { Eye, MousePointerClick, Link2, TrendingUp, Users, Mail, Download } from
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 
+interface AnalyticsData {
+  totalViews?: number;
+  totalClicks?: number;
+  linkCount?: number;
+  topLinks?: Array<{ platform: string; clicks: number }>;
+  recentViews?: Array<{ timestamp: string }>;
+}
+
 export function AnalyticsDashboard() {
-  const { data: analytics } = useQuery({
+  const { data: analytics = {} as AnalyticsData } = useQuery({
     queryKey: ["/api/analytics/detailed"],
   });
 
