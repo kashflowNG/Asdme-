@@ -170,8 +170,11 @@ export default function Dashboard() {
     avatar: "",
   });
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0); // State for upload progress
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadingCoverPhoto, setUploadingCoverPhoto] = useState(false);
+  const [coverPhotoProgress, setCoverPhotoProgress] = useState(0);
   const avatarInputRef = useRef<HTMLInputElement>(null);
+  const coverPhotoInputRef = useRef<HTMLInputElement>(null);
 
   const lastCommittedProfile = useRef<Profile | null>(null);
 
@@ -405,9 +408,7 @@ export default function Dashboard() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file size (500MB max)
     const maxSize = 500 * 1024 * 1024;
-
     if (file.size > maxSize) {
       toast({
         title: "Error",
@@ -417,7 +418,6 @@ export default function Dashboard() {
       return;
     }
 
-    // Validate file type
     const allowedTypes = [
       'image/jpeg', 'image/png', 'image/gif', 'image/webp',
       'video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'
@@ -435,7 +435,6 @@ export default function Dashboard() {
     setUploadProgress(0);
 
     try {
-      // Simulate progress animation
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => {
           if (prev >= 90) {
@@ -449,10 +448,7 @@ export default function Dashboard() {
       const formData = new FormData();
       formData.append('image', file);
 
-      // Use apiRequest which includes authentication headers
       const data = await apiRequest('POST', '/api/upload-image', formData);
-
-      // Update profile with the new avatar URL
       await updateProfileMutation.mutateAsync({ avatar: data.url });
 
       toast({
@@ -462,7 +458,6 @@ export default function Dashboard() {
 
       clearInterval(progressInterval);
       setUploadProgress(100);
-
     } catch (error) {
       toast({
         title: "Error",
@@ -474,9 +469,78 @@ export default function Dashboard() {
         setUploadingAvatar(false);
         setUploadProgress(0);
       }, 500);
-      // Reset the input so the same file can be uploaded again
       if (avatarInputRef.current) {
         avatarInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleCoverPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const maxSize = 500 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast({
+        title: "Error",
+        description: "File size must be less than 500MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const allowedTypes = [
+      'image/jpeg', 'image/png', 'image/gif', 'image/webp'
+    ];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Error",
+        description: "Only JPEG, PNG, GIF, WebP images are allowed for cover photos",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingCoverPhoto(true);
+    setCoverPhotoProgress(0);
+
+    try {
+      const progressInterval = setInterval(() => {
+        setCoverPhotoProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 200);
+
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const data = await apiRequest('POST', '/api/upload-image', formData);
+      await updateProfileMutation.mutateAsync({ coverPhoto: data.url });
+
+      toast({
+        title: "Cover photo uploaded",
+        description: "Your cover photo has been updated successfully",
+      });
+
+      clearInterval(progressInterval);
+      setCoverPhotoProgress(100);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to upload cover photo",
+        variant: "destructive",
+      });
+    } finally {
+      setTimeout(() => {
+        setUploadingCoverPhoto(false);
+        setCoverPhotoProgress(0);
+      }, 500);
+      if (coverPhotoInputRef.current) {
+        coverPhotoInputRef.current.value = '';
       }
     }
   };
@@ -750,6 +814,61 @@ export default function Dashboard() {
                     <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)] animate-pulse" />
                     <span className="text-xs text-muted-foreground font-medium">Active</span>
                   </div>
+                </div>
+
+                {/* Cover Photo Section */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium">Cover Photo</Label>
+                  <div className="relative w-full h-32 bg-gradient-to-br from-primary/20 to-cyan-500/10 rounded-lg overflow-hidden border-2 border-dashed border-border">
+                    {profile?.coverPhoto ? (
+                      <img 
+                        src={profile.coverPhoto} 
+                        alt="Cover" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-muted-foreground">
+                        <div className="text-center">
+                          <Camera className="w-6 h-6 mx-auto mb-1 opacity-50" />
+                          <p className="text-xs">No cover photo yet</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      ref={coverPhotoInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
+                      onChange={handleCoverPhotoUpload}
+                      className="hidden"
+                      data-testid="input-cover-photo-file"
+                    />
+                    <Button
+                      variant="outline"
+                      onClick={() => coverPhotoInputRef.current?.click()}
+                      disabled={!profile || uploadingCoverPhoto}
+                      className="flex-1 gap-2"
+                      data-testid="button-upload-cover-photo"
+                    >
+                      <Upload className="w-4 h-4" />
+                      {uploadingCoverPhoto ? "Uploading..." : "Upload Cover Photo"}
+                    </Button>
+                    {profile?.coverPhoto && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => updateProfileMutation.mutate({ coverPhoto: "" })}
+                        disabled={uploadingCoverPhoto}
+                        data-testid="button-remove-cover-photo"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Recommended: 1600x400px or larger (JPEG, PNG, GIF, WebP up to 500MB)
+                  </p>
                 </div>
 
                 <div className="flex items-center gap-4">

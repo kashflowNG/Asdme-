@@ -123,7 +123,7 @@ export default function PublicProfile() {
   const sanitizeCSS = (css: string): string => {
     let sanitized = css;
     sanitized = sanitized.replace(/<\s*\/?\s*style[^>]*>/gi, '');
-    sanitized = sanitized.replace(/<\s*script[^>]*>.*?<\s*\/\s*script\s*>/gis, '');
+    sanitized = sanitized.replace(/<\s*script[^>]*>[\s\S]*?<\s*\/\s*script\s*>/gi, '');
     sanitized = sanitized.replace(/<[^>]+>/g, '');
     sanitized = sanitized.replace(/@(?!media)[a-z-]+\s*[^{;]*[{;]/gi, '');
     sanitized = sanitized.replace(/url\s*\([^)]*\)/gi, '');
