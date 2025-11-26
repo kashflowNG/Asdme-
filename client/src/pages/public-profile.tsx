@@ -21,6 +21,7 @@ import { getPlatform } from "@/lib/platforms";
 const THEME_BACKGROUNDS: Record<string, string> = {
   "d7cacdd5-42a7-4535-a5fd-9bd214c4825b": "linear-gradient(135deg, #0d1b2a 0%, #1a3a52 100%)", // Christmas
   "cfc2c9a7-38a6-4738-a838-4fb22b7132c6": "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0c4a6e 100%)", // New Year
+  "a8f5e2b1-7c3d-4f9e-b2a1-5d8c6e9f2a1b": "linear-gradient(135deg, #8B0000 0%, #DC143C 25%, #FF1493 50%, #DC143C 75%, #8B0000 100%)", // Valentine's
 };
 
 export default function PublicProfile() {
