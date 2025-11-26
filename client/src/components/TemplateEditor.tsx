@@ -50,14 +50,23 @@ const DEFAULT_TEMPLATE_HTML = `<!-- Hero Section -->
 </footer>`;
 
 const TEMPLATE_VARIABLES = [
-  { name: '{{username}}', description: 'User\'s username', example: '@johndoe' },
-  { name: '{{bio}}', description: 'User\'s biography text', example: 'Digital creator & developer' },
-  { name: '{{avatar}}', description: 'Profile avatar URL', example: 'https://...' },
-  { name: '{{socialLinks}}', description: 'Rendered social media links', example: '<div>...</div>' },
-  { name: '{{contentBlocks}}', description: 'Custom content blocks', example: '<div>...</div>' },
-  { name: '{{primaryColor}}', description: 'Primary theme color', example: '#8B5CF6' },
-  { name: '{{backgroundColor}}', description: 'Background color', example: '#0a0a0a' },
-  { name: '{{fontFamily}}', description: 'Selected font family', example: 'DM Sans' },
+  { category: 'Profile Info', variables: [
+    { name: '{{username}}', description: 'User\'s username', example: '@johndoe' },
+    { name: '{{bio}}', description: 'User\'s biography/short description', example: 'Digital creator & developer' },
+    { name: '{{avatar}}', description: 'Profile avatar/picture URL', example: 'https://example.com/avatar.jpg' },
+    { name: '{{coverPhoto}}', description: 'Cover photo/banner image URL', example: 'https://example.com/cover.jpg' },
+    { name: '{{aboutMe}}', description: 'User\'s about me/personal statement', example: 'Passionate about technology...' },
+    { name: '{{businessInfo}}', description: 'Business details & information', example: 'Services: Design, Development...' },
+  ]},
+  { category: 'Content', variables: [
+    { name: '{{socialLinks}}', description: 'All rendered social media links', example: '<a href="...">Link</a>' },
+    { name: '{{contentBlocks}}', description: 'Custom content blocks (videos, images, text)', example: '<div class="content">...</div>' },
+  ]},
+  { category: 'Theme & Styling', variables: [
+    { name: '{{primaryColor}}', description: 'Primary theme color (from customization)', example: '#8B5CF6' },
+    { name: '{{backgroundColor}}', description: 'Background color (from customization)', example: '#0a0a0a' },
+    { name: '{{fontFamily}}', description: 'Selected font family name', example: 'DM Sans' },
+  ]},
 ];
 
 const ADVANCED_TEMPLATES = [
@@ -387,6 +396,46 @@ const ADVANCED_TEMPLATES = [
   }
 ];
 
+const QUICK_CODE_SNIPPETS = [
+  {
+    name: 'Basic Profile Card',
+    code: `<div class="text-center p-8">
+  <div class="w-32 h-32 rounded-full mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-600"></div>
+  <h1 class="text-4xl font-bold mb-2">@{{username}}</h1>
+  <p class="text-gray-400 mb-8">{{bio}}</p>
+  <div class="space-y-2">{{socialLinks}}</div>
+</div>`
+  },
+  {
+    name: 'Animated Header',
+    code: `<header class="min-h-screen flex items-center justify-center">
+  <style>
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+    .float { animation: float 3s ease-in-out infinite; }
+  </style>
+  <div class="text-center">
+    <h1 class="text-6xl font-black mb-6 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">@{{username}}</h1>
+    <p class="text-xl text-gray-300 mb-12">{{bio}}</p>
+    <div class="space-y-3 max-w-md mx-auto">{{socialLinks}}</div>
+  </div>
+</header>`
+  },
+  {
+    name: 'Two Column Layout',
+    code: `<div class="grid grid-cols-2 gap-8 p-8 max-w-6xl mx-auto">
+  <div>
+    <h2 class="text-3xl font-bold mb-4">About {{username}}</h2>
+    <p class="text-gray-300 leading-relaxed mb-6">{{aboutMe}}</p>
+    <div class="bg-blue-500/10 p-4 rounded-lg">{{businessInfo}}</div>
+  </div>
+  <div>
+    <h2 class="text-3xl font-bold mb-6">Connect</h2>
+    <div class="space-y-3">{{socialLinks}}</div>
+  </div>
+</div>`
+  },
+];
+
 export function TemplateEditor({ profile, onUpdate }: TemplateEditorProps) {
   const [templateHTML, setTemplateHTML] = useState(
     profile.templateHTML || DEFAULT_TEMPLATE_HTML
@@ -396,6 +445,7 @@ export function TemplateEditor({ profile, onUpdate }: TemplateEditorProps) {
   );
   const [previewMode, setPreviewMode] = useState<'split' | 'preview'>('split');
   const [copied, setCopied] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Update local state when profile changes (after save)
   useEffect(() => {
@@ -626,10 +676,11 @@ export function TemplateEditor({ profile, onUpdate }: TemplateEditorProps) {
       </div>
 
       <Tabs defaultValue="editor" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="editor">Editor</TabsTrigger>
           <TabsTrigger value="variables">Variables</TabsTrigger>
-          <TabsTrigger value="templates">Quick Templates</TabsTrigger>
+          <TabsTrigger value="snippets">Snippets</TabsTrigger>
+          <TabsTrigger value="templates">Templates</TabsTrigger>
         </TabsList>
 
         <TabsContent value="editor" className="space-y-4">
@@ -641,6 +692,7 @@ export function TemplateEditor({ profile, onUpdate }: TemplateEditorProps) {
                 HTML Template
               </Label>
               <Textarea
+                ref={textareaRef}
                 id="template-html"
                 placeholder={DEFAULT_TEMPLATE_HTML}
                 value={templateHTML}
@@ -702,38 +754,131 @@ export function TemplateEditor({ profile, onUpdate }: TemplateEditorProps) {
           </div>
         </TabsContent>
 
-        <TabsContent value="variables" className="space-y-4">
-          <div className="space-y-3">
-            <h3 className="font-semibold">Available Template Variables</h3>
-            <div className="grid gap-3">
-              {TEMPLATE_VARIABLES.map((variable) => (
-                <div 
-                  key={variable.name}
-                  className="p-4 rounded-lg bg-muted/30 border border-border hover:border-primary/50 transition-colors"
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <code className="text-sm font-mono bg-primary/10 px-2 py-1 rounded text-primary">
-                      {variable.name}
-                    </code>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => copyToClipboard(variable.name, variable.name)}
+        <TabsContent value="variables" className="space-y-6">
+          <Alert>
+            <Shield className="h-4 w-4" />
+            <AlertDescription>
+              Use these variables in your HTML template. They'll be automatically replaced with your profile information. <strong>Copy any variable and paste it into your code.</strong>
+            </AlertDescription>
+          </Alert>
+
+          <div className="space-y-6">
+            {TEMPLATE_VARIABLES.map((group) => (
+              <div key={group.category} className="space-y-3">
+                <h3 className="text-lg font-bold text-primary">{group.category}</h3>
+                <div className="grid gap-3">
+                  {group.variables.map((variable) => (
+                    <div 
+                      key={variable.name}
+                      className="p-4 rounded-lg bg-muted/30 border border-border hover:border-primary/50 transition-colors"
                     >
-                      {copied === variable.name ? (
-                        <Check className="w-4 h-4 text-green-500" />
-                      ) : (
-                        <Copy className="w-4 h-4" />
-                      )}
-                    </Button>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-1">{variable.description}</p>
-                  <p className="text-xs text-muted-foreground/70">
-                    Example: <code>{variable.example}</code>
-                  </p>
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <code className="text-sm font-mono bg-primary/10 px-3 py-1.5 rounded text-primary font-bold">
+                            {variable.name}
+                          </code>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => copyToClipboard(variable.name, variable.name)}
+                          className="ml-2"
+                        >
+                          {copied === variable.name ? (
+                            <>
+                              <Check className="w-4 h-4 text-green-500 mr-1" />
+                              <span className="text-xs">Copied!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-4 h-4 mr-1" />
+                              <span className="text-xs">Copy</span>
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-2">{variable.description}</p>
+                      <p className="text-xs text-muted-foreground/70 font-mono bg-black/30 p-2 rounded">
+                        Example: {variable.example}
+                      </p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
+          </div>
+
+          <Card className="p-4 bg-green-500/10 border border-green-500/30">
+            <h4 className="font-bold text-green-400 mb-2">💡 Pro Tips</h4>
+            <ul className="text-sm text-muted-foreground space-y-1">
+              <li>• Use <code className="font-mono">style</code> attribute for inline CSS styling</li>
+              <li>• Tailwind CSS classes work perfectly in templates</li>
+              <li>• All HTML elements are supported (except script tags for security)</li>
+              <li>• Variables are case-sensitive: use <code className="font-mono">{{'{{'}}username{{'}}'}}</code> exactly</li>
+              <li>• Test your template in the Live Preview before saving</li>
+            </ul>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="snippets" className="space-y-4">
+          <div className="space-y-3">
+            <h3 className="font-semibold text-lg">Ready-Made Code Snippets</h3>
+            <p className="text-sm text-muted-foreground">
+              Click "Copy & Use" to add these snippets to your template. Customize them as needed!
+            </p>
+          </div>
+          <div className="grid gap-4">
+            {QUICK_CODE_SNIPPETS.map((snippet, index) => (
+              <div 
+                key={index}
+                className="p-4 rounded-lg border border-border bg-muted/20 space-y-3 hover:border-primary/50 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold flex items-center gap-2">
+                    <Code className="w-4 h-4 text-primary" />
+                    {snippet.name}
+                  </h4>
+                </div>
+                <pre className="bg-black/50 p-3 rounded text-xs overflow-x-auto font-mono text-green-400">
+                  {snippet.code.substring(0, 150)}...
+                </pre>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => copyToClipboard(snippet.code, `snippet-${index}`)}
+                  >
+                    {copied === `snippet-${index}` ? (
+                      <>
+                        <Check className="w-4 h-4 mr-1" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4 mr-1" />
+                        Copy Code
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setTemplateHTML(snippet.code);
+                      setTimeout(() => {
+                        const tabs = document.querySelector('[role="tablist"]');
+                        const editorTab = tabs?.querySelector('[value="editor"]');
+                        (editorTab as HTMLElement)?.click();
+                        textareaRef.current?.focus();
+                      }, 100);
+                    }}
+                  >
+                    <Eye className="w-4 h-4 mr-1" />
+                    Use Template
+                  </Button>
+                </div>
+              </div>
+            ))}
           </div>
         </TabsContent>
 
