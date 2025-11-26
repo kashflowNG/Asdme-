@@ -533,33 +533,28 @@ export default function PublicProfile() {
                     </div>
                   </div>
 
-                  {/* Quick Links Stats */}
+                  {/* About & Business Info */}
                   <div className="bg-gradient-to-br from-gray-900/80 to-gray-950/80 backdrop-blur-xl rounded-xl sm:rounded-2xl border border-gray-800/50 p-4 sm:p-6">
                     <h3 className="text-base sm:text-lg font-bold text-white mb-4 flex items-center gap-2">
-                      <Zap className="w-4 sm:w-5 h-4 sm:h-5" style={{ color: profile.primaryColor || "#8B5CF6" }} />
-                      Platform Stats
+                      <Globe className="w-4 sm:w-5 h-4 sm:h-5" style={{ color: profile.primaryColor || "#8B5CF6" }} />
+                      Business
                     </h3>
-                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                      <div className="bg-gray-800/30 rounded-lg sm:rounded-xl p-3 sm:p-4 text-center">
-                        <div className="text-xl sm:text-2xl font-black text-white">{sortedLinks.length}</div>
-                        <div className="text-xs text-gray-500 mt-1">Total Links</div>
-                      </div>
-                      <div className="bg-gray-800/30 rounded-lg sm:rounded-xl p-3 sm:p-4 text-center">
-                        <div className="text-xl sm:text-2xl font-black text-white">{profile.views || 0}</div>
-                        <div className="text-xs text-gray-500 mt-1">Profile Views</div>
-                      </div>
-                      <div className="bg-gray-800/30 rounded-lg sm:rounded-xl p-3 sm:p-4 text-center">
-                        <div className="text-xl sm:text-2xl font-black text-white">
-                          {sortedLinks.reduce((acc, link) => acc + (link.clicks || 0), 0)}
+                    <div className="space-y-4">
+                      {profile.aboutMe && (
+                        <div>
+                          <p className="text-xs font-semibold text-gray-400 mb-2 uppercase">About</p>
+                          <p className="text-sm text-gray-300 leading-relaxed">{profile.aboutMe}</p>
                         </div>
-                        <div className="text-xs text-gray-500 mt-1">Link Clicks</div>
-                      </div>
-                      <div className="bg-gray-800/30 rounded-lg sm:rounded-xl p-3 sm:p-4 text-center">
-                        <div className="text-xl sm:text-2xl font-black" style={{ color: profile.primaryColor || "#8B5CF6" }}>
-                          Active
+                      )}
+                      {profile.businessInfo && (
+                        <div>
+                          <p className="text-xs font-semibold text-gray-400 mb-2 uppercase">Business</p>
+                          <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{profile.businessInfo}</p>
                         </div>
-                        <div className="text-xs text-gray-500 mt-1">Status</div>
-                      </div>
+                      )}
+                      {!profile.aboutMe && !profile.businessInfo && (
+                        <p className="text-sm text-gray-400 italic">No business information added yet</p>
+                      )}
                     </div>
                   </div>
                 </div>

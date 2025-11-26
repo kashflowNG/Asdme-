@@ -987,6 +987,47 @@ export default function Dashboard() {
                 </div>
               </Card>
 
+              {/* About & Business Card */}
+              <Card className="p-6 space-y-6 shadow-lg border-2 neon-glow glass-card">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-2xl font-bold">About & Business</h2>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="aboutMe">About Me</Label>
+                  <Textarea
+                    id="aboutMe"
+                    placeholder="Share a brief personal summary or professional statement that will appear on your public profile..."
+                    value={profileForm.aboutMe || ""}
+                    onChange={(e) => setProfileForm({ ...profileForm, aboutMe: e.target.value })}
+                    onBlur={() => handleUpdateProfile("aboutMe")}
+                    disabled={!profile}
+                    className="min-h-24 resize-none"
+                    data-testid="input-about-me"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Personal summary visible to visitors. Keep it concise and engaging.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="businessInfo">Business Information</Label>
+                  <Textarea
+                    id="businessInfo"
+                    placeholder="Add your business details, services, location, hours, or any other relevant business information..."
+                    value={profileForm.businessInfo || ""}
+                    onChange={(e) => setProfileForm({ ...profileForm, businessInfo: e.target.value })}
+                    onBlur={() => handleUpdateProfile("businessInfo")}
+                    disabled={!profile}
+                    className="min-h-32 resize-none"
+                    data-testid="input-business-info"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Business details like services, hours, location, etc. Supports multiple lines. This appears in the sidebar of your public profile.
+                  </p>
+                </div>
+              </Card>
+
               <SEOEditor
                 profile={profile || null}
                 onUpdate={async (updates) => {

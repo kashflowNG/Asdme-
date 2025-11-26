@@ -39,6 +39,10 @@ export const profiles = pgTable("profiles", {
   seoDescription: text("seo_description"),
   ogImage: text("og_image"),
   
+  // About & Business
+  aboutMe: text("about_me"),
+  businessInfo: text("business_info"),
+  
   // Branding
   customDomain: text("custom_domain"),
   hideBranding: boolean("hide_branding").notNull().default(false),
