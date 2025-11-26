@@ -26,7 +26,7 @@ import { ClickHeatmap } from "@/components/ClickHeatmap";
 import { LinkScheduleVisualizer } from "@/components/LinkScheduleVisualizer";
 import { EngagementAlerts } from "@/components/EngagementAlerts";
 import { getPlatform } from "@/lib/platforms";
-import { GripVertical, Trash2, Plus, Eye, Upload, Copy, Check, ExternalLink, LogOut, QrCode, BarChart3, Link2, Palette, Settings, Zap, Edit, EyeOff, FileCode, Mail, Sparkles, Camera } from "lucide-react";
+import { GripVertical, Trash2, Plus, Eye, Upload, Copy, Check, ExternalLink, LogOut, QrCode, BarChart3, Link2, Palette, Settings, Zap, Edit, EyeOff, FileCode, Mail, Sparkles, Camera, Shield } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import {
   AlertDialog,
@@ -154,6 +154,7 @@ export default function Dashboard() {
   const [editingLink, setEditingLink] = useState<SocialLink | null>(null);
   const [showQRDialog, setShowQRDialog] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState(() => {
     const hash = window.location.hash.replace('#', '');
     return hash || "overview";
@@ -214,6 +215,18 @@ export default function Dashboard() {
       lastCommittedProfile.current = profile;
     }
   }, [profile]);
+
+  // Check if user is admin
+  useEffect(() => {
+    (async () => {
+      try {
+        const response = await apiRequest("GET", "/api/admin/check");
+        setIsAdmin(response?.isAdmin || false);
+      } catch (e) {
+        setIsAdmin(false);
+      }
+    })();
+  }, []);
 
   // Auto-refresh data every 3 seconds for instant updates
   useEffect(() => {
@@ -684,6 +697,17 @@ export default function Dashboard() {
             <div className="flex items-center gap-2">
               {profile && (
                 <>
+                  {isAdmin && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigate("/admin")}
+                      className="gap-2 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 hover:from-yellow-500/20 hover:to-orange-500/20 text-yellow-600 hover:text-yellow-700"
+                    >
+                      <Shield className="w-4 h-4" />
+                      Admin
+                    </Button>
+                  )}
                   <Button
                     variant="ghost"
                     size="sm"
