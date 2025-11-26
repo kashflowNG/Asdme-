@@ -452,21 +452,6 @@ export default function PublicProfile() {
                           </p>
                         </div>
                       )}
-
-                      {/* Stats Bar */}
-                      <div className="mt-4 sm:mt-6 flex flex-wrap items-center justify-center md:justify-start gap-3 sm:gap-4 md:gap-6 text-sm">
-                        <div className="flex items-center gap-2 text-gray-400 bg-gray-800/30 px-3 py-1.5 rounded-full">
-                          <Eye className="w-4 h-4" style={{ color: profile.primaryColor || "#8B5CF6" }} />
-                          <span className="font-semibold text-white">{profile.views?.toLocaleString() || 0}</span>
-                          <span>views</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-gray-400 bg-gray-800/30 px-3 py-1.5 rounded-full">
-                          <Zap className="w-4 h-4 text-yellow-500" />
-                          <span className="font-semibold text-white">{sortedLinks.length}</span>
-                          <span>links</span>
-                        </div>
-                        <LiveVisitorCounter username={profile.username} />
-                      </div>
                     </div>
 
                     {/* Navigation Tabs */}
