@@ -8,13 +8,12 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Globe, Zap, Play, Mail } from "lucide-react";
+import { Globe, Zap, Mail, MapPin, Calendar, Users, Eye, Share2, CheckCircle2, Camera } from "lucide-react";
 import type { Profile, SocialLink, ContentBlock } from "@shared/schema";
 import { useMemo, useEffect, useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Helmet } from "react-helmet";
-import { SocialProofWidget } from "@/components/SocialProofWidget";
 import { LiveVisitorCounter } from "@/components/LiveVisitorCounter";
 import DOMPurify from "dompurify";
 import { getPlatform } from "@/lib/platforms";
@@ -29,7 +28,7 @@ export default function PublicProfile() {
   const { data: profile, isLoading: profileLoading } = useQuery<Profile>({
     queryKey: ["/api/profiles", username],
     enabled: !!username,
-    refetchInterval: 3000, // Auto-refresh every 3 seconds
+    refetchInterval: 3000,
   });
 
   const { data: links = [], isLoading: linksLoading } = useQuery<SocialLink[]>({
@@ -115,112 +114,26 @@ export default function PublicProfile() {
     submitFormMutation.mutate(emailFormData);
   };
 
-  // Helper function to escape HTML
   const escapeHtml = (text: string): string => {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
   };
 
-  // Helper function to sanitize CSS
   const sanitizeCSS = (css: string): string => {
-    // For maximum security, we prevent breaking out of <style> tag
-    // and filter dangerous CSS patterns
     let sanitized = css;
-
-    // Prevent </style> tag injection and other HTML tag injections
     sanitized = sanitized.replace(/<\s*\/?\s*style[^>]*>/gi, '');
     sanitized = sanitized.replace(/<\s*script[^>]*>.*?<\s*\/\s*script\s*>/gis, '');
-    sanitized = sanitized.replace(/<[^>]+>/g, ''); // Remove any remaining HTML tags
-
-    // Remove all at-rules (@import, @font-face, @keyframes, etc.) except @media
+    sanitized = sanitized.replace(/<[^>]+>/g, '');
     sanitized = sanitized.replace(/@(?!media)[a-z-]+\s*[^{;]*[{;]/gi, '');
-
-    // Remove any URL references (to prevent data:, javascript:, and external resource loading)
     sanitized = sanitized.replace(/url\s*\([^)]*\)/gi, '');
-
-    // Remove expression() and other IE-specific hacks
     sanitized = sanitized.replace(/expression\s*\([^)]*\)/gi, '');
     sanitized = sanitized.replace(/-moz-binding\s*:/gi, '');
-
-    // Remove behavior property (IE)
     sanitized = sanitized.replace(/behavior\s*:/gi, '');
-
-    // Remove any javascript: or vbscript: protocol references
     sanitized = sanitized.replace(/(javascript|vbscript|data):/gi, '');
-
     return sanitized;
   };
 
-  // Render custom template with placeholders replaced
-  const renderCustomTemplate = () => {
-    if (!profile || !profile.useCustomTemplate || !profile.templateHTML) {
-      return null;
-    }
-
-    let html = profile.templateHTML;
-
-    // Replace basic placeholders with escaped values
-    html = html.replace(/\{\{username\}\}/g, escapeHtml(profile.username));
-    html = html.replace(/\{\{bio\}\}/g, escapeHtml(profile.bio || ""));
-    html = html.replace(/\{\{avatar\}\}/g, escapeHtml(profile.avatar || ""));
-
-    // Generate social links HTML with escaped values
-    const socialLinksHTML = sortedLinks
-      .map(
-        (link) => `
-        <a 
-          href="${escapeHtml(link.url)}" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          class="social-link"
-          data-platform="${escapeHtml(link.platform)}"
-        >
-          ${escapeHtml(link.customTitle || link.platform)}
-        </a>
-      `
-      )
-      .join("");
-    html = html.replace(/\{\{socialLinks\}\}/g, socialLinksHTML);
-
-    // Generate content blocks HTML with escaped values
-    const contentBlocksHTML = sortedBlocks
-      .map((block) => {
-        if (block.type === "text" && block.content) {
-          return `<div class="content-block content-block-text">
-            ${block.title ? `<h3>${escapeHtml(block.title)}</h3>` : ""}
-            <p>${escapeHtml(block.content)}</p>
-          </div>`;
-        }
-        if (block.type === "image" && block.mediaUrl) {
-          return `<div class="content-block content-block-image">
-            ${block.title ? `<h3>${escapeHtml(block.title)}</h3>` : ""}
-            <img src="${escapeHtml(block.mediaUrl)}" alt="${escapeHtml(block.title || "Content")}" />
-          </div>`;
-        }
-        if (block.type === "video" && block.mediaUrl) {
-          return `<div class="content-block content-block-video">
-            ${block.title ? `<h3>${escapeHtml(block.title)}</h3>` : ""}
-            <iframe src="${escapeHtml(block.mediaUrl.replace("watch?v=", "embed/"))}" frameborder="0" allowfullscreen></iframe>
-          </div>`;
-        }
-        return "";
-      })
-      .join("");
-    html = html.replace(/\{\{contentBlocks\}\}/g, contentBlocksHTML);
-
-    // Sanitize the final HTML using DOMPurify to prevent XSS
-    // Block iframes entirely and use strict URL validation
-    return DOMPurify.sanitize(html, {
-      ALLOWED_TAGS: ['div', 'span', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img', 'a', 'ul', 'ol', 'li', 'br', 'strong', 'em', 'u'],
-      ALLOWED_ATTR: ['class', 'id', 'href', 'src', 'alt', 'target', 'rel', 'data-platform'],
-      ALLOW_DATA_ATTR: false,
-      // Only allow http, https, and relative URLs - block data:, javascript:, etc.
-      ALLOWED_URI_REGEXP: /^(?:(?:https?|ftp):\/\/|\/|#)/i,
-    });
-  };
-
-  // Get background style based on customization
   const getBackgroundStyle = () => {
     if (!profile) return {};
 
@@ -251,7 +164,6 @@ export default function PublicProfile() {
     return baseStyle;
   };
 
-  // Get button class based on button style
   const getButtonClass = () => {
     if (!profile) return "";
 
@@ -267,12 +179,15 @@ export default function PublicProfile() {
 
   if (profileLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="pt-16 pb-12 text-center space-y-6">
-            <Skeleton className="w-32 h-32 rounded-full mx-auto" />
-            <Skeleton className="h-10 w-64 mx-auto" />
-            <Skeleton className="h-6 w-96 mx-auto" />
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-900 to-black">
+        <div className="h-[280px] md:h-[350px] bg-gradient-to-r from-gray-800 to-gray-700 animate-pulse" />
+        <div className="max-w-5xl mx-auto px-4 -mt-20">
+          <div className="flex flex-col md:flex-row items-start gap-6">
+            <Skeleton className="w-40 h-40 rounded-full border-4 border-gray-900" />
+            <div className="flex-1 pt-4 space-y-3">
+              <Skeleton className="h-10 w-64" />
+              <Skeleton className="h-6 w-96" />
+            </div>
           </div>
         </div>
       </div>
@@ -281,13 +196,13 @@ export default function PublicProfile() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-4">
-        <Card className="max-w-md w-full p-8 text-center space-y-4 neon-glow glass-card">
-          <div className="w-16 h-16 mx-auto bg-gradient-to-br from-destructive/20 to-destructive/10 rounded-2xl flex items-center justify-center">
-            <Globe className="w-8 h-8 text-destructive" />
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-900 to-black flex items-center justify-center px-4">
+        <Card className="max-w-md w-full p-8 text-center space-y-4 bg-gray-800/50 border-gray-700 backdrop-blur-xl">
+          <div className="w-16 h-16 mx-auto bg-gradient-to-br from-red-500/20 to-red-600/10 rounded-2xl flex items-center justify-center">
+            <Globe className="w-8 h-8 text-red-400" />
           </div>
-          <h1 className="text-2xl font-bold">Profile Not Found</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-bold text-white">Profile Not Found</h1>
+          <p className="text-gray-400">
             This profile doesn't exist or has been removed.
           </p>
         </Card>
@@ -302,6 +217,8 @@ export default function PublicProfile() {
   const ogImage = profile.ogImage || profile.avatar || `${window.location.origin}/favicon.png`;
   const ogImageAlt = profile.ogImage ? `${profile.username}'s profile image` : profile.avatar ? `${profile.username}'s avatar` : "Neropage Logo";
 
+  const defaultCoverGradient = `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}40 0%, ${profile.primaryColor || "#8B5CF6"}20 25%, #1a1a2e 50%, ${profile.primaryColor || "#8B5CF6"}20 75%, ${profile.primaryColor || "#8B5CF6"}40 100%)`;
+  
   return (
     <>
       <Helmet>
@@ -328,42 +245,32 @@ export default function PublicProfile() {
         <meta name="robots" content="index, follow" />
         <meta name="googlebot" content="index, follow" />
         
-        {/* Tailwind CSS for custom templates */}
         <script src="https://cdn.tailwindcss.com"></script>
       </Helmet>
 
       <div 
-        className="min-h-screen relative overflow-hidden"
+        className="min-h-screen"
         style={{
-          ...getBackgroundStyle(),
+          background: "linear-gradient(180deg, #0f0f1a 0%, #0a0a0f 50%, #050508 100%)",
           fontFamily: profile.fontFamily || "DM Sans",
-          color: profile.primaryColor ? `${profile.primaryColor}22` : undefined,
         }}
       >
-        {/* Background Video if set */}
         {profile.backgroundType === "video" && profile.backgroundVideo && (
           <video
             autoPlay
             loop
             muted
             playsInline
-            className="fixed inset-0 w-full h-full object-cover -z-10 opacity-30"
+            className="fixed inset-0 w-full h-full object-cover -z-10 opacity-20"
           >
             <source src={profile.backgroundVideo} type="video/mp4" />
           </video>
         )}
 
-        {/* Dark overlay for better text readability */}
-        {(profile.backgroundType === "image" || profile.backgroundType === "video") && (
-          <div className="fixed inset-0 bg-black/40 -z-5" />
-        )}
-
-        {/* Custom CSS */}
         {profile.customCSS && (
           <style dangerouslySetInnerHTML={{ __html: sanitizeCSS(profile.customCSS) }} />
         )}
 
-        {/* Profile Content */}
         {profile.useCustomTemplate && profile.templateHTML ? (
           <div 
             className="min-h-screen custom-template-container"
@@ -373,6 +280,7 @@ export default function PublicProfile() {
                   .replace(/\{\{username\}\}/g, profile.username || '')
                   .replace(/\{\{bio\}\}/g, profile.bio || '')
                   .replace(/\{\{avatar\}\}/g, profile.avatar || '')
+                  .replace(/\{\{coverPhoto\}\}/g, profile.coverPhoto || '')
                   .replace(/\{\{primaryColor\}\}/g, profile.primaryColor || '#8B5CF6')
                   .replace(/\{\{backgroundColor\}\}/g, profile.backgroundColor || '#0a0a0a')
                   .replace(/\{\{fontFamily\}\}/g, profile.fontFamily || 'DM Sans')
@@ -408,378 +316,459 @@ export default function PublicProfile() {
             }}
           />
         ) : (
-          /* Beautiful Default Layout */
-          <div className="max-w-5xl mx-auto px-4 py-8 relative z-10">
-            {/* Animated Background Orbs */}
-            <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-              <div className="absolute top-20 left-1/4 w-[500px] h-[500px] bg-gradient-to-br from-purple-500/30 to-pink-500/30 rounded-full blur-3xl opacity-70 animate-pulse-slow" />
-              <div className="absolute top-40 right-1/4 w-[400px] h-[400px] bg-gradient-to-br from-cyan-500/25 to-blue-500/25 rounded-full blur-3xl opacity-60 animate-pulse-slow" style={{ animationDelay: '1.5s' }} />
-              <div className="absolute bottom-20 left-1/3 w-[350px] h-[350px] bg-gradient-to-br from-pink-500/20 to-purple-500/20 rounded-full blur-3xl opacity-50 animate-pulse-slow" style={{ animationDelay: '3s' }} />
-            </div>
-
-            {/* Enhanced Hero Section */}
-            <div className="pt-16 pb-10 text-center animate-fade-in relative z-10" data-testid="profile-header">
-
-              {/* Main Profile Card with Enhanced Glassmorphism */}
-              <div className="relative backdrop-blur-3xl bg-gradient-to-br from-white/15 via-white/10 to-white/5 border-2 border-white/30 rounded-[2.5rem] p-12 mb-10 shadow-[0_20px_80px_rgba(0,0,0,0.3)] max-w-3xl mx-auto hover:shadow-[0_20px_100px_rgba(139,92,246,0.4)] transition-all duration-500 group">
-                {/* Multi-layered Animated Border Gradient */}
-                <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-r from-purple-500/60 via-pink-500/60 to-cyan-500/60 opacity-0 blur-2xl group-hover:opacity-100 transition-opacity duration-500 -z-10 animate-pulse-slow" />
-                <div className="absolute -inset-1 rounded-[2.5rem] bg-gradient-to-r from-purple-500/30 via-pink-500/30 to-cyan-500/30 blur-md opacity-60 -z-10" />
-
-                {/* Profile Avatar with Modern Floating Design */}
-                <div className="relative inline-block mb-8 animate-float">
-                  {/* Glowing Orb Background */}
-                  <div 
-                    className="absolute -inset-6 rounded-full blur-3xl opacity-80 animate-pulse-slow"
-                    style={{
-                      background: `radial-gradient(circle, ${profile.primaryColor || "#8B5CF6"}80, ${profile.primaryColor || "#8B5CF6"}40 50%, transparent 70%)`,
-                    }}
-                  />
-                  {/* Secondary Glow Ring */}
-                  <div 
-                    className="absolute -inset-3 rounded-full opacity-60"
-                    style={{
-                      background: `conic-gradient(from 0deg, ${profile.primaryColor || "#8B5CF6"}80, #06B6D4, #EC4899, ${profile.primaryColor || "#8B5CF6"}80)`,
-                      filter: 'blur(20px)',
-                    }}
-                  />
-                  {/* Avatar Container */}
-                  <div className="relative">
-                    <Avatar className="w-44 h-44 border-[6px] border-white/50 shadow-[0_0_80px_rgba(255,255,255,0.4)] ring-[3px] ring-white/20 backdrop-blur-sm">
-                      <AvatarImage src={profile.avatar || undefined} alt={profile.username} />
-                      <AvatarFallback 
-                        className="text-6xl font-black text-white"
-                        style={{ 
-                          background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}, ${profile.primaryColor || "#8B5CF6"}CC, ${profile.primaryColor || "#8B5CF6"}99)`,
-                        }}
-                      >
-                        {initials}
-                      </AvatarFallback>
-                    </Avatar>
-                    {/* Animated Ring */}
-                    <div className="absolute inset-0 rounded-full border-2 border-white/30 animate-ping" style={{ animationDuration: '3s' }} />
-                  </div>
-                  {/* Enhanced Online Status Indicator */}
-                  <div className="absolute bottom-2 right-2 flex items-center justify-center z-10">
-                    <div className="relative">
-                      <div className="w-12 h-12 bg-emerald-400 border-[6px] border-white/80 rounded-full shadow-2xl shadow-emerald-500/50" />
-                      <div className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75" />
-                      <div className="absolute inset-2 rounded-full bg-white animate-pulse" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Username with Premium Multi-Layer Gradient */}
-                <div className="mb-8 space-y-4">
-                  <div className="relative">
-                    {/* Background Text Shadow */}
-                    <h1 
-                      className="absolute inset-0 text-6xl md:text-7xl font-black tracking-tight leading-none blur-xl opacity-50"
-                      style={{ 
-                        background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}, #06B6D4, #EC4899)`,
-                        backgroundSize: '200% 200%',
-                        WebkitBackgroundClip: "text",
-                        backgroundClip: "text",
-                        color: "transparent",
-                      }}
-                      aria-hidden="true"
-                    >
-                      @{profile.username}
-                    </h1>
-                    {/* Main Username Text */}
-                    <h1 
-                      className="relative text-6xl md:text-7xl font-black tracking-tight leading-none drop-shadow-2xl"
-                      style={{ 
-                        background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"} 0%, #ffffff 30%, #06B6D4 50%, #EC4899 70%, ${profile.primaryColor || "#8B5CF6"} 100%)`,
-                        backgroundSize: '300% 300%',
-                        WebkitBackgroundClip: "text",
-                        backgroundClip: "text",
-                        color: "transparent",
-                        animation: 'shimmer 4s ease-in-out infinite',
-                      }}
-                      data-testid="text-username"
-                    >
-                      @{profile.username}
-                    </h1>
-                  </div>
-                  
-                  {/* Enhanced Decorative Line with Animated Badge */}
-                  <div className="flex items-center justify-center gap-4 mb-6">
-                    <div className="h-[3px] w-24 bg-gradient-to-r from-transparent via-white/50 to-white/50 rounded-full relative overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent animate-pulse" />
-                    </div>
-                    <Badge 
-                      className="px-6 py-2.5 text-sm font-bold backdrop-blur-xl shadow-2xl hover:scale-110 transition-all duration-300 relative overflow-hidden group"
-                      style={{
-                        background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}50, ${profile.primaryColor || "#8B5CF6"}70)`,
-                        borderColor: `${profile.primaryColor || "#8B5CF6"}`,
-                        borderWidth: '2px',
-                        color: 'white',
-                      }}
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:translate-x-full transition-transform duration-1000" />
-                      <Zap className="w-4 h-4 mr-2 animate-pulse relative z-10" />
-                      <span className="relative z-10">PREMIUM</span>
-                    </Badge>
-                    <div className="h-[3px] w-24 bg-gradient-to-l from-transparent via-white/50 to-white/50 rounded-full relative overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-l from-transparent via-white to-transparent animate-pulse" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Bio Section with Card Design */}
-                {profile.bio && (
-                  <div className="max-w-2xl mx-auto mb-8">
-                    <div className="relative backdrop-blur-xl bg-white/5 border border-white/20 rounded-2xl p-6 shadow-xl">
-                      <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-cyan-500/20 rounded-2xl blur-lg opacity-50" />
-                      <p className="relative text-xl leading-relaxed text-white/95 font-medium tracking-wide text-center" data-testid="text-bio">
-                        {profile.bio}
-                      </p>
-                    </div>
-                  </div>
+          <>
+            {/* Cover Photo Section - Facebook Style */}
+            <div className="relative">
+              {/* Cover Photo */}
+              <div 
+                className="h-[200px] sm:h-[280px] md:h-[350px] lg:h-[400px] w-full relative overflow-hidden"
+                style={{
+                  background: profile.coverPhoto 
+                    ? `url(${profile.coverPhoto})` 
+                    : defaultCoverGradient,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                }}
+              >
+                {/* Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent" />
+                
+                {/* Decorative Elements */}
+                {!profile.coverPhoto && (
+                  <>
+                    <div 
+                      className="absolute top-1/4 left-1/4 w-[300px] h-[300px] rounded-full blur-[100px] opacity-40"
+                      style={{ background: profile.primaryColor || "#8B5CF6" }}
+                    />
+                    <div 
+                      className="absolute bottom-1/4 right-1/4 w-[250px] h-[250px] rounded-full blur-[80px] opacity-30"
+                      style={{ background: `${profile.primaryColor || "#8B5CF6"}80` }}
+                    />
+                  </>
                 )}
-
-                {/* Live Stats Row with Enhanced Design */}
-                <div className="flex flex-wrap justify-center items-center gap-4 pt-8 border-t border-white/20">
-                  <div className="backdrop-blur-xl bg-white/10 px-5 py-3 rounded-2xl border border-white/20 shadow-lg hover:shadow-xl transition-all">
-                    <LiveVisitorCounter username={profile.username} />
-                  </div>
-                  <div className="flex items-center gap-3 px-5 py-3 rounded-2xl backdrop-blur-xl bg-white/10 border border-white/20 shadow-lg hover:shadow-xl transition-all group">
-                    <div className="relative">
-                      <div className="w-3 h-3 bg-emerald-400 rounded-full shadow-lg shadow-emerald-500/50 animate-pulse" />
-                      <div className="absolute inset-0 bg-emerald-400 rounded-full animate-ping opacity-75" />
-                    </div>
-                    <span className="text-sm text-white/90 font-semibold">Online Now</span>
-                  </div>
-                </div>
               </div>
-            </div>
 
-          {/* Content Blocks with Glass Design */}
-          {sortedBlocks.length > 0 && (
-            <div className="pb-8 space-y-6 max-w-3xl mx-auto">
-              {sortedBlocks.map((block) => (
-                <div key={block.id} className="animate-fade-in">
-                  {block.type === "video" && block.mediaUrl && (
-                    <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl">
-                      {block.title && <h3 className="text-xl font-bold mb-4 text-white">{block.title}</h3>}
-                      <div className="aspect-video rounded-xl overflow-hidden bg-black/40 border border-white/10">
-                        <iframe
-                          src={block.mediaUrl.replace("watch?v=", "embed/")}
-                          className="w-full h-full"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        />
+              {/* Profile Header Card - Overlapping Cover */}
+              <div className="max-w-5xl mx-auto px-4 sm:px-6 relative">
+                <div className="relative -mt-24 sm:-mt-28 md:-mt-32">
+                  {/* Main Profile Card */}
+                  <div className="bg-gradient-to-br from-gray-900/95 via-gray-900/90 to-gray-950/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-gray-700/50 shadow-2xl shadow-black/50 overflow-hidden">
+                    
+                    {/* Top Section with Avatar and Info */}
+                    <div className="p-4 sm:p-6 md:p-8">
+                      <div className="flex flex-col md:flex-row items-center md:items-end gap-4 md:gap-6">
+                        
+                        {/* Avatar Container */}
+                        <div className="relative shrink-0 -mt-16 sm:-mt-20 md:-mt-24">
+                          <div className="relative">
+                            {/* Glow Effect */}
+                            <div 
+                              className="absolute -inset-2 rounded-full blur-xl opacity-60"
+                              style={{ background: profile.primaryColor || "#8B5CF6" }}
+                            />
+                            {/* Avatar */}
+                            <Avatar className="w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 border-4 sm:border-[6px] border-gray-900 shadow-2xl ring-2 ring-gray-700/50 relative">
+                              <AvatarImage src={profile.avatar || undefined} alt={profile.username} className="object-cover" />
+                              <AvatarFallback 
+                                className="text-3xl sm:text-4xl md:text-5xl font-black text-white"
+                                style={{ 
+                                  background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}, ${profile.primaryColor || "#8B5CF6"}99)`,
+                                }}
+                              >
+                                {initials}
+                              </AvatarFallback>
+                            </Avatar>
+                            
+                            {/* Online Indicator */}
+                            <div className="absolute bottom-1 right-1 sm:bottom-2 sm:right-2">
+                              <div className="relative">
+                                <div className="w-5 h-5 sm:w-6 sm:h-6 bg-emerald-500 border-[3px] border-gray-900 rounded-full shadow-lg shadow-emerald-500/50" />
+                                <div className="absolute inset-0 bg-emerald-400 rounded-full animate-ping opacity-50" />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* User Info */}
+                        <div className="flex-1 text-center md:text-left min-w-0">
+                          <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mb-2">
+                            <h1 
+                              className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight truncate"
+                              data-testid="text-username"
+                            >
+                              {profile.username}
+                            </h1>
+                            
+                            {/* Verification Badge */}
+                            {profile.verificationBadge && (
+                              <div 
+                                className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold"
+                                style={{ 
+                                  background: `${profile.primaryColor || "#8B5CF6"}30`,
+                                  color: profile.primaryColor || "#8B5CF6",
+                                  border: `1px solid ${profile.primaryColor || "#8B5CF6"}50`
+                                }}
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                Verified
+                              </div>
+                            )}
+                          </div>
+                          
+                          <p className="text-gray-400 text-sm sm:text-base">@{profile.username}</p>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="bg-gray-800/50 border-gray-700 hover:bg-gray-700/50 text-white gap-2"
+                            onClick={() => {
+                              navigator.clipboard.writeText(profileUrl);
+                              toast({ title: "Link copied!", description: "Profile link copied to clipboard" });
+                            }}
+                          >
+                            <Share2 className="w-4 h-4" />
+                            <span className="hidden sm:inline">Share</span>
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="gap-2 text-white"
+                            style={{ background: profile.primaryColor || "#8B5CF6" }}
+                          >
+                            <Users className="w-4 h-4" />
+                            <span className="hidden sm:inline">Follow</span>
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  )}
 
-                  {block.type === "image" && block.mediaUrl && (
-                    <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl">
-                      {block.title && <h3 className="text-xl font-bold mb-4 text-white">{block.title}</h3>}
-                      <img 
-                        src={block.mediaUrl} 
-                        alt={block.title || "Content"} 
-                        className="w-full rounded-xl border border-white/10"
-                      />
-                    </div>
-                  )}
-
-                  {block.type === "gallery" && block.content && (
-                    <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl">
-                      {block.title && <h3 className="text-xl font-bold mb-4 text-white">{block.title}</h3>}
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        {block.content.split("\n").filter(url => url.trim()).map((url, idx) => (
-                          <img 
-                            key={idx}
-                            src={url.trim()} 
-                            alt={`Gallery ${idx + 1}`} 
-                            className="w-full aspect-square object-cover rounded-xl border border-white/10"
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {block.type === "text" && block.content && (
-                    <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl">
-                      {block.title && <h3 className="text-xl font-bold mb-4 text-white">{block.title}</h3>}
-                      <p className="text-white/90 whitespace-pre-wrap leading-relaxed">{block.content}</p>
-                    </div>
-                  )}
-
-                  {block.type === "embed" && block.content && (
-                    <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl">
-                      {block.title && <h3 className="text-xl font-bold mb-4 text-white">{block.title}</h3>}
-                      <div dangerouslySetInnerHTML={{ __html: block.content }} />
-                    </div>
-                  )}
-
-                  {block.type === "form" && (
-                    <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl">
-                      <div className="flex items-center gap-3 mb-4">
-                        <Mail className="w-6 h-6 text-white" />
-                        <h3 className="text-xl font-bold text-white">{block.title || "Get in Touch"}</h3>
-                      </div>
-                      <form onSubmit={(e) => handleFormSubmit(e, block.id)} className="space-y-4">
-                        <Input
-                          placeholder="Your Name"
-                          value={emailFormData.name}
-                          onChange={(e) => setEmailFormData({ ...emailFormData, name: e.target.value })}
-                          required
-                          data-testid="input-form-name"
-                          className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                        />
-                        <Input
-                          type="email"
-                          placeholder="Your Email"
-                          value={emailFormData.email}
-                          onChange={(e) => setEmailFormData({ ...emailFormData, email: e.target.value })}
-                          required
-                          data-testid="input-form-email"
-                          className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                        />
-                        <Input
-                          placeholder="Your Message"
-                          value={emailFormData.message}
-                          onChange={(e) => setEmailFormData({ ...emailFormData, message: e.target.value })}
-                          required
-                          data-testid="input-form-message"
-                          className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                        />
-                        <Button
-                          type="submit"
-                          disabled={submitFormMutation.isPending}
-                          className={`w-full ${getButtonClass()}`}
-                          style={{
-                            backgroundColor: profile.primaryColor || "#8B5CF6",
-                            color: "#FFFFFF",
-                          }}
-                        >
-                          {submitFormMutation.isPending ? "Sending..." : "Send Message"}
-                        </Button>
-                      </form>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Enhanced Links Section */}
-          <div className="pb-20" data-testid="links-container">
-            {sortedLinks.length === 0 ? (
-              <div className="backdrop-blur-2xl bg-gradient-to-br from-white/10 to-white/5 border-2 border-dashed border-white/30 rounded-[2rem] p-16 text-center max-w-2xl mx-auto shadow-2xl">
-                <div className="w-24 h-24 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-purple-500/30 to-pink-500/30 flex items-center justify-center backdrop-blur-sm border border-white/20 shadow-xl">
-                  <Globe className="w-12 h-12 text-white drop-shadow-lg" />
-                </div>
-                <h3 className="text-3xl font-bold mb-3 text-white">No Links Yet</h3>
-                <p className="text-lg text-white/70">
-                  This user hasn't added any links to their profile
-                </p>
-              </div>
-            ) : (
-              <div className={`space-y-5 max-w-3xl mx-auto ${profile.layout === "grid" ? "md:grid md:grid-cols-2 md:gap-5 md:space-y-0" : ""}`}>
-                {sortedLinks.map((link, index) => {
-                  // Check if link is scheduled
-                  const now = new Date();
-                  const isScheduled = link.isScheduled && link.scheduleStart && link.scheduleEnd;
-                  const scheduleStart = link.scheduleStart ? new Date(link.scheduleStart) : null;
-                  const scheduleEnd = link.scheduleEnd ? new Date(link.scheduleEnd) : null;
-                  const isActive = !isScheduled || (scheduleStart && scheduleEnd && now >= scheduleStart && now <= scheduleEnd);
-
-                  if (!isActive) return null;
-
-                  return (
-                    <div
-                      key={link.id}
-                      className="group animate-fade-in relative backdrop-blur-2xl bg-gradient-to-br from-white/15 to-white/5 hover:from-white/25 hover:to-white/10 border-2 border-white/20 hover:border-white/50 rounded-2xl transition-all duration-300 shadow-xl hover:shadow-[0_0_40px_rgba(139,92,246,0.4)] hover:scale-[1.02] active:scale-[0.98]"
-                      style={{ 
-                        animationDelay: `${index * 80}ms`,
-                      }}
-                    >
-                      {/* Glow Effect on Hover */}
-                      <div 
-                        className="absolute -inset-1 rounded-2xl opacity-0 group-hover:opacity-100 blur-lg transition-opacity duration-300 -z-10"
-                        style={{
-                          background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}60, transparent)`,
-                        }}
-                      />
-                      
-                      {link.badge && link.badge !== "none" && (
-                        <div className="absolute -top-3 -right-3 z-10 animate-bounce-slow">
-                          <Badge className="bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500 text-white border-0 shadow-2xl px-4 py-1.5 text-xs font-bold uppercase tracking-wider">
-                            {link.badge}
-                          </Badge>
+                      {/* Bio Section */}
+                      {profile.bio && (
+                        <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-800/50">
+                          <p className="text-gray-300 text-sm sm:text-base leading-relaxed max-w-3xl" data-testid="text-bio">
+                            {profile.bio}
+                          </p>
                         </div>
                       )}
-                      
-                      <SocialLinkButton
-                        platformId={link.platform}
-                        url={link.url}
-                        customTitle={link.customTitle}
-                        onClick={() => handleLinkClick(link.id)}
-                      />
-                      
-                      {link.description && (
-                        <p className="text-sm text-white/80 mt-3 px-6 pb-4 leading-relaxed">
-                          {link.description}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
 
-          {/* Premium Footer */}
-          <footer className="relative z-10 backdrop-blur-2xl bg-gradient-to-t from-black/50 to-black/30 border-t-2 border-white/20 py-16 mt-24">
-            <div className="max-w-4xl mx-auto px-6">
-              <div className="text-center space-y-6">
-                {/* Logo and Brand */}
-                <div className="flex items-center justify-center gap-4 mb-6">
-                  <NeropageLogo size={48} />
-                  <div className="text-left">
-                    <div
-                      className="text-2xl font-black select-none tracking-tight"
-                      style={{
-                        background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}, #06B6D4, #EC4899, ${profile.primaryColor || "#8B5CF6"})`,
-                        backgroundSize: '300% 300%',
-                        WebkitBackgroundClip: 'text',
-                        backgroundClip: 'text',
-                        color: 'transparent',
-                        animation: 'shimmer 3s linear infinite',
-                      }}
-                    >
-                      Neropage
+                      {/* Stats Bar */}
+                      <div className="mt-4 sm:mt-6 flex flex-wrap items-center justify-center md:justify-start gap-3 sm:gap-4 md:gap-6 text-sm">
+                        <div className="flex items-center gap-2 text-gray-400 bg-gray-800/30 px-3 py-1.5 rounded-full">
+                          <Eye className="w-4 h-4" style={{ color: profile.primaryColor || "#8B5CF6" }} />
+                          <span className="font-semibold text-white">{profile.views?.toLocaleString() || 0}</span>
+                          <span>views</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-400 bg-gray-800/30 px-3 py-1.5 rounded-full">
+                          <Zap className="w-4 h-4 text-yellow-500" />
+                          <span className="font-semibold text-white">{sortedLinks.length}</span>
+                          <span>links</span>
+                        </div>
+                        <LiveVisitorCounter username={profile.username} />
+                      </div>
                     </div>
-                    <div className="text-xs text-white/70 font-semibold tracking-wider uppercase">
-                      Premium Bio Platform
+
+                    {/* Navigation Tabs */}
+                    <div className="border-t border-gray-800/50 bg-gray-900/30">
+                      <div className="flex items-center justify-center md:justify-start gap-0 overflow-x-auto">
+                        <button 
+                          className="px-4 sm:px-6 py-3 sm:py-4 text-sm font-semibold text-white relative shrink-0"
+                          style={{ color: profile.primaryColor || "#8B5CF6" }}
+                        >
+                          Links
+                          <div 
+                            className="absolute bottom-0 left-0 right-0 h-[3px] rounded-full"
+                            style={{ background: profile.primaryColor || "#8B5CF6" }}
+                          />
+                        </button>
+                        {sortedBlocks.length > 0 && (
+                          <button className="px-4 sm:px-6 py-3 sm:py-4 text-sm font-semibold text-gray-400 hover:text-white transition-colors shrink-0">
+                            Content
+                          </button>
+                        )}
+                        <button className="px-4 sm:px-6 py-3 sm:py-4 text-sm font-semibold text-gray-400 hover:text-white transition-colors shrink-0">
+                          About
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Main Content Area */}
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+                
+                {/* Left Sidebar - About & Stats */}
+                <div className="lg:col-span-1 space-y-4 sm:space-y-6">
+                  {/* About Card */}
+                  <div className="bg-gradient-to-br from-gray-900/80 to-gray-950/80 backdrop-blur-xl rounded-xl sm:rounded-2xl border border-gray-800/50 p-4 sm:p-6">
+                    <h3 className="text-base sm:text-lg font-bold text-white mb-4 flex items-center gap-2">
+                      <Users className="w-4 sm:w-5 h-4 sm:h-5" style={{ color: profile.primaryColor || "#8B5CF6" }} />
+                      About
+                    </h3>
+                    <div className="space-y-3 sm:space-y-4">
+                      {profile.bio && (
+                        <div className="flex items-start gap-3 text-sm">
+                          <MapPin className="w-4 h-4 text-gray-500 mt-0.5 shrink-0" />
+                          <p className="text-gray-400">Creator & Digital Enthusiast</p>
+                        </div>
+                      )}
+                      <div className="flex items-start gap-3 text-sm">
+                        <Calendar className="w-4 h-4 text-gray-500 mt-0.5 shrink-0" />
+                        <p className="text-gray-400">Joined Neropage</p>
+                      </div>
+                      <div className="flex items-start gap-3 text-sm">
+                        <Globe className="w-4 h-4 text-gray-500 mt-0.5 shrink-0" />
+                        <a 
+                          href={profileUrl} 
+                          className="text-gray-400 hover:underline truncate"
+                          style={{ color: profile.primaryColor || "#8B5CF6" }}
+                        >
+                          {profileUrl.replace('https://', '').replace('http://', '')}
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Links Stats */}
+                  <div className="bg-gradient-to-br from-gray-900/80 to-gray-950/80 backdrop-blur-xl rounded-xl sm:rounded-2xl border border-gray-800/50 p-4 sm:p-6">
+                    <h3 className="text-base sm:text-lg font-bold text-white mb-4 flex items-center gap-2">
+                      <Zap className="w-4 sm:w-5 h-4 sm:h-5" style={{ color: profile.primaryColor || "#8B5CF6" }} />
+                      Platform Stats
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                      <div className="bg-gray-800/30 rounded-lg sm:rounded-xl p-3 sm:p-4 text-center">
+                        <div className="text-xl sm:text-2xl font-black text-white">{sortedLinks.length}</div>
+                        <div className="text-xs text-gray-500 mt-1">Total Links</div>
+                      </div>
+                      <div className="bg-gray-800/30 rounded-lg sm:rounded-xl p-3 sm:p-4 text-center">
+                        <div className="text-xl sm:text-2xl font-black text-white">{profile.views || 0}</div>
+                        <div className="text-xs text-gray-500 mt-1">Profile Views</div>
+                      </div>
+                      <div className="bg-gray-800/30 rounded-lg sm:rounded-xl p-3 sm:p-4 text-center">
+                        <div className="text-xl sm:text-2xl font-black text-white">
+                          {sortedLinks.reduce((acc, link) => acc + (link.clicks || 0), 0)}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">Link Clicks</div>
+                      </div>
+                      <div className="bg-gray-800/30 rounded-lg sm:rounded-xl p-3 sm:p-4 text-center">
+                        <div className="text-xl sm:text-2xl font-black" style={{ color: profile.primaryColor || "#8B5CF6" }}>
+                          Active
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">Status</div>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Divider */}
-                <div className="flex items-center justify-center gap-4 my-6">
-                  <div className="h-px w-24 bg-gradient-to-r from-transparent to-white/30" />
-                  <div className="w-2 h-2 rounded-full bg-white/30" />
-                  <div className="h-px w-24 bg-gradient-to-l from-transparent to-white/30" />
-                </div>
+                {/* Main Content - Links & Content Blocks */}
+                <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+                  {/* Content Blocks */}
+                  {sortedBlocks.length > 0 && (
+                    <div className="space-y-4">
+                      {sortedBlocks.map((block) => (
+                        <div key={block.id} className="bg-gradient-to-br from-gray-900/80 to-gray-950/80 backdrop-blur-xl rounded-xl sm:rounded-2xl border border-gray-800/50 overflow-hidden">
+                          {block.type === "video" && block.mediaUrl && (
+                            <div className="p-4 sm:p-6">
+                              {block.title && <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-white">{block.title}</h3>}
+                              <div className="aspect-video rounded-lg sm:rounded-xl overflow-hidden bg-black/40 border border-gray-700/50">
+                                <iframe
+                                  src={block.mediaUrl.replace("watch?v=", "embed/")}
+                                  className="w-full h-full"
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                  allowFullScreen
+                                />
+                              </div>
+                            </div>
+                          )}
 
-                {/* Copyright */}
-                <p className="text-white/60 text-sm font-medium">
-                  © 2024 <span className="text-white/90 font-bold">@{profile.username}</span> • Crafted with <span className="text-pink-400">♥</span> on Neropage
-                </p>
-                
-                {/* Tagline */}
-                <p className="text-white/40 text-xs italic">
-                  One link to rule them all ✨
-                </p>
+                          {block.type === "image" && block.mediaUrl && (
+                            <div className="p-4 sm:p-6">
+                              {block.title && <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-white">{block.title}</h3>}
+                              <img 
+                                src={block.mediaUrl} 
+                                alt={block.title || "Content"} 
+                                className="w-full rounded-lg sm:rounded-xl border border-gray-700/50"
+                              />
+                            </div>
+                          )}
+
+                          {block.type === "gallery" && block.content && (
+                            <div className="p-4 sm:p-6">
+                              {block.title && <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-white">{block.title}</h3>}
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3">
+                                {block.content.split("\n").filter(url => url.trim()).map((url, idx) => (
+                                  <img 
+                                    key={idx}
+                                    src={url.trim()} 
+                                    alt={`Gallery ${idx + 1}`} 
+                                    className="w-full aspect-square object-cover rounded-lg sm:rounded-xl border border-gray-700/50"
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {block.type === "text" && block.content && (
+                            <div className="p-4 sm:p-6">
+                              {block.title && <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-white">{block.title}</h3>}
+                              <p className="text-gray-300 whitespace-pre-wrap leading-relaxed text-sm sm:text-base">{block.content}</p>
+                            </div>
+                          )}
+
+                          {block.type === "form" && (
+                            <div className="p-4 sm:p-6">
+                              <div className="flex items-center gap-3 mb-4">
+                                <Mail className="w-5 sm:w-6 h-5 sm:h-6" style={{ color: profile.primaryColor || "#8B5CF6" }} />
+                                <h3 className="text-lg sm:text-xl font-bold text-white">{block.title || "Get in Touch"}</h3>
+                              </div>
+                              <form onSubmit={(e) => handleFormSubmit(e, block.id)} className="space-y-3 sm:space-y-4">
+                                <Input
+                                  placeholder="Your Name"
+                                  value={emailFormData.name}
+                                  onChange={(e) => setEmailFormData({ ...emailFormData, name: e.target.value })}
+                                  required
+                                  className="bg-gray-800/50 border-gray-700 text-white placeholder:text-gray-500"
+                                />
+                                <Input
+                                  type="email"
+                                  placeholder="Your Email"
+                                  value={emailFormData.email}
+                                  onChange={(e) => setEmailFormData({ ...emailFormData, email: e.target.value })}
+                                  required
+                                  className="bg-gray-800/50 border-gray-700 text-white placeholder:text-gray-500"
+                                />
+                                <Input
+                                  placeholder="Your Message"
+                                  value={emailFormData.message}
+                                  onChange={(e) => setEmailFormData({ ...emailFormData, message: e.target.value })}
+                                  required
+                                  className="bg-gray-800/50 border-gray-700 text-white placeholder:text-gray-500"
+                                />
+                                <Button
+                                  type="submit"
+                                  disabled={submitFormMutation.isPending}
+                                  className={`w-full ${getButtonClass()} text-white`}
+                                  style={{ backgroundColor: profile.primaryColor || "#8B5CF6" }}
+                                >
+                                  {submitFormMutation.isPending ? "Sending..." : "Send Message"}
+                                </Button>
+                              </form>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Links Section */}
+                  <div className="bg-gradient-to-br from-gray-900/80 to-gray-950/80 backdrop-blur-xl rounded-xl sm:rounded-2xl border border-gray-800/50 p-4 sm:p-6">
+                    <h3 className="text-base sm:text-lg font-bold text-white mb-4 sm:mb-6 flex items-center gap-2">
+                      <Globe className="w-4 sm:w-5 h-4 sm:h-5" style={{ color: profile.primaryColor || "#8B5CF6" }} />
+                      My Links
+                    </h3>
+                    
+                    {sortedLinks.length === 0 ? (
+                      <div className="text-center py-8 sm:py-12">
+                        <div 
+                          className="w-14 sm:w-16 h-14 sm:h-16 mx-auto mb-4 rounded-xl sm:rounded-2xl flex items-center justify-center"
+                          style={{ background: `${profile.primaryColor || "#8B5CF6"}20` }}
+                        >
+                          <Globe className="w-7 sm:w-8 h-7 sm:h-8" style={{ color: profile.primaryColor || "#8B5CF6" }} />
+                        </div>
+                        <h4 className="text-lg sm:text-xl font-bold text-white mb-2">No Links Yet</h4>
+                        <p className="text-gray-400 text-sm">This user hasn't added any links</p>
+                      </div>
+                    ) : (
+                      <div className={`space-y-3 ${profile.layout === "grid" ? "md:grid md:grid-cols-2 md:gap-3 md:space-y-0" : ""}`}>
+                        {sortedLinks.map((link, index) => {
+                          const now = new Date();
+                          const isScheduled = link.isScheduled && link.scheduleStart && link.scheduleEnd;
+                          const scheduleStart = link.scheduleStart ? new Date(link.scheduleStart) : null;
+                          const scheduleEnd = link.scheduleEnd ? new Date(link.scheduleEnd) : null;
+                          const isActive = !isScheduled || (scheduleStart && scheduleEnd && now >= scheduleStart && now <= scheduleEnd);
+
+                          if (!isActive) return null;
+
+                          return (
+                            <div
+                              key={link.id}
+                              className="group relative bg-gradient-to-r from-gray-800/50 to-gray-800/30 hover:from-gray-700/60 hover:to-gray-700/40 border border-gray-700/50 hover:border-gray-600 rounded-xl transition-all duration-300 hover:shadow-lg"
+                              style={{ 
+                                animationDelay: `${index * 50}ms`,
+                              }}
+                            >
+                              {/* Glow on Hover */}
+                              <div 
+                                className="absolute -inset-0.5 rounded-xl opacity-0 group-hover:opacity-30 blur-sm transition-opacity duration-300 -z-10"
+                                style={{ background: profile.primaryColor || "#8B5CF6" }}
+                              />
+                              
+                              {link.badge && link.badge !== "none" && (
+                                <div className="absolute -top-2 -right-2 z-10">
+                                  <Badge 
+                                    className="text-[10px] font-bold uppercase px-2 py-0.5 text-white border-0 shadow-lg"
+                                    style={{ background: profile.primaryColor || "#8B5CF6" }}
+                                  >
+                                    {link.badge}
+                                  </Badge>
+                                </div>
+                              )}
+                              
+                              <SocialLinkButton
+                                platformId={link.platform}
+                                url={link.url}
+                                customTitle={link.customTitle}
+                                onClick={() => handleLinkClick(link.id)}
+                              />
+                              
+                              {link.description && (
+                                <p className="text-xs sm:text-sm text-gray-400 mt-2 px-4 pb-3 leading-relaxed">
+                                  {link.description}
+                                </p>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
-          </footer>
-          </div>
+
+            {/* Footer */}
+            {!profile.hideBranding && (
+              <footer className="border-t border-gray-800/50 bg-gray-950/50 backdrop-blur-xl py-6 sm:py-8 mt-8 sm:mt-12">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <NeropageLogo size={28} />
+                      <div>
+                        <div 
+                          className="text-lg sm:text-xl font-black"
+                          style={{
+                            background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}, #06B6D4)`,
+                            WebkitBackgroundClip: 'text',
+                            backgroundClip: 'text',
+                            color: 'transparent',
+                          }}
+                        >
+                          Neropage
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-gray-500 text-xs sm:text-sm text-center sm:text-right">
+                      © {new Date().getFullYear()} @{profile.username} • Powered by Neropage
+                    </p>
+                  </div>
+                </div>
+              </footer>
+            )}
+          </>
         )}
       </div>
     </>

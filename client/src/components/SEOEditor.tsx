@@ -2,8 +2,9 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, Share2, Eye } from "lucide-react";
+import { Search, Eye } from "lucide-react";
 import type { Profile } from "@shared/schema";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 interface SEOEditorProps {
   profile: Profile | null;
@@ -11,6 +12,53 @@ interface SEOEditorProps {
 }
 
 export function SEOEditor({ profile, onUpdate }: SEOEditorProps) {
+  const [localSeoTitle, setLocalSeoTitle] = useState(profile?.seoTitle || "");
+  const [localSeoDescription, setLocalSeoDescription] = useState(profile?.seoDescription || "");
+  const [localOgImage, setLocalOgImage] = useState(profile?.ogImage || "");
+  
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isInitialMount = useRef(true);
+
+  useEffect(() => {
+    if (profile) {
+      setLocalSeoTitle(profile.seoTitle || "");
+      setLocalSeoDescription(profile.seoDescription || "");
+      setLocalOgImage(profile.ogImage || "");
+    }
+  }, [profile?.id]);
+
+  const debouncedUpdate = useCallback((updates: Partial<Profile>) => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      onUpdate(updates);
+    }, 500);
+  }, [onUpdate]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleSeoTitleChange = (value: string) => {
+    setLocalSeoTitle(value);
+    debouncedUpdate({ seoTitle: value });
+  };
+
+  const handleSeoDescriptionChange = (value: string) => {
+    setLocalSeoDescription(value);
+    debouncedUpdate({ seoDescription: value });
+  };
+
+  const handleOgImageChange = (value: string) => {
+    setLocalOgImage(value);
+    debouncedUpdate({ ogImage: value });
+  };
+
   if (!profile) {
     return null;
   }
@@ -31,13 +79,13 @@ export function SEOEditor({ profile, onUpdate }: SEOEditorProps) {
             id="seo-title"
             type="text"
             placeholder={`${profile.username} - All My Links | Neropage`}
-            value={profile.seoTitle || ""}
-            onChange={(e) => onUpdate({ seoTitle: e.target.value })}
+            value={localSeoTitle}
+            onChange={(e) => handleSeoTitleChange(e.target.value)}
             maxLength={60}
             data-testid="input-seo-title"
           />
           <p className="text-xs text-muted-foreground">
-            {(profile.seoTitle || "").length}/60 characters. Optimize for search engines - include your name and key descriptors.
+            {localSeoTitle.length}/60 characters. Optimize for search engines - include your name and key descriptors.
           </p>
         </div>
 
@@ -46,14 +94,14 @@ export function SEOEditor({ profile, onUpdate }: SEOEditorProps) {
           <Textarea
             id="seo-description"
             placeholder="Connect with me across all platforms. Find my latest content, social profiles, and ways to get in touch - all in one place."
-            value={profile.seoDescription || ""}
-            onChange={(e) => onUpdate({ seoDescription: e.target.value })}
+            value={localSeoDescription}
+            onChange={(e) => handleSeoDescriptionChange(e.target.value)}
             maxLength={160}
             className="min-h-20 resize-none"
             data-testid="textarea-seo-description"
           />
           <p className="text-xs text-muted-foreground">
-            {(profile.seoDescription || "").length}/160 characters. Shown in search engine results.
+            {localSeoDescription.length}/160 characters. Shown in search engine results.
           </p>
         </div>
 
@@ -63,8 +111,8 @@ export function SEOEditor({ profile, onUpdate }: SEOEditorProps) {
             id="og-image"
             type="url"
             placeholder="https://example.com/share-image.jpg"
-            value={profile.ogImage || ""}
-            onChange={(e) => onUpdate({ ogImage: e.target.value })}
+            value={localOgImage}
+            onChange={(e) => handleOgImageChange(e.target.value)}
             data-testid="input-og-image"
           />
           <p className="text-xs text-muted-foreground">
@@ -78,18 +126,18 @@ export function SEOEditor({ profile, onUpdate }: SEOEditorProps) {
             Social Media Preview
           </div>
           <div className="border border-border rounded-lg overflow-hidden bg-card">
-            {profile.ogImage && (
+            {localOgImage && (
               <div
                 className="w-full h-32 bg-cover bg-center"
-                style={{ backgroundImage: `url(${profile.ogImage})` }}
+                style={{ backgroundImage: `url(${localOgImage})` }}
               />
             )}
             <div className="p-3 space-y-1">
               <p className="text-sm font-semibold line-clamp-1">
-                {profile.seoTitle || `${profile.username} - Link Hub`}
+                {localSeoTitle || `${profile.username} - Link Hub`}
               </p>
               <p className="text-xs text-muted-foreground line-clamp-2">
-                {profile.seoDescription || profile.bio || "Discover all my social media profiles and links in one place."}
+                {localSeoDescription || profile.bio || "Discover all my social media profiles and links in one place."}
               </p>
               <p className="text-xs text-muted-foreground">{profileUrl}</p>
             </div>
