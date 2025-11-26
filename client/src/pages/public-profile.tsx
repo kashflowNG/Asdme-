@@ -22,6 +22,9 @@ const THEME_BACKGROUNDS: Record<string, string> = {
   "d7cacdd5-42a7-4535-a5fd-9bd214c4825b": "linear-gradient(135deg, #0d1b2a 0%, #1a3a52 100%)", // Christmas
   "cfc2c9a7-38a6-4738-a838-4fb22b7132c6": "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0c4a6e 100%)", // New Year
   "a8f5e2b1-7c3d-4f9e-b2a1-5d8c6e9f2a1b": "linear-gradient(135deg, #8B0000 0%, #DC143C 25%, #FF1493 50%, #DC143C 75%, #8B0000 100%)", // Valentine's
+  "f1a2b3c4-d5e6-4f7a-8b9c-0d1e2f3a4b5c": "linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)", // Animated Snow
+  "e2d4c5a6-b7c8-9a0b-1c2d-3e4f5a6b7c8d": "linear-gradient(to bottom, #001a4d 0%, #0a0e27 50%, #050508 100%)", // Aurora
+  "c3b2a1d0-e9f8-7a6b-5c4d-3e2f1a0b9c8d": "linear-gradient(135deg, #0a0e27 0%, #1a0033 50%, #0a0e27 100%)", // Neon Pulse
 };
 
 export default function PublicProfile() {
