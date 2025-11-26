@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Gift, Sparkles } from "lucide-react";
+import { Plus, Trash2, Gift, Sparkles, Copy, Check } from "lucide-react";
 
 interface Template {
   id: string;
@@ -50,6 +50,7 @@ const NEW_YEAR_TEMPLATE = {
 export function TemplateManager() {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -59,6 +60,13 @@ export function TemplateManager() {
     badgeColor: "#8B5CF6",
     category: "general",
   });
+
+  const handleCopyTemplateId = (templateId: string) => {
+    navigator.clipboard.writeText(templateId);
+    setCopiedId(templateId);
+    toast({ title: "Copied!", description: "Template ID copied to clipboard" });
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   const { data: templates = [], isLoading } = useQuery({
     queryKey: ["/api/templates"],
@@ -274,17 +282,40 @@ export function TemplateManager() {
             <div className="text-xs text-gray-500">
               <p>Used {template.usageCount} times</p>
               {template.category && <p className="capitalize">Category: {template.category}</p>}
+              <div className="mt-2 p-2 bg-gray-100 dark:bg-gray-800 rounded text-gray-700 dark:text-gray-300 font-mono break-all text-[10px]">
+                ID: {template.id}
+              </div>
             </div>
-            <Button
-              onClick={() => deleteMutation.mutate(template.id)}
-              disabled={deleteMutation.isPending}
-              variant="destructive"
-              size="sm"
-              className="w-full"
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Delete
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => handleCopyTemplateId(template.id)}
+                variant="outline"
+                size="sm"
+                className="flex-1"
+              >
+                {copiedId === template.id ? (
+                  <>
+                    <Check className="w-4 h-4 mr-2" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy ID
+                  </>
+                )}
+              </Button>
+              <Button
+                onClick={() => deleteMutation.mutate(template.id)}
+                disabled={deleteMutation.isPending}
+                variant="destructive"
+                size="sm"
+                className="flex-1"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete
+              </Button>
+            </div>
           </Card>
         ))}
       </div>
