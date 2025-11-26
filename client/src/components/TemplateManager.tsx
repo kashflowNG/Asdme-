@@ -47,7 +47,7 @@ export function TemplateManager() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => apiRequest("POST", "/api/admin/templates/create", data),
+    mutationFn: (data: typeof formData) => apiRequest("POST", "/api/admin/templates/create", data),
     onSuccess: () => {
       toast({ title: "Success", description: "Template created" });
       queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
@@ -166,7 +166,7 @@ export function TemplateManager() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {templates.map((template) => (
+        {templates.map((template: Template) => (
           <Card key={template.id} className="p-4 space-y-3 border-purple-200">
             <div className="flex items-start justify-between">
               <div className="flex-1">

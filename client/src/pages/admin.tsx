@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { TemplateManager } from "@/components/TemplateManager";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Users, Globe, Activity, BarChart3, LogOut, Search, Trash2, Shield } from "lucide-react";
+import { Users, Globe, Activity, BarChart3, LogOut, Search, Trash2, Shield, Sparkles } from "lucide-react";
 
 interface AdminUser {
   id: string;
@@ -42,9 +43,10 @@ export default function AdminDashboard() {
     enabled: isAdmin,
   });
 
-  const { data: stats = { totalUsers: 0, totalLinks: 0, totalViews: 0, uniqueCountries: 0 } } = useQuery({
+  const { data: stats } = useQuery<{ totalUsers: number; totalLinks: number; totalViews: number; uniqueCountries: number }>({
     queryKey: ["/api/admin/stats"],
     enabled: isAdmin,
+    initialData: { totalUsers: 0, totalLinks: 0, totalViews: 0, uniqueCountries: 0 },
   });
 
   const handleDeleteUser = async (userId: string) => {

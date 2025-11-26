@@ -19,7 +19,7 @@ import { SEOEditor } from "@/components/SEOEditor";
 import { ContentBlockManager } from "@/components/ContentBlockManager";
 import { CustomDomainManager } from "@/components/CustomDomainManager";
 import { LinkGroupManager } from "@/components/LinkGroupManager";
-import { TemplateEditor } from "@/components/TemplateEditor";
+import { TemplateBrowser } from "@/components/TemplateBrowser";
 import { ABTestManager } from "@/components/ABTestManager";
 import { SmartRecommendations } from "@/components/SmartRecommendations";
 import { ClickHeatmap } from "@/components/ClickHeatmap";
@@ -1368,32 +1368,13 @@ export default function Dashboard() {
               )}
             </TabsContent>
 
-            {/* Template Tab */}
-            <TabsContent value="template" className="space-y-6 mt-6">
-              {profile && (
-                <TemplateEditor
-                  profile={profile}
-                  onUpdate={async (updates) => {
-                    if (profile) {
-                      try {
-                        await updateProfileMutation.mutateAsync(updates);
-                        await queryClient.invalidateQueries({ queryKey: ["/api/profiles/me"] });
-                        toast({
-                          title: "Template saved",
-                          description: "Your custom template has been updated successfully",
-                        });
-                      } catch (error) {
-                        console.error('Template save error:', error);
-                        toast({
-                          title: "Error",
-                          description: error instanceof Error ? error.message : "Failed to save template",
-                          variant: "destructive",
-                        });
-                      }
-                    }
-                  }}
-                />
-              )}
+            {/* Templates Tab */}
+            <TabsContent value="templates" className="space-y-6 mt-6">
+              <Card className="p-6 border-purple-200/30 bg-gradient-to-br from-purple-500/5 to-pink-500/5">
+                <h2 className="text-2xl font-bold mb-2">Ready-Made Templates</h2>
+                <p className="text-muted-foreground mb-6">Browse and apply beautiful templates created by our team</p>
+                <TemplateBrowser />
+              </Card>
             </TabsContent>
 
             {/* Advanced Tab */}
