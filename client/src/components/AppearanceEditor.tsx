@@ -45,6 +45,23 @@ const fonts = [
   "Raleway",
   "Nunito",
   "Playfair Display",
+  "Sora",
+  "Work Sans",
+  "Quicksand",
+  "Karla",
+  "Outfit",
+  "Space Mono",
+  "IBM Plex Sans",
+  "Lexend",
+  "JetBrains Mono",
+  "Fira Sans",
+  "Source Sans Pro",
+  "Caveat",
+  "Comfortaa",
+  "Fredoka",
+  "Overpass",
+  "Titillium Web",
+  "Varela Round",
 ];
 
 const buttonStyles = [
@@ -108,6 +125,7 @@ export function AppearanceEditor({ profile, onUpdate, updateProfile }: Appearanc
         backgroundVideo: "",
         layout: "stacked",
         fontFamily: "DM Sans",
+        textColor: "#E5E7EB",
         buttonStyle: "rounded",
         customCSS: "",
       });
@@ -368,17 +386,42 @@ export function AppearanceEditor({ profile, onUpdate, updateProfile }: Appearanc
             </Select>
           </div>
 
+          <div className="space-y-3">
+            <Label htmlFor="text-color" className="text-base font-semibold">
+              Text Color
+            </Label>
+            <div className="flex gap-3">
+              <input
+                id="text-color"
+                type="color"
+                value={profile.textColor || "#E5E7EB"}
+                onChange={(e) => onUpdate({ textColor: e.target.value })}
+                className="w-20 h-12 rounded-lg border-2 border-border cursor-pointer"
+              />
+              <div className="flex-1">
+                <p className="text-xs text-muted-foreground mb-1">Selected Color</p>
+                <Input
+                  type="text"
+                  value={profile.textColor || "#E5E7EB"}
+                  onChange={(e) => onUpdate({ textColor: e.target.value })}
+                  placeholder="#E5E7EB"
+                  className="font-mono text-sm"
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="p-4 bg-muted/30 rounded-lg">
             <p className="text-sm font-medium mb-2">Preview</p>
             <div
               style={{
                 fontFamily: profile.fontFamily || "DM Sans",
-                color: profile.primaryColor || "#8B5CF6",
+                color: profile.textColor || "#E5E7EB",
               }}
             >
               <h3 className="text-2xl font-bold mb-2">The Quick Brown Fox</h3>
               <p className="text-base">
-                This is how your profile text will look with the selected font.
+                This is how your profile text will look with the selected font and color.
               </p>
             </div>
           </div>

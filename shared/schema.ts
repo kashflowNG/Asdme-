@@ -30,6 +30,7 @@ export const profiles = pgTable("profiles", {
   customCSS: text("custom_css"),
   layout: text("layout").default("stacked"),
   fontFamily: text("font_family").default("DM Sans"),
+  textColor: text("text_color").default("#E5E7EB"),
   buttonStyle: text("button_style").default("rounded"),
   
   // Applied Theme Template
@@ -169,6 +170,7 @@ export const updateProfileSchema = z.object({
   customCSS: z.string().optional(),
   layout: z.string().optional(),
   fontFamily: z.string().optional(),
+  textColor: z.string().optional(),
   buttonStyle: z.string().optional(),
   
   // Custom Template

@@ -186,6 +186,7 @@ export default function PublicProfile() {
             ? THEME_BACKGROUNDS[profile.appliedTemplateId as keyof typeof THEME_BACKGROUNDS]
             : "linear-gradient(180deg, #0f0f1a 0%, #0a0a0f 50%, #050508 100%)",
           fontFamily: profile.fontFamily || "DM Sans",
+          color: profile.textColor || "#E5E7EB",
         }}
       >
         {profile.backgroundType === "video" && profile.backgroundVideo && (
@@ -229,19 +230,19 @@ export default function PublicProfile() {
             {/* Username & Verification */}
             <div className="space-y-2">
               <div className="flex items-center justify-center gap-2">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-black" style={{ color: profile.textColor || "#E5E7EB" }}>
                   {profile.username}
                 </h1>
                 {profile.verificationBadge && (
                   <CheckCircle2 className="w-5 h-5" style={{ color: profile.primaryColor || "#8B5CF6" }} />
                 )}
               </div>
-              <p className="text-gray-400 text-sm">@{profile.username}</p>
+              <p className="text-sm" style={{ color: profile.textColor ? `${profile.textColor}99` : "#9CA3AF" }}>@{profile.username}</p>
             </div>
 
             {/* Bio */}
             {profile.bio && (
-              <p className="text-gray-300 text-sm sm:text-base leading-relaxed">
+              <p className="text-sm sm:text-base leading-relaxed" style={{ color: profile.textColor || "#E5E7EB" }}>
                 {profile.bio}
               </p>
             )}
@@ -276,7 +277,7 @@ export default function PublicProfile() {
                 <div key={block.id} className="bg-gray-900/80 rounded-xl border border-gray-800/50 p-4 sm:p-6">
                   {block.type === "video" && block.mediaUrl && (
                     <div>
-                      {block.title && <h3 className="text-lg font-bold mb-3 text-white">{block.title}</h3>}
+                      {block.title && <h3 className="text-lg font-bold mb-3" style={{ color: profile.textColor || "#E5E7EB" }}>{block.title}</h3>}
                       <div className="aspect-video rounded-lg overflow-hidden border border-gray-700/50">
                         <iframe
                           src={block.mediaUrl.replace("watch?v=", "embed/")}
@@ -290,14 +291,14 @@ export default function PublicProfile() {
 
                   {block.type === "image" && block.mediaUrl && (
                     <div>
-                      {block.title && <h3 className="text-lg font-bold mb-3 text-white">{block.title}</h3>}
+                      {block.title && <h3 className="text-lg font-bold mb-3" style={{ color: profile.textColor || "#E5E7EB" }}>{block.title}</h3>}
                       <img src={block.mediaUrl} alt={block.title || "Content"} className="w-full rounded-lg border border-gray-700/50" />
                     </div>
                   )}
 
                   {block.type === "text" && block.content && (
                     <div>
-                      {block.title && <h3 className="text-lg font-bold mb-3 text-white">{block.title}</h3>}
+                      {block.title && <h3 className="text-lg font-bold mb-3" style={{ color: profile.textColor || "#E5E7EB" }}>{block.title}</h3>}
                       <div className="text-gray-300 text-sm leading-relaxed space-y-3">
                         {block.content.split("\n\n").map((paragraph, idx) => (
                           <p key={idx} className="whitespace-pre-wrap">{paragraph}</p>
@@ -349,7 +350,7 @@ export default function PublicProfile() {
 
                   {block.type === "embed" && block.content && (
                     <div>
-                      {block.title && <h3 className="text-lg font-bold mb-3 text-white">{block.title}</h3>}
+                      {block.title && <h3 className="text-lg font-bold mb-3" style={{ color: profile.textColor || "#E5E7EB" }}>{block.title}</h3>}
                       <div 
                         className="embed-container rounded-lg border border-gray-700/50 overflow-hidden"
                         dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(block.content) }}
@@ -359,7 +360,7 @@ export default function PublicProfile() {
 
                   {block.type === "gallery" && block.content && (
                     <div>
-                      {block.title && <h3 className="text-lg font-bold mb-3 text-white">{block.title}</h3>}
+                      {block.title && <h3 className="text-lg font-bold mb-3" style={{ color: profile.textColor || "#E5E7EB" }}>{block.title}</h3>}
                       <div className="grid grid-cols-2 gap-3">
                         {block.content.split("\n").filter(url => url.trim()).map((imageUrl, idx) => (
                           <img 
