@@ -90,6 +90,7 @@ export function VideoTrimmer({ onVideoTrimmed, initialUrl }: VideoTrimmerProps) 
       const response = await fetch("/api/upload-video", {
         method: "POST",
         body: formData,
+        credentials: "include",
       });
 
       if (!response.ok) {
