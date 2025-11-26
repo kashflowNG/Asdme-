@@ -1,13 +1,15 @@
 
 import { Button } from "@/components/ui/button";
 import { NeropageLogo } from "@/components/NeropageLogo";
-import { ArrowRight, Sparkles, Zap, Shield, Users, TrendingUp, Lock, Globe, BarChart3, Palette, Link2, CheckCircle } from "lucide-react";
+import { ArrowRight, Sparkles, Zap, Shield, Users, TrendingUp, Lock, Globe, BarChart3, Palette, Link2, CheckCircle, Rocket, Eye, Gauge, Code } from "lucide-react";
 import { useLocation } from "wouter";
 import { Helmet } from "react-helmet";
 import { Card } from "@/components/ui/card";
+import { useState } from "react";
 
 export default function Landing() {
   const [, navigate] = useLocation();
+  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
 
   const features = [
     {
@@ -53,6 +55,21 @@ export default function Landing() {
     { value: "1M+", label: "Links Shared" },
     { value: "99.9%", label: "Uptime" },
     { value: "50+", label: "Integrations" }
+  ];
+
+  const capabilities = [
+    { icon: Rocket, title: "Lightning Fast", description: "Deploy instantly with zero configuration", color: "from-blue-500 to-cyan-400" },
+    { icon: Eye, title: "Real-Time Analytics", description: "Track clicks, views, and engagement instantly", color: "from-purple-500 to-pink-400" },
+    { icon: Gauge, title: "Performance Tracking", description: "Detailed insights on link performance", color: "from-orange-500 to-red-400" },
+    { icon: Code, title: "Custom Code", description: "Add HTML embeds, custom CSS, and more", color: "from-green-500 to-emerald-400" }
+  ];
+
+  const faqs = [
+    { q: "Can I use my own domain?", a: "Yes! Connect any custom domain to your Neropage profile for a professional presence." },
+    { q: "Is there a free plan?", a: "Absolutely! Get started free with unlimited links and basic customization. No credit card needed." },
+    { q: "How do I track my performance?", a: "Use our advanced analytics dashboard to see real-time clicks, views, locations, and more." },
+    { q: "Can I customize my page design?", a: "Completely! Choose from 8+ themes, 27+ fonts, customize colors, add videos, and write custom CSS." },
+    { q: "Do you offer support?", a: "Yes! We offer email support and documentation. Pro users get priority support." }
   ];
 
   return (
@@ -265,8 +282,32 @@ export default function Landing() {
           </div>
         </div>
 
+        {/* Capabilities Showcase */}
+        <div className="max-w-6xl w-full mb-20">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
+            Everything You Need to Succeed
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {capabilities.map((cap, i) => (
+              <div
+                key={i}
+                className="glass-card p-8 rounded-2xl hover-elevate transition-all border border-primary/20"
+                style={{
+                  animation: `fadeIn 0.6s ease-out ${1.5 + i * 0.1}s both`,
+                }}
+              >
+                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${cap.color} p-3 mb-4 neon-glow`}>
+                  <cap.icon className="w-full h-full text-white" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">{cap.title}</h3>
+                <p className="text-muted-foreground">{cap.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Use Cases Showcase */}
-        <div className="max-w-6xl w-full mb-16">
+        <div className="max-w-6xl w-full mb-20">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-8">
             Perfect For Every Creator
           </h2>
@@ -351,22 +392,88 @@ export default function Landing() {
           </div>
         </div>
 
+        {/* FAQ Section */}
+        <div className="max-w-3xl w-full mb-20">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
+            Frequently Asked Questions
+          </h2>
+          <div className="space-y-3">
+            {faqs.map((faq, i) => (
+              <div
+                key={i}
+                className="glass-card rounded-xl overflow-hidden transition-all"
+                style={{
+                  animation: `fadeIn 0.6s ease-out ${2.0 + i * 0.1}s both`,
+                }}
+              >
+                <button
+                  onClick={() => setExpandedFaq(expandedFaq === i ? null : i)}
+                  className="w-full p-6 text-left flex items-center justify-between hover:bg-primary/5 transition-colors"
+                >
+                  <span className="font-semibold text-lg">{faq.q}</span>
+                  <div className={`text-primary transition-transform ${expandedFaq === i ? 'rotate-180' : ''}`}>
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                </button>
+                {expandedFaq === i && (
+                  <div className="px-6 pb-6 text-muted-foreground border-t border-primary/10">
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Premium Features Teaser */}
+        <div className="max-w-4xl w-full mb-20 relative">
+          <div className="glass-card border-2 border-primary/30 rounded-2xl p-12 text-center relative overflow-hidden">
+            <div 
+              className="absolute top-0 left-1/4 w-96 h-96 rounded-full blur-3xl opacity-10 pointer-events-none"
+              style={{
+                background: 'radial-gradient(circle, #8B5CF6 0%, transparent 70%)',
+              }}
+            />
+            <div className="relative z-10">
+              <div className="inline-block px-4 py-2 bg-primary/20 rounded-full mb-6 text-sm font-semibold text-primary">
+                ✨ Premium Features Available
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">
+                Unlock Advanced Features
+              </h2>
+              <p className="text-muted-foreground mb-8 max-w-xl mx-auto text-lg">
+                Access priority support, advanced analytics, team collaboration, and exclusive templates with Neropage Pro
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button 
+                  size="lg" 
+                  className="text-lg px-8 py-6 shadow-lg neon-glow hover:neon-glow-strong transition-all"
+                  onClick={() => navigate('/signup')}
+                >
+                  Start Free Trial
+                  <Rocket className="ml-2 w-5 h-5" />
+                </Button>
+                <Button 
+                  size="lg" 
+                  variant="outline"
+                  className="text-lg px-8 py-6"
+                  onClick={() => navigate('/login')}
+                >
+                  Already have an account?
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Final CTA */}
         <div className="max-w-2xl w-full text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Ready to Unite Your Digital Presence?
+          <h2 className="text-2xl md:text-3xl font-bold mb-4">
+            Your Digital Presence Starts Here
           </h2>
-          <p className="text-muted-foreground mb-8">
-            Join thousands of creators who trust Neropage to showcase their content
+          <p className="text-muted-foreground mb-8 text-lg">
+            Create, customize, and share your Neropage profile in minutes
           </p>
-          <Button 
-            size="lg" 
-            className="text-lg px-8 py-6 shadow-lg neon-glow hover:neon-glow-strong transition-all"
-            onClick={() => navigate('/signup')}
-          >
-            Start Building Your Page
-            <ArrowRight className="ml-2 w-5 h-5" />
-          </Button>
         </div>
 
         {/* Footer note */}
