@@ -18,6 +18,11 @@ import { LiveVisitorCounter } from "@/components/LiveVisitorCounter";
 import DOMPurify from "dompurify";
 import { getPlatform } from "@/lib/platforms";
 
+const THEME_BACKGROUNDS: Record<string, string> = {
+  "d7cacdd5-42a7-4535-a5fd-9bd214c4825b": "linear-gradient(135deg, #0d1b2a 0%, #1a3a52 100%)", // Christmas
+  "cfc2c9a7-38a6-4738-a838-4fb22b7132c6": "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0c4a6e 100%)", // New Year
+};
+
 export default function PublicProfile() {
   const [, params] = useRoute("/user/:username");
   const username = params?.username || "";
@@ -251,7 +256,9 @@ export default function PublicProfile() {
       <div 
         className="min-h-screen"
         style={{
-          background: "linear-gradient(180deg, #0f0f1a 0%, #0a0a0f 50%, #050508 100%)",
+          background: (profile?.appliedTemplateId && THEME_BACKGROUNDS[profile.appliedTemplateId as keyof typeof THEME_BACKGROUNDS]) 
+            ? THEME_BACKGROUNDS[profile.appliedTemplateId as keyof typeof THEME_BACKGROUNDS]
+            : "linear-gradient(180deg, #0f0f1a 0%, #0a0a0f 50%, #050508 100%)",
           fontFamily: profile.fontFamily || "DM Sans",
         }}
       >
@@ -271,52 +278,7 @@ export default function PublicProfile() {
           <style dangerouslySetInnerHTML={{ __html: sanitizeCSS(profile.customCSS) }} />
         )}
 
-        {profile.useCustomTemplate && profile.templateHTML ? (
-          <div 
-            className="min-h-screen custom-template-container"
-            dangerouslySetInnerHTML={{ 
-              __html: DOMPurify.sanitize(
-                profile.templateHTML
-                  .replace(/\{\{username\}\}/g, profile.username || '')
-                  .replace(/\{\{bio\}\}/g, profile.bio || '')
-                  .replace(/\{\{avatar\}\}/g, profile.avatar || '')
-                  .replace(/\{\{coverPhoto\}\}/g, profile.coverPhoto || '')
-                  .replace(/\{\{primaryColor\}\}/g, profile.primaryColor || '#8B5CF6')
-                  .replace(/\{\{backgroundColor\}\}/g, profile.backgroundColor || '#0a0a0a')
-                  .replace(/\{\{fontFamily\}\}/g, profile.fontFamily || 'DM Sans')
-                  .replace(/\{\{socialLinks\}\}/g, sortedLinks.length > 0 ? sortedLinks.map(link => {
-                    const platform = getPlatform(link.platform);
-                    const icon = platform ? platform.name : '🔗';
-                    return `
-                      <a href="${link.url}" target="_blank" rel="noopener noreferrer" 
-                         class="block p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-all border border-white/10 hover:border-white/20 group">
-                        <span class="font-semibold">${icon} ${link.customTitle || link.platform}</span>
-                      </a>
-                    `;
-                  }).join('') : '<p class="text-gray-400 text-center">No links added yet</p>')
-                  .replace(/\{\{contentBlocks\}\}/g, sortedBlocks.length > 0 ? sortedBlocks.map(block => {
-                    if (block.type === 'text') {
-                      return `
-                        <div class="p-6 rounded-lg bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20">
-                          ${block.title ? `<h3 class="font-bold mb-2">${block.title}</h3>` : ''}
-                          <div class="text-sm text-gray-300">${block.content || ''}</div>
-                        </div>
-                      `;
-                    }
-                    return '';
-                  }).join('') : ''),
-                {
-                  ALLOWED_TAGS: ['div', 'span', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img', 'a', 'ul', 'ol', 'li', 'br', 'strong', 'em', 'u', 'header', 'footer', 'section', 'article', 'main', 'nav', 'style'],
-                  ALLOWED_ATTR: ['class', 'id', 'href', 'src', 'alt', 'target', 'rel', 'style'],
-                  ALLOW_DATA_ATTR: false,
-                  ALLOWED_URI_REGEXP: /^(?:(?:https?|ftp):\/\/|\/|#)/i,
-                  ADD_ATTR: ['target'],
-                }
-              )
-            }}
-          />
-        ) : (
-          <>
+        <>
             {/* Cover Photo Section - Facebook Style */}
             <div className="relative">
               {/* Cover Photo */}
