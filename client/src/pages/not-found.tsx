@@ -6,7 +6,6 @@ export default function NotFound() {
   return (
     <>
       <Helmet>
-        <script async data-cfasync="false" src="//pl28091865.effectivegatecpm.com/d3086215aaf6d1aac4a8cf2c4eda801b/invoke.js"></script>
       </Helmet>
 
       <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
@@ -22,13 +21,6 @@ export default function NotFound() {
             </p>
           </CardContent>
         </Card>
-
-        {/* Ad Placement */}
-        <div className="flex justify-center py-6 mt-8">
-          <div className="w-full max-w-sm mx-auto">
-            <div id="container-d3086215aaf6d1aac4a8cf2c4eda801b" className="rounded-lg overflow-hidden"></div>
-          </div>
-        </div>
       </div>
     </>
   );
