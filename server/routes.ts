@@ -71,14 +71,9 @@ function verifyToken(token: string): JWTPayload | null {
 }
 
 function getAuthToken(req: any): string | null {
-  // Check Authorization header first
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     return authHeader.substring(7);
-  }
-  // Fall back to query parameter for file uploads
-  if (req.query.token) {
-    return req.query.token;
   }
   return null;
 }
