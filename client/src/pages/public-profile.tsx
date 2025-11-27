@@ -228,8 +228,8 @@ export default function PublicProfile() {
 
       <div 
         className="min-h-screen relative pt-12 sm:pt-16 md:pt-20 pb-12"
-        style={{ zIndex: 10 }}
         style={{
+          zIndex: 10,
           fontFamily: profile.fontFamily || "DM Sans",
           color: profile.textColor || "#E5E7EB",
         }}
