@@ -64,3 +64,8 @@ waitForPort = 5000
 
 [agent]
 expertMode = true
+
+[userenv]
+
+[userenv.shared]
+JWT_SECRET = "neropage_jwt_secret_a7f9e8d2c1b4a6f3e9d8c7b6a5f4e3d2c1b9a8f7e6d5c4b3a2f1e0d9c8b7a"
