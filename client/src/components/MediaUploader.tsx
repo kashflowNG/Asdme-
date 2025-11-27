@@ -91,12 +91,18 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
 
       const endpoint = type === "image" ? "/api/upload-image" : "/api/upload-video";
       
+      console.log("Starting upload for:", type, "to:", endpoint);
+
       // Get the auth token from localStorage and add to headers
       const token = localStorage.getItem('neropage_auth_token');
+      console.log("Token found:", !!token);
+
       const headers: Record<string, string> = {};
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
+      
+      console.log("Fetch request starting...", { endpoint, hasToken: !!token });
       
       const response = await fetch(endpoint, {
         method: "POST",
@@ -104,6 +110,8 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
         credentials: "include",
         headers,
       });
+
+      console.log("Fetch response received:", response.status, response.ok);
 
       if (!response.ok) {
         let errorText = "";
@@ -117,6 +125,7 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
       }
 
       const data = await response.json();
+      console.log("Upload successful:", data);
       onMediaUploaded(data.url);
       toast({ title: "Success", description: `${type === "image" ? "Image" : "Video"} uploaded successfully!` });
       setFile(null);
