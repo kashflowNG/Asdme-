@@ -312,26 +312,49 @@ export default function PublicProfile() {
                     <div>
                       {block.title && <h3 className="text-lg font-bold mb-3" style={{ color: profile.textColor || "#E5E7EB" }}>{block.title}</h3>}
                       <div className="aspect-video rounded-lg overflow-hidden border border-gray-700/50 bg-black">
-                        {(block.mediaUrl.includes("youtube.com") || block.mediaUrl.includes("youtu.be")) ? (
-                          <iframe
-                            src={block.mediaUrl.includes("youtu.be") 
-                              ? `https://www.youtube.com/embed/${block.mediaUrl.split("youtu.be/")[1]?.split("?")[0]}` 
-                              : block.mediaUrl.replace("watch?v=", "embed/").replace("youtube.com/watch?v=", "youtube.com/embed/")}
-                            className="w-full h-full"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                          />
-                        ) : (
-                          <video 
-                            controls 
-                            controlsList="nodownload"
-                            className="w-full h-full"
-                            style={{ objectFit: "cover" }}
-                          >
-                            <source src={block.mediaUrl} type="video/mp4" />
-                            Your browser does not support the video tag.
-                          </video>
-                        )}
+                        {(() => {
+                          const url = block.mediaUrl;
+                          // YouTube detection
+                          if (url.includes("youtube.com") || url.includes("youtu.be")) {
+                            const videoId = url.includes("youtu.be")
+                              ? url.split("youtu.be/")[1]?.split("?")[0]
+                              : url.match(/(?:youtube\.com\/watch\?v=|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/)?.[1];
+                            return (
+                              <iframe
+                                src={`https://www.youtube.com/embed/${videoId}`}
+                                className="w-full h-full"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                              />
+                            );
+                          }
+                          // Vimeo detection
+                          if (url.includes("vimeo.com")) {
+                            const videoId = url.split("vimeo.com/")[1]?.split("?")[0];
+                            return (
+                              <iframe
+                                src={`https://player.vimeo.com/video/${videoId}`}
+                                className="w-full h-full"
+                                allow="autoplay; fullscreen; picture-in-picture"
+                                allowFullScreen
+                              />
+                            );
+                          }
+                          // HTML5 video player for direct video links
+                          return (
+                            <video 
+                              controls 
+                              controlsList="nodownload"
+                              className="w-full h-full"
+                              style={{ objectFit: "cover" }}
+                            >
+                              <source src={url} type="video/mp4" />
+                              <source src={url} type="video/webm" />
+                              <source src={url} type="video/ogg" />
+                              Your browser does not support the video tag.
+                            </video>
+                          );
+                        })()}
                       </div>
                     </div>
                   )}
