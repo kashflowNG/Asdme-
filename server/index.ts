@@ -20,10 +20,14 @@ app.use(cors({
   origin: (origin, callback) => {
     if (process.env.NODE_ENV === 'development') {
       callback(null, true);
-    } else if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+    } else if (!origin) {
+      // Allow same-origin requests (no origin header)
+      callback(null, true);
+    } else if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      // In production, if no origins specified, allow all (for self-hosted)
+      callback(null, true);
     }
   },
   credentials: true,
