@@ -9,6 +9,8 @@ import { TemplateManager } from "@/components/TemplateManager";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Users, Globe, Activity, BarChart3, LogOut, Search, Trash2, Shield, Sparkles, ArrowUpDown, Eye, Link2, MapPin, Calendar } from "lucide-react";
+import { AnimatedGalaxyBackground } from "@/components/AnimatedGalaxyBackground";
+import { AdminDashboardLoadout } from "@/components/AdminDashboardLoadout";
 
 interface AdminUser {
   id: string;
@@ -114,8 +116,9 @@ export default function AdminDashboard() {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-950 flex items-center justify-center p-6">
-        <Card className="p-12 text-center max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-950 flex items-center justify-center p-6 relative overflow-hidden">
+        <AnimatedGalaxyBackground />
+        <Card className="p-12 text-center max-w-md relative z-10">
           <Shield className="w-16 h-16 mx-auto mb-4 text-red-500" />
           <h1 className="text-2xl font-bold mb-2">Access Denied</h1>
           <p className="text-muted-foreground mb-6">
@@ -166,9 +169,11 @@ export default function AdminDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black p-6">
-      <main className="max-w-7xl mx-auto">
-        {/* Header */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black p-6 relative overflow-hidden">
+      <AnimatedGalaxyBackground />
+      
+      <main className="max-w-7xl mx-auto relative z-10">
+        {/* Header with glow */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent mb-2">
@@ -176,52 +181,26 @@ export default function AdminDashboard() {
             </h1>
             <p className="text-muted-foreground">Manage users and monitor platform activity</p>
           </div>
-          <Button variant="outline" onClick={() => window.location.href = "/dashboard"} className="gap-2">
+          <Button variant="outline" onClick={() => window.location.href = "/dashboard"} className="gap-2 hover:bg-purple-500/20 hover:border-purple-400">
             <LogOut className="w-4 h-4" />
             Exit Admin
           </Button>
         </div>
 
-        {/* Stats Grid */}
+        {/* Platform Loadout Component */}
         {stats && (
-          <div className="grid grid-cols-4 gap-4 mb-8">
-            <Card className="p-6 glass-card neon-glow border-cyan-500/20">
-              <div className="flex items-center gap-3 mb-3">
-                <Users className="w-6 h-6 text-cyan-400" />
-                <span className="text-muted-foreground text-sm">Total Users</span>
-              </div>
-              <p className="text-3xl font-bold">{stats.totalUsers}</p>
-              <p className="text-xs text-cyan-400/60 mt-2">+{Math.floor(Math.random() * 10)} this month</p>
-            </Card>
-            <Card className="p-6 glass-card neon-glow border-purple-500/20">
-              <div className="flex items-center gap-3 mb-3">
-                <Activity className="w-6 h-6 text-purple-400" />
-                <span className="text-muted-foreground text-sm">Total Links</span>
-              </div>
-              <p className="text-3xl font-bold">{stats.totalLinks}</p>
-              <p className="text-xs text-purple-400/60 mt-2">{Math.floor(stats.totalLinks / (stats.totalUsers || 1))} avg per user</p>
-            </Card>
-            <Card className="p-6 glass-card neon-glow border-pink-500/20">
-              <div className="flex items-center gap-3 mb-3">
-                <BarChart3 className="w-6 h-6 text-pink-400" />
-                <span className="text-muted-foreground text-sm">Total Views</span>
-              </div>
-              <p className="text-3xl font-bold">{stats.totalViews}</p>
-              <p className="text-xs text-pink-400/60 mt-2">{Math.floor(stats.totalViews / (stats.totalLinks || 1))} per link</p>
-            </Card>
-            <Card className="p-6 glass-card neon-glow border-green-500/20">
-              <div className="flex items-center gap-3 mb-3">
-                <Globe className="w-6 h-6 text-green-400" />
-                <span className="text-muted-foreground text-sm">Countries</span>
-              </div>
-              <p className="text-3xl font-bold">{stats.uniqueCountries}</p>
-              <p className="text-xs text-green-400/60 mt-2">Active regions</p>
-            </Card>
-          </div>
+          <AdminDashboardLoadout
+            totalUsers={stats.totalUsers}
+            totalLinks={stats.totalLinks}
+            totalViews={stats.totalViews}
+            uniqueCountries={stats.uniqueCountries}
+          />
         )}
 
         {/* Users Management */}
-        <Card className="glass-card neon-glow border-primary/20">
+        <Card className="glass-card neon-glow border-primary/20 relative mt-8">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-lg blur opacity-10 pointer-events-none"></div>
+          <div className="relative">
           <Tabs defaultValue="users" className="w-full">
             <div className="border-b border-primary/10 px-6 pt-6">
               <TabsList className="border-0">
@@ -405,6 +384,7 @@ export default function AdminDashboard() {
               <TemplateManager />
             </TabsContent>
           </Tabs>
+          </div>
         </Card>
       </main>
     </div>
