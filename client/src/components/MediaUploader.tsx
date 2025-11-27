@@ -93,15 +93,20 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
         formData.append("endTime", endTime.toString());
       }
 
+      // Get auth token from localStorage
+      const token = localStorage.getItem("neropage_auth_token");
+      
       const endpoint = type === "image" ? "/api/upload-image" : "/api/upload-video";
       const response = await fetch(endpoint, {
         method: "POST",
         body: formData,
         credentials: "include",
+        headers: token ? { "Authorization": `Bearer ${token}` } : {},
       });
 
       if (!response.ok) {
-        throw new Error("Upload failed");
+        const error = await response.json();
+        throw new Error(error.error || "Upload failed");
       }
 
       const data = await response.json();
@@ -110,7 +115,7 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
       setFile(null);
       setPreview("");
     } catch (error) {
-      toast({ title: "Error", description: `Failed to upload ${type}` });
+      toast({ title: "Error", description: `Failed to upload ${type}: ${error instanceof Error ? error.message : "Unknown error"}` });
     } finally {
       setIsUploading(false);
     }
