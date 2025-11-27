@@ -340,6 +340,17 @@ export default function PublicProfile() {
                               />
                             );
                           }
+                          // TikTok detection
+                          if (url.includes("tiktok.com") || url.includes("vm.tiktok.com") || url.includes("vt.tiktok.com")) {
+                            return (
+                              <iframe
+                                src={`https://www.tiktok.com/embed/v2/${url.split("/video/")[1]?.split("?")[0] || url.split("/")[3]}`}
+                                className="w-full h-full"
+                                allow="autoplay; encrypted-media"
+                                style={{ minHeight: "500px" }}
+                              />
+                            );
+                          }
                           // HTML5 video player for direct video links
                           return (
                             <video 
