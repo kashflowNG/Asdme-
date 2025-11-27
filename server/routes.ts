@@ -436,8 +436,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Middleware to check for custom domain - check before username routes
   app.use((req, res, next) => {
     const host = req.headers.host || '';
-    const isReplit = host.includes('replit.dev') || host.includes('localhost') || host.includes('127.0.0.1');
-    if (!isReplit && host) {
+    const isDefaultHost = host.includes('localhost') || host.includes('127.0.0.1');
+    if (!isDefaultHost && host) {
       // Store custom domain in req for later use
       (req as any).customDomain = host.split(':')[0];
     }

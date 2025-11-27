@@ -51,7 +51,7 @@ export function CustomDomainManager() {
             <div className="font-mono text-xs space-y-1">
               <p>Type: A</p>
               <p>Name: {domain.includes('.') ? domain.split('.').slice(0, -2).join('.') || '@' : '@'}</p>
-              <p>Value: [Your Replit deployment IP will be shown here after linking]</p>
+              <p>Value: [Your deployment IP will be shown here after linking]</p>
             </div>
             <div className="font-mono text-xs space-y-1 mt-3">
               <p>Type: TXT</p>
