@@ -127,26 +127,32 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const handleMouseUp = () => {
-    setIsDraggingStart(false);
-    setIsDraggingEnd(false);
-  };
-
   useEffect(() => {
-    window.addEventListener("mouseup", handleMouseUp);
-    return () => window.removeEventListener("mouseup", handleMouseUp);
-  }, []);
+    const handleMouseUp = () => {
+      setIsDraggingStart(false);
+      setIsDraggingEnd(false);
+    };
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!timelineRef.current) return;
+    if (isDraggingStart || isDraggingEnd) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+      return () => {
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+      };
+    }
+  }, [isDraggingStart, isDraggingEnd, duration, startTime, endTime]);
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!timelineRef.current || (!isDraggingStart && !isDraggingEnd)) return;
     const rect = timelineRef.current.getBoundingClientRect();
     const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     const time = percent * duration;
 
     if (isDraggingStart) {
-      setStartTime(Math.min(time, endTime));
+      setStartTime(Math.min(time, endTime - 0.1));
     } else if (isDraggingEnd) {
-      setEndTime(Math.max(time, startTime));
+      setEndTime(Math.max(time, startTime + 0.1));
     }
   };
 
@@ -234,57 +240,89 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
           </div>
 
           {/* Timeline Trimmer */}
-          <div className="space-y-2">
-            <Label className="text-sm font-semibold">Trim Duration</Label>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-semibold">Trim Duration</Label>
+              <div className="text-xs space-x-3 font-mono">
+                <span className="text-cyan-400">{formatTime(startTime)}</span>
+                <span className="text-gray-500">→</span>
+                <span className="text-purple-400">{formatTime(endTime)}</span>
+                <span className="text-gray-400">({formatTime(endTime - startTime)}s)</span>
+              </div>
+            </div>
+            
             <div
               ref={timelineRef}
               onClick={handleTimelineClick}
-              onMouseMove={handleMouseMove}
-              className="relative h-12 bg-gray-800 rounded-lg border-2 border-gray-700 cursor-pointer hover:border-cyan-500/50 transition-colors"
+              className="relative h-14 bg-gradient-to-b from-gray-800 to-gray-900 rounded-lg border-2 border-gray-700 cursor-pointer hover:border-cyan-500/70 transition-colors group"
             >
+              {/* Background segments */}
+              <div className="absolute inset-0 rounded-lg overflow-hidden flex">
+                {[...Array(10)].map((_, i) => (
+                  <div key={i} className="flex-1 border-r border-gray-700/30" />
+                ))}
+              </div>
+
+              {/* Darkened regions (outside trim) */}
+              <div
+                className="absolute top-0 h-full bg-black/40"
+                style={{ width: `${(startTime / duration) * 100}%` }}
+              />
+              <div
+                className="absolute top-0 h-full bg-black/40"
+                style={{ right: 0, width: `${100 - (endTime / duration) * 100}%` }}
+              />
+
               {/* Progress bar */}
               <div
-                className="absolute h-full bg-cyan-600/30 rounded-lg"
+                className="absolute top-0 h-full bg-cyan-500/50 transition-all"
                 style={{ width: `${(currentTime / duration) * 100}%` }}
               />
 
               {/* Trim region highlight */}
               <div
-                className="absolute h-full bg-gradient-to-r from-cyan-500/40 to-purple-500/40 rounded-lg border-2 border-cyan-400"
+                className="absolute h-full border-l-2 border-r-2 border-cyan-400 bg-cyan-500/10 transition-all"
                 style={{
                   left: `${(startTime / duration) * 100}%`,
                   right: `${100 - (endTime / duration) * 100}%`,
                 }}
-              >
-                {/* Start handle */}
-                <div
-                  onMouseDown={() => setIsDraggingStart(true)}
-                  className="absolute left-0 top-0 w-1 h-full bg-cyan-400 cursor-col-resize hover:bg-cyan-300 hover:w-1.5 transition-all"
-                />
-                {/* End handle */}
-                <div
-                  onMouseDown={() => setIsDraggingEnd(true)}
-                  className="absolute right-0 top-0 w-1 h-full bg-cyan-400 cursor-col-resize hover:bg-cyan-300 hover:w-1.5 transition-all"
-                />
-              </div>
+              />
+
+              {/* Start handle */}
+              <div
+                onMouseDown={() => setIsDraggingStart(true)}
+                className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-5 h-10 bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-sm cursor-col-resize hover:from-cyan-300 hover:to-cyan-400 shadow-lg transition-all ${
+                  isDraggingStart ? "ring-2 ring-cyan-300 scale-110" : ""
+                }`}
+                style={{ left: `${(startTime / duration) * 100}%` }}
+              />
+
+              {/* End handle */}
+              <div
+                onMouseDown={() => setIsDraggingEnd(true)}
+                className={`absolute top-1/2 -translate-y-1/2 translate-x-1/2 w-5 h-10 bg-gradient-to-r from-purple-400 to-purple-500 rounded-sm cursor-col-resize hover:from-purple-300 hover:to-purple-400 shadow-lg transition-all ${
+                  isDraggingEnd ? "ring-2 ring-purple-300 scale-110" : ""
+                }`}
+                style={{ right: `${100 - (endTime / duration) * 100}%` }}
+              />
 
               {/* Current time indicator */}
               <div
-                className="absolute top-0 w-0.5 h-full bg-white rounded-full"
+                className="absolute top-0 w-1 h-full bg-white/80 rounded-full pointer-events-none transition-all"
                 style={{ left: `${(currentTime / duration) * 100}%` }}
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-2 text-xs">
-              <div className="text-center">
+            <div className="flex gap-2 text-xs">
+              <div className="flex-1 p-2 rounded bg-gray-800/50 border border-gray-700">
                 <p className="text-muted-foreground">Start</p>
                 <p className="font-mono font-bold text-cyan-400">{formatTime(startTime)}</p>
               </div>
-              <div className="text-center">
+              <div className="flex-1 p-2 rounded bg-gray-800/50 border border-gray-700">
                 <p className="text-muted-foreground">Duration</p>
                 <p className="font-mono font-bold text-purple-400">{formatTime(endTime - startTime)}</p>
               </div>
-              <div className="text-center">
+              <div className="flex-1 p-2 rounded bg-gray-800/50 border border-gray-700">
                 <p className="text-muted-foreground">End</p>
                 <p className="font-mono font-bold text-cyan-400">{formatTime(endTime)}</p>
               </div>
