@@ -89,27 +89,40 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
       const formData = new FormData();
       formData.append(type, file);
 
+      let endpoint = type === "image" ? "/api/upload-image" : "/api/upload-video";
+      
+      // For videos, add trim times as query parameters
       if (type === "video") {
-        // Append trim times as FormData values
-        formData.append("startTime", String(startTime));
-        formData.append("endTime", String(endTime));
-        console.log("Uploading video with trim:", { startTime, endTime });
+        const params = new URLSearchParams();
+        params.append("startTime", String(startTime));
+        params.append("endTime", String(endTime));
+        endpoint += "?" + params.toString();
+        console.log("Uploading video with trim:", { startTime, endTime, endpoint });
       }
 
-      const endpoint = type === "image" ? "/api/upload-image" : "/api/upload-video";
+      console.log("Fetch starting:", { endpoint, fileSize: file.size });
+      
       const response = await fetch(endpoint, {
         method: "POST",
         body: formData,
         credentials: "include",
-        // Do NOT set headers for FormData - let browser handle Content-Type
       });
 
+      console.log("Fetch response:", { status: response.status, ok: response.ok });
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Upload failed");
+        const errorText = await response.text();
+        console.error("Server error response:", errorText);
+        try {
+          const error = JSON.parse(errorText);
+          throw new Error(error.error || "Upload failed");
+        } catch {
+          throw new Error(`Upload failed with status ${response.status}: ${errorText}`);
+        }
       }
 
       const data = await response.json();
+      console.log("Upload success:", data);
       onMediaUploaded(data.url);
       toast({ title: "Success", description: `${type === "image" ? "Image" : "Video"} uploaded with trim ${formatTime(startTime)} → ${formatTime(endTime)}!` });
       setFile(null);
@@ -117,6 +130,7 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
       setStartTime(0);
       setEndTime(0);
     } catch (error) {
+      console.error("Upload error:", error);
       toast({ title: "Error", description: `Failed to upload ${type}: ${error instanceof Error ? error.message : "Unknown error"}` });
     } finally {
       setIsUploading(false);

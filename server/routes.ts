@@ -328,8 +328,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "Access denied" });
       }
 
-      const startTime = parseFloat(req.body.startTime || "0");
-      const endTime = parseFloat(req.body.endTime || "5");
+      // Read trim times from query parameters (more reliable with FormData)
+      const startTime = parseFloat(req.query.startTime as string || "0");
+      const endTime = parseFloat(req.query.endTime as string || "5");
+      console.log('Video upload - trim times from query:', { startTime, endTime, query: req.query });
 
       const uploadsDir = path.join(process.cwd(), 'data', 'uploads');
       await fs.mkdir(uploadsDir, { recursive: true });
