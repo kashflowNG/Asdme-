@@ -104,8 +104,8 @@ export function AnalyticsDashboard() {
             Top Performing Links
           </h3>
           <div className="space-y-3">
-            {analytics.topLinks.map((link, idx) => {
-              const maxClicks = analytics.topLinks[0]?.clicks || 1;
+            {analytics.topLinks.map((link: { platform: string; clicks: number }, idx: number) => {
+              const maxClicks = analytics.topLinks![0]?.clicks || 1;
               const percentage = (link.clicks / maxClicks) * 100;
               return (
                 <div key={idx} className="space-y-2">
@@ -129,7 +129,7 @@ export function AnalyticsDashboard() {
             Recent Visitors
           </h3>
           <div className="space-y-2">
-            {analytics.recentViews.slice(0, 5).map((view, idx) => {
+            {analytics.recentViews.slice(0, 5).map((view: { timestamp: string; referrer?: string }, idx: number) => {
               const date = new Date(view.timestamp);
               const timeAgo = Math.floor((Date.now() - date.getTime()) / 1000 / 60);
               return (
