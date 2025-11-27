@@ -96,15 +96,12 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
         console.log("Uploading video with trim:", { startTime, endTime });
       }
 
-      // Get auth token from localStorage
-      const token = localStorage.getItem("neropage_auth_token");
-      
       const endpoint = type === "image" ? "/api/upload-image" : "/api/upload-video";
       const response = await fetch(endpoint, {
         method: "POST",
         body: formData,
         credentials: "include",
-        headers: token ? { "Authorization": `Bearer ${token}` } : {},
+        // Do NOT set headers for FormData - let browser handle Content-Type
       });
 
       if (!response.ok) {
