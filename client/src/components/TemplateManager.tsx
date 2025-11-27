@@ -136,7 +136,7 @@ export function TemplateManager() {
 
   const deployTemplate = async (template: typeof CHRISTMAS_TEMPLATE) => {
     try {
-      await apiRequest("POST", "/api/admin/templates/create", {
+      const created = await apiRequest("POST", "/api/admin/templates/create", {
         name: template.name,
         description: template.description,
         htmlContent: template.htmlContent,
@@ -145,8 +145,13 @@ export function TemplateManager() {
         badgeColor: template.badgeColor,
         category: template.category,
       });
+      // Immediately activate the template so users can see it
+      if (created?.id) {
+        await apiRequest("PATCH", `/api/admin/templates/${created.id}/activate`, {});
+      }
       toast({ title: "Success", description: `${template.name} deployed to users!` });
       queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/templates"] });
     } catch {
       toast({ title: "Error", description: "Failed to deploy template", variant: "destructive" });
     }

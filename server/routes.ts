@@ -1316,7 +1316,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/templates", async (req, res) => {
     try {
       const templates = await storage.getReadyMadeTemplates();
-      res.json(templates);
+      const activeTemplates = templates.filter((t: any) => t.isActive === true);
+      res.json(activeTemplates);
     } catch (error) { res.status(500).json({ error: "Failed to fetch templates" }); }
   });
 
