@@ -12,10 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Palette, Image, Video, Code, Type, Layout, Sparkles } from "lucide-react";
+import { Palette, Image, Video, Code, Type, Layout, Sparkles, Link2 } from "lucide-react";
 import type { Profile } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { VideoTrimmer } from "./VideoTrimmer";
+import { MediaUploader } from "./MediaUploader";
 
 interface AppearanceEditorProps {
   profile: Profile;
@@ -290,26 +290,57 @@ export function AppearanceEditor({ profile, onUpdate, updateProfile }: Appearanc
           </div>
 
           {backgroundType === "image" && (
-            <div className="space-y-2">
-              <Label htmlFor="bg-image">Background Image URL</Label>
-              <Input
-                id="bg-image"
-                type="url"
-                placeholder="https://example.com/background.jpg"
-                value={profile.backgroundImage || ""}
-                onChange={(e) => onUpdate({ backgroundImage: e.target.value })}
-                data-testid="input-background-image"
+            <div className="space-y-4">
+              {/* File Upload */}
+              <MediaUploader
+                type="image"
+                onMediaUploaded={(url) => {
+                  onUpdate({ backgroundImage: url });
+                  toast({ title: "Success", description: "Background image uploaded!" });
+                }}
+                initialUrl={profile.backgroundImage}
               />
-              <p className="text-xs text-muted-foreground">
-                Use high-quality images (1920x1080 or larger) for best results
-              </p>
+
+              {/* OR URL Input */}
+              <div className="space-y-2 p-4 rounded-lg border-2 border-dashed border-purple-500/30">
+                <Label htmlFor="bg-image" className="flex items-center gap-2">
+                  <Link2 className="w-4 h-4" />
+                  Or Paste Image URL
+                </Label>
+                <Input
+                  id="bg-image"
+                  type="url"
+                  placeholder="https://example.com/background.jpg"
+                  value={profile.backgroundImage || ""}
+                  onChange={(e) => onUpdate({ backgroundImage: e.target.value })}
+                  data-testid="input-background-image"
+                />
+                <p className="text-xs text-muted-foreground">
+                  High-quality images (1920x1080+) work best
+                </p>
+              </div>
             </div>
           )}
 
           {backgroundType === "video" && (
             <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="bg-video">Background Video URL or Upload</Label>
+              {/* File Upload with Trimmer */}
+              <MediaUploader
+                type="video"
+                onMediaUploaded={(url) => {
+                  onUpdate({ backgroundVideo: url });
+                  toast({ title: "Success", description: "Background video uploaded!" });
+                }}
+                initialUrl={profile.backgroundVideo}
+                maxSize={500}
+              />
+
+              {/* OR URL Input */}
+              <div className="space-y-2 p-4 rounded-lg border-2 border-dashed border-purple-500/30">
+                <Label htmlFor="bg-video" className="flex items-center gap-2">
+                  <Link2 className="w-4 h-4" />
+                  Or Paste Video URL
+                </Label>
                 <Input
                   id="bg-video"
                   type="url"
@@ -319,19 +350,8 @@ export function AppearanceEditor({ profile, onUpdate, updateProfile }: Appearanc
                   data-testid="input-background-video"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Paste a URL or upload below
+                  MP4 format recommended (max 500MB when uploading)
                 </p>
-              </div>
-
-              <div>
-                <Label className="text-sm font-medium mb-2 block">Upload & Trim Video</Label>
-                <VideoTrimmer
-                  initialUrl={(profile.backgroundVideo as string | undefined) || undefined}
-                  onVideoTrimmed={(url) => {
-                    onUpdate({ backgroundVideo: url });
-                    toast({ title: "Success", description: "Background video updated!" });
-                  }}
-                />
               </div>
             </div>
           )}
