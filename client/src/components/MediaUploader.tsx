@@ -113,7 +113,12 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
           }
         });
 
+        xhr.addEventListener("loadend", () => {
+          console.log("XHR loadend - status:", xhr.status, "readyState:", xhr.readyState);
+        });
+
         xhr.addEventListener("load", () => {
+          console.log("XHR load event - status:", xhr.status, "response:", xhr.responseText.substring(0, 200));
           if (xhr.status === 200) {
             try {
               const data = JSON.parse(xhr.responseText);
@@ -125,27 +130,30 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
               setStartTime(0);
               setEndTime(0);
             } catch (e) {
-              throw new Error("Failed to parse response");
+              console.error("Response parse error:", e);
+              toast({ title: "Error", description: "Invalid server response" });
             }
           } else {
             try {
               const error = JSON.parse(xhr.responseText);
-              throw new Error(error.error || `Upload failed with status ${xhr.status}`);
+              console.error("Upload failed:", error);
+              toast({ title: "Error", description: error.error || `Upload failed: ${xhr.status}` });
             } catch (e) {
-              throw new Error(`Upload failed with status ${xhr.status}`);
+              console.error("Upload failed:", xhr.status, xhr.responseText);
+              toast({ title: "Error", description: `Upload failed with status ${xhr.status}` });
             }
           }
           resolve();
         });
 
         xhr.addEventListener("error", () => {
-          console.error("Upload error:", xhr.statusText);
+          console.error("XHR network error:", xhr.statusText, xhr.status);
           toast({ title: "Error", description: "Upload failed - network error" });
           resolve();
         });
 
         xhr.addEventListener("abort", () => {
-          console.log("Upload cancelled");
+          console.log("XHR upload cancelled");
           toast({ title: "Cancelled", description: "Upload was cancelled" });
           resolve();
         });
