@@ -131,6 +131,8 @@ export function VideoUploader({ onVideoUploaded, initialUrl, maxSize = 500 }: Vi
         formData.append("video", file);
 
         const token = localStorage.getItem("neropage_auth_token");
+        console.log("[VideoUpload] Starting upload, token:", !!token);
+        
         const xhr = new XMLHttpRequest();
         xhrRef.current = xhr;
 
@@ -138,13 +140,19 @@ export function VideoUploader({ onVideoUploaded, initialUrl, maxSize = 500 }: Vi
           if (e.lengthComputable) {
             const percentComplete = (e.loaded / e.total) * 100;
             setUploadProgress(Math.round(percentComplete));
+            console.log("[VideoUpload] Progress:", Math.round(percentComplete) + "%");
           }
         });
 
         xhr.addEventListener("load", () => {
+          console.log("[VideoUpload] Load event - status:", xhr.status);
+          setIsUploading(false);
+          setUploadProgress(0);
+          
           if (xhr.status === 200) {
             try {
               const data = JSON.parse(xhr.responseText);
+              console.log("[VideoUpload] Success:", data);
               onVideoUploaded(data.url);
               toast({ title: "Success", description: "Video uploaded successfully!" });
               setFile(null);
@@ -152,30 +160,44 @@ export function VideoUploader({ onVideoUploaded, initialUrl, maxSize = 500 }: Vi
               setVideoInfo(null);
               setIsPlaying(false);
             } catch (e) {
+              console.error("[VideoUpload] Parse error:", e);
               toast({ title: "Error", description: "Invalid server response" });
             }
           } else {
+            console.error("[VideoUpload] Upload failed:", xhr.status);
             toast({ title: "Error", description: `Upload failed: ${xhr.status}` });
           }
           resolve();
         });
 
-        xhr.addEventListener("error", () => {
+        xhr.addEventListener("error", (e) => {
+          console.error("[VideoUpload] Network error:", e);
+          setIsUploading(false);
+          setUploadProgress(0);
           toast({ title: "Error", description: "Upload failed - network error" });
           resolve();
         });
 
+        xhr.addEventListener("abort", () => {
+          console.log("[VideoUpload] Aborted");
+          setIsUploading(false);
+          setUploadProgress(0);
+          resolve();
+        });
+
+        console.log("[VideoUpload] Opening POST to /api/upload-video");
         xhr.open("POST", "/api/upload-video", true);
         if (token) {
           xhr.setRequestHeader("Authorization", `Bearer ${token}`);
         }
+        console.log("[VideoUpload] Sending form data");
         xhr.send(formData);
       } catch (error) {
-        toast({ title: "Error", description: "Upload failed" });
-        resolve();
-      } finally {
+        console.error("[VideoUpload] Exception:", error);
         setIsUploading(false);
         setUploadProgress(0);
+        toast({ title: "Error", description: "Upload failed" });
+        resolve();
       }
     });
   };

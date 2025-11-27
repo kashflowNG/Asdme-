@@ -111,6 +111,8 @@ export function ImageUploader({ onImageUploaded, initialUrl, maxSize = 100 }: Im
         formData.append("image", file);
 
         const token = localStorage.getItem("neropage_auth_token");
+        console.log("[ImageUpload] Starting upload, token:", !!token);
+        
         const xhr = new XMLHttpRequest();
         xhrRef.current = xhr;
 
@@ -118,13 +120,19 @@ export function ImageUploader({ onImageUploaded, initialUrl, maxSize = 100 }: Im
           if (e.lengthComputable) {
             const percentComplete = (e.loaded / e.total) * 100;
             setUploadProgress(Math.round(percentComplete));
+            console.log("[ImageUpload] Progress:", Math.round(percentComplete) + "%");
           }
         });
 
         xhr.addEventListener("load", () => {
+          console.log("[ImageUpload] Load event - status:", xhr.status);
+          setIsUploading(false);
+          setUploadProgress(0);
+          
           if (xhr.status === 200) {
             try {
               const data = JSON.parse(xhr.responseText);
+              console.log("[ImageUpload] Success:", data);
               onImageUploaded(data.url);
               toast({ title: "Success", description: "Image uploaded successfully!" });
               setFile(null);
@@ -132,30 +140,44 @@ export function ImageUploader({ onImageUploaded, initialUrl, maxSize = 100 }: Im
               setImageInfo(null);
               setShowZoom(false);
             } catch (e) {
+              console.error("[ImageUpload] Parse error:", e);
               toast({ title: "Error", description: "Invalid server response" });
             }
           } else {
+            console.error("[ImageUpload] Upload failed:", xhr.status);
             toast({ title: "Error", description: `Upload failed: ${xhr.status}` });
           }
           resolve();
         });
 
-        xhr.addEventListener("error", () => {
+        xhr.addEventListener("error", (e) => {
+          console.error("[ImageUpload] Network error:", e);
+          setIsUploading(false);
+          setUploadProgress(0);
           toast({ title: "Error", description: "Upload failed - network error" });
           resolve();
         });
 
+        xhr.addEventListener("abort", () => {
+          console.log("[ImageUpload] Aborted");
+          setIsUploading(false);
+          setUploadProgress(0);
+          resolve();
+        });
+
+        console.log("[ImageUpload] Opening POST to /api/upload-image");
         xhr.open("POST", "/api/upload-image", true);
         if (token) {
           xhr.setRequestHeader("Authorization", `Bearer ${token}`);
         }
+        console.log("[ImageUpload] Sending form data");
         xhr.send(formData);
       } catch (error) {
-        toast({ title: "Error", description: "Upload failed" });
-        resolve();
-      } finally {
+        console.error("[ImageUpload] Exception:", error);
         setIsUploading(false);
         setUploadProgress(0);
+        toast({ title: "Error", description: "Upload failed" });
+        resolve();
       }
     });
   };
