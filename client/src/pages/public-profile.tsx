@@ -213,33 +213,32 @@ export default function PublicProfile() {
         )}
       </div>
 
-      {/* Cover Photo Layer - Only show if not using video background */}
-      {profile.coverPhoto && profile.backgroundType !== "video" && (
-        <div
-          className="relative w-full h-40 sm:h-48 md:h-56 bg-cover bg-center"
-          style={{
-            backgroundImage: `url(${profile.coverPhoto})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            zIndex: 5,
-          }}
-        />
-      )}
-
       <div 
-        className="min-h-screen relative pt-12 sm:pt-16 md:pt-20 pb-12"
+        className="min-h-screen relative pb-12"
         style={{
           zIndex: 10,
           fontFamily: profile.fontFamily || "DM Sans",
           color: profile.textColor || "#E5E7EB",
         }}
       >
+        {/* Cover Photo - Inside content div so it displays properly */}
+        {profile.coverPhoto && profile.backgroundType !== "video" && (
+          <div
+            className="w-full h-40 sm:h-48 md:h-56 bg-cover bg-center -mx-4 sm:-mx-6"
+            style={{
+              backgroundImage: `url(${profile.coverPhoto})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          />
+        )}
+
+        <div 
+          className="max-w-md mx-auto px-4 space-y-8 pt-12 sm:pt-16 md:pt-20"
+        >
         {profile.customCSS && (
           <style dangerouslySetInnerHTML={{ __html: sanitizeCSS(profile.customCSS) }} />
         )}
-
-        {/* Linktree Style - Clean Centered Layout */}
-        <div className="max-w-md mx-auto px-4 space-y-8">
           
           {/* Profile Header - Centered */}
           <div className="text-center space-y-4">
