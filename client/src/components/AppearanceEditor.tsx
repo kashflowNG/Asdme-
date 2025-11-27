@@ -289,6 +289,45 @@ export function AppearanceEditor({ profile, onUpdate, updateProfile }: Appearanc
             </div>
           </div>
 
+          {backgroundType === "color" && (
+            <div className="space-y-4 p-4 rounded-lg border-2 border-purple-500/30">
+              <div className="space-y-2">
+                <Label htmlFor="bg-solid-color" className="text-base font-semibold">Solid Background Color</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="bg-solid-color"
+                    type="color"
+                    value={profile.backgroundColor || "#0A0A0F"}
+                    onChange={(e) => onUpdate({ backgroundColor: e.target.value })}
+                    className="w-20 h-10"
+                  />
+                  <Input
+                    type="text"
+                    value={profile.backgroundColor || "#0A0A0F"}
+                    onChange={(e) => onUpdate({ backgroundColor: e.target.value })}
+                    className="flex-1 font-mono text-sm"
+                    placeholder="#0A0A0F"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {backgroundType === "gradient" && (
+            <div className="space-y-4 p-4 rounded-lg border-2 border-purple-500/30">
+              <p className="text-sm text-muted-foreground">Use CSS gradient syntax in the Custom CSS tab for advanced gradients</p>
+              <div className="space-y-2">
+                <Label htmlFor="gradient-preview">Gradient Preview</Label>
+                <div
+                  className="w-full h-24 rounded-lg border-2 border-border"
+                  style={{
+                    background: "linear-gradient(135deg, #8B5CF6, #EC4899, #06B6D4)"
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
           {backgroundType === "image" && (
             <div className="space-y-4">
               {/* File Upload */}

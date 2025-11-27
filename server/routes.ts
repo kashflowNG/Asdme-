@@ -271,13 +271,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Image upload endpoint
-  app.post("/api/upload-image", uploadRateLimiter, upload.single('image'), async (req, res) => {
+  app.post("/api/upload-image", uploadRateLimiter, async (req, res, next) => {
+    const auth = authenticate(req);
+    if (!auth) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    (req as any).auth = auth;
+    next();
+  }, upload.single('image'), async (req, res) => {
     try {
-      const auth = authenticate(req);
-      if (!auth) {
-        return res.status(401).json({ error: "Not authenticated" });
-      }
-
+      const auth = (req as any).auth;
+      
       if (!req.file) {
         return res.status(400).json({ error: "No image file provided" });
       }
@@ -308,13 +312,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Video upload with trimming endpoint
-  app.post("/api/upload-video", uploadRateLimiter, videoUpload.single('video'), async (req, res) => {
+  app.post("/api/upload-video", uploadRateLimiter, async (req, res, next) => {
+    const auth = authenticate(req);
+    if (!auth) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    (req as any).auth = auth;
+    next();
+  }, videoUpload.single('video'), async (req, res) => {
     try {
-      const auth = authenticate(req);
-      if (!auth) {
-        return res.status(401).json({ error: "Not authenticated" });
-      }
-
+      const auth = (req as any).auth;
+      
       if (!req.file) {
         return res.status(400).json({ error: "No video file provided" });
       }
