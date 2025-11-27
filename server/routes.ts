@@ -409,7 +409,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const uploadsPath = path.join(process.cwd(), 'data', 'uploads');
     res.sendFile(path.join(uploadsPath, req.path), (err) => {
       if (err) {
-        res.status(404).json({ error: "File not found" });
+        if (!res.headersSent) {
+          res.status(404).json({ error: "File not found" });
+        }
       }
     });
   });
