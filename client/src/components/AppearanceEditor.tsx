@@ -15,7 +15,8 @@ import {
 import { Palette, Image, Video, Code, Type, Layout, Sparkles, Link2 } from "lucide-react";
 import type { Profile } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { MediaUploader } from "./MediaUploader";
+import { ImageUploader } from "./ImageUploader";
+import { VideoUploader } from "./VideoUploader";
 import { MediaManager } from "./MediaManager";
 
 interface AppearanceEditorProps {
@@ -332,9 +333,8 @@ export function AppearanceEditor({ profile, onUpdate, updateProfile }: Appearanc
           {backgroundType === "image" && (
             <div className="space-y-4">
               {/* File Upload */}
-              <MediaUploader
-                type="image"
-                onMediaUploaded={(url) => {
+              <ImageUploader
+                onImageUploaded={(url) => {
                   onUpdate({ backgroundImage: url });
                   toast({ title: "Success", description: "Background image uploaded!" });
                 }}
@@ -368,9 +368,8 @@ export function AppearanceEditor({ profile, onUpdate, updateProfile }: Appearanc
           {backgroundType === "video" && (
             <div className="space-y-4">
               {/* File Upload with Trimmer */}
-              <MediaUploader
-                type="video"
-                onMediaUploaded={(url) => {
+              <VideoUploader
+                onVideoUploaded={(url) => {
                   onUpdate({ backgroundVideo: url });
                   toast({ title: "Success", description: "Background video uploaded!" });
                 }}
