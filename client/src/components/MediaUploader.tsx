@@ -102,18 +102,10 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
 
       console.log("Fetch starting:", { endpoint, fileSize: file.size });
       
-      // Get the auth token from localStorage and add to headers
-      const token = localStorage.getItem('neropage_auth_token');
-      const headers: Record<string, string> = {};
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      
       const response = await fetch(endpoint, {
         method: "POST",
         body: formData,
         credentials: "include",
-        headers,
       });
 
       console.log("Fetch response:", { status: response.status, ok: response.ok });
