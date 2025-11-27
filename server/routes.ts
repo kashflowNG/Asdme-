@@ -341,17 +341,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const outputFileName = `${crypto.randomBytes(16).toString('hex')}.mp4`;
       const outputFilePath = path.join(uploadsDir, outputFileName);
       
-      const ffmpegCmd = `ffmpeg -i "${tempFilePath}" -ss ${startTime} -to ${endTime} -c:v libx264 -crf 23 -c:a aac -y "${outputFilePath}" 2>&1`;
+      const ffmpegCmd = `ffmpeg -i "${tempFilePath}" -ss ${startTime} -to ${endTime} -c:v libx264 -preset fast -crf 23 -c:a aac -y "${outputFilePath}" 2>&1`;
       
       try {
-        await execAsync(ffmpegCmd, { timeout: 60000 });
+        await execAsync(ffmpegCmd, { timeout: 120000 });
       } catch (error) {
-        console.error('FFmpeg error, falling back to copy:', error);
+        console.error('FFmpeg error, falling back to direct trim with faster settings:', error);
+        const fastFfmpegCmd = `ffmpeg -i "${tempFilePath}" -ss ${startTime} -to ${endTime} -c copy -y "${outputFilePath}" 2>&1`;
         try {
-          await fsp.copyFile(tempFilePath, outputFilePath);
-        } catch (copyError) {
-          console.error('Failed to copy file as fallback:', copyError);
-          throw new Error('Failed to process video');
+          await execAsync(fastFfmpegCmd, { timeout: 30000 });
+        } catch (fastError) {
+          console.error('Fast FFmpeg also failed, copying original:', fastError);
+          try {
+            await fsp.copyFile(tempFilePath, outputFilePath);
+          } catch (copyError) {
+            console.error('Failed to copy file as fallback:', copyError);
+            throw new Error('Failed to process video');
+          }
         }
       }
 
