@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Eye, MousePointerClick, Link2, TrendingUp, Users, Mail, Download } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { apiRequest } from "@/lib/queryClient";
 
 interface AnalyticsData {
   totalViews?: number;
@@ -11,11 +12,13 @@ interface AnalyticsData {
   linkCount?: number;
   topLinks?: Array<{ platform: string; clicks: number }>;
   recentViews?: Array<{ timestamp: string }>;
+  formSubmissions?: number;
 }
 
 export function AnalyticsDashboard() {
   const { data: analytics = {} as AnalyticsData } = useQuery({
     queryKey: ["/api/analytics/detailed"],
+    queryFn: () => apiRequest("GET", "/api/analytics/detailed"),
   });
 
   const exportAnalytics = () => {
