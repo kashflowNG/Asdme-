@@ -294,7 +294,7 @@ export default function AdminDashboard() {
                           <td className="py-4 px-4 text-sm">
                             <div className="flex items-center gap-1 text-muted-foreground">
                               <MapPin className="w-4 h-4" />
-                              {user.locations[0]?.country || 'Unknown'}
+                              <span>{user.locations && user.locations.length > 0 ? `${user.locations[0].country}${user.locations[0].city ? `, ${user.locations[0].city}` : ''}` : 'Not tracked'}</span>
                             </div>
                           </td>
                           <td className="py-4 px-4">

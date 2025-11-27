@@ -23,6 +23,7 @@ const THEME_BACKGROUNDS: Record<string, string> = {
   "c3b2a1d0-e9f8-7a6b-5c4d-3e2f1a0b9c8d": "linear-gradient(135deg, #0a0e27 0%, #1a0033 50%, #0a0e27 100%)",
   "g1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c": "linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 50%, #16213e 100%)",
   "h2b3c4d5-e6f7-8a9b-0c1d-2e3f4a5b6c7d": "linear-gradient(45deg, #0a0014 0%, #1a0033 25%, #2d0052 50%, #1a0033 75%, #0a0014 100%)",
+  "i3c4d5e6-f7g8-9h0i-1j2k-3l4m5n6o7p8q": "radial-gradient(circle at 20% 50%, rgba(100, 200, 255, 0.15) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(100, 150, 255, 0.1) 0%, transparent 40%), linear-gradient(to bottom, #0a0e2e 0%, #0f1b3c 20%, #1a2847 40%, #0d1426 60%, #050508 100%)",
 };
 
 export default function PublicProfile() {
