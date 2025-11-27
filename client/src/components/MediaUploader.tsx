@@ -17,6 +17,7 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>(initialUrl || "");
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -26,6 +27,7 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
   const [isDraggingEnd, setIsDraggingEnd] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
+  const xhrRef = useRef<XMLHttpRequest | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -85,59 +87,85 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
     }
 
     setIsUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append(type, file);
+    setUploadProgress(0);
 
-      const endpoint = type === "image" ? "/api/upload-image" : "/api/upload-video";
-      
-      console.log("Starting upload for:", type, "to:", endpoint);
+    return new Promise<void>((resolve) => {
+      try {
+        const formData = new FormData();
+        formData.append(type, file);
 
-      // Get the auth token from localStorage and add to headers
-      const token = localStorage.getItem('neropage_auth_token');
-      console.log("Token found:", !!token);
+        const endpoint = type === "image" ? "/api/upload-image" : "/api/upload-video";
+        
+        console.log("Starting upload for:", type, "to:", endpoint);
 
-      const headers: Record<string, string> = {};
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      
-      console.log("Fetch request starting...", { endpoint, hasToken: !!token });
-      
-      const response = await fetch(endpoint, {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-        headers,
-      });
+        const token = localStorage.getItem('neropage_auth_token');
+        console.log("Token found:", !!token);
 
-      console.log("Fetch response received:", response.status, response.ok);
+        const xhr = new XMLHttpRequest();
+        xhrRef.current = xhr;
 
-      if (!response.ok) {
-        let errorText = "";
-        try {
-          errorText = await response.text();
-          const error = JSON.parse(errorText);
-          throw new Error(error.error || `Upload failed with status ${response.status}`);
-        } catch (e) {
-          throw new Error(`Upload failed with status ${response.status}: ${errorText || (e instanceof Error ? e.message : "Unknown error")}`);
+        // Track upload progress
+        xhr.upload.addEventListener("progress", (e) => {
+          if (e.lengthComputable) {
+            const percentComplete = (e.loaded / e.total) * 100;
+            setUploadProgress(Math.round(percentComplete));
+            console.log(`Upload progress: ${percentComplete.toFixed(1)}%`);
+          }
+        });
+
+        xhr.addEventListener("load", () => {
+          if (xhr.status === 200) {
+            try {
+              const data = JSON.parse(xhr.responseText);
+              console.log("Upload successful:", data);
+              onMediaUploaded(data.url);
+              toast({ title: "Success", description: `${type === "image" ? "Image" : "Video"} uploaded successfully!` });
+              setFile(null);
+              setPreview("");
+              setStartTime(0);
+              setEndTime(0);
+            } catch (e) {
+              throw new Error("Failed to parse response");
+            }
+          } else {
+            try {
+              const error = JSON.parse(xhr.responseText);
+              throw new Error(error.error || `Upload failed with status ${xhr.status}`);
+            } catch (e) {
+              throw new Error(`Upload failed with status ${xhr.status}`);
+            }
+          }
+          resolve();
+        });
+
+        xhr.addEventListener("error", () => {
+          console.error("Upload error:", xhr.statusText);
+          toast({ title: "Error", description: "Upload failed - network error" });
+          resolve();
+        });
+
+        xhr.addEventListener("abort", () => {
+          console.log("Upload cancelled");
+          toast({ title: "Cancelled", description: "Upload was cancelled" });
+          resolve();
+        });
+
+        xhr.open("POST", endpoint, true);
+        if (token) {
+          xhr.setRequestHeader("Authorization", `Bearer ${token}`);
         }
-      }
 
-      const data = await response.json();
-      console.log("Upload successful:", data);
-      onMediaUploaded(data.url);
-      toast({ title: "Success", description: `${type === "image" ? "Image" : "Video"} uploaded successfully!` });
-      setFile(null);
-      setPreview("");
-      setStartTime(0);
-      setEndTime(0);
-    } catch (error) {
-      console.error("Upload error:", error);
-      toast({ title: "Error", description: `Failed to upload ${type}: ${error instanceof Error ? error.message : "Unknown error"}` });
-    } finally {
-      setIsUploading(false);
-    }
+        console.log("XMLHttpRequest starting...", { endpoint, hasToken: !!token });
+        xhr.send(formData);
+      } catch (error) {
+        console.error("Upload error:", error);
+        toast({ title: "Error", description: `Failed to upload ${type}: ${error instanceof Error ? error.message : "Unknown error"}` });
+        resolve();
+      } finally {
+        setIsUploading(false);
+        setUploadProgress(0);
+      }
+    });
   };
 
   const formatTime = (seconds: number) => {
@@ -194,6 +222,17 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
               {isUploading ? "Uploading..." : "Upload"}
             </Button>
           </div>
+          {isUploading && (
+            <div className="w-full space-y-2">
+              <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden border border-cyan-500/50">
+                <div
+                  className="h-full bg-gradient-to-r from-cyan-400 to-cyan-600 transition-all duration-300 rounded-full"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+              <p className="text-xs text-cyan-400 text-center font-semibold">{uploadProgress}% uploaded</p>
+            </div>
+          )}
           {preview && (
             <div className="relative rounded-lg overflow-hidden border-2 border-cyan-500/30 mt-3">
               <img src={preview} alt="Preview" className="w-full h-48 object-cover" />
@@ -231,6 +270,17 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
             {isUploading ? "Uploading..." : "Upload"}
           </Button>
         </div>
+        {isUploading && (
+          <div className="w-full space-y-2">
+            <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden border border-cyan-500/50">
+              <div
+                className="h-full bg-gradient-to-r from-cyan-400 to-cyan-600 transition-all duration-300 rounded-full"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
+            <p className="text-xs text-cyan-400 text-center font-semibold">{uploadProgress}% uploaded</p>
+          </div>
+        )}
       </div>
 
       {preview && (
