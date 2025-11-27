@@ -111,13 +111,13 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
       console.log("Fetch response:", { status: response.status, ok: response.ok });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Server error response:", errorText);
+        let errorText = "";
         try {
+          errorText = await response.text();
           const error = JSON.parse(errorText);
-          throw new Error(error.error || "Upload failed");
-        } catch {
-          throw new Error(`Upload failed with status ${response.status}: ${errorText}`);
+          throw new Error(error.error || `Upload failed with status ${response.status}`);
+        } catch (e) {
+          throw new Error(`Upload failed with status ${response.status}: ${errorText || (e instanceof Error ? e.message : "Unknown error")}`);
         }
       }
 

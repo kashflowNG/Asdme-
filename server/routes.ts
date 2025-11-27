@@ -307,16 +307,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Video upload with trimming endpoint
-  app.post("/api/upload-video", uploadRateLimiter, videoUpload.single('video'), async (req, res) => {
+  // Video upload with trimming endpoint - SIMPLIFIED (no multer)
+  app.post("/api/upload-video", uploadRateLimiter, async (req, res) => {
     try {
+      console.log('Video upload request received');
       const auth = authenticate(req);
       if (!auth) {
         return res.status(401).json({ error: "Not authenticated" });
-      }
-
-      if (!req.file) {
-        return res.status(400).json({ error: "No video file provided" });
       }
 
       const profile = await storage.getProfileByUsername(auth.username);
@@ -328,20 +325,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "Access denied" });
       }
 
-      // Read trim times from query parameters (more reliable with FormData)
-      const startTime = parseFloat(req.query.startTime as string || "0");
-      const endTime = parseFloat(req.query.endTime as string || "5");
-      console.log('Video upload - trim times from query:', { startTime, endTime, query: req.query });
+      // Collect the multipart body manually
+      let body: Buffer[] = [];
+      req.on('data', chunk => {
+        body.push(chunk);
+      });
+
+      await new Promise((resolve, reject) => {
+        req.on('end', resolve);
+        req.on('error', reject);
+      });
+
+      const buffer = Buffer.concat(body);
+      console.log('Received buffer of size:', buffer.length);
+
+      if (buffer.length === 0) {
+        return res.status(400).json({ error: "No video file provided" });
+      }
+
+      // Extract boundary from Content-Type header
+      const contentType = req.headers['content-type'] || '';
+      const boundaryMatch = contentType.match(/boundary=([^;]+)/);
+      if (!boundaryMatch) {
+        return res.status(400).json({ error: "Invalid multipart format" });
+      }
+
+      const boundary = boundaryMatch[1];
+      const boundaryStr = `--${boundary}`;
+      
+      // Parse multipart to extract video file
+      const boundaryIndex = buffer.indexOf(boundaryStr);
+      let videoBuffer: Buffer | null = null;
+
+      if (boundaryIndex !== -1) {
+        const contentStart = buffer.indexOf('\r\n\r\n', boundaryIndex);
+        if (contentStart !== -1) {
+          const endBoundaryStr = `\r\n--${boundary}--`;
+          const endIndex = buffer.indexOf(endBoundaryStr, contentStart);
+          
+          if (endIndex !== -1) {
+            videoBuffer = buffer.slice(contentStart + 4, endIndex);
+          }
+        }
+      }
+
+      if (!videoBuffer || videoBuffer.length === 0) {
+        return res.status(400).json({ error: "Could not extract video from multipart" });
+      }
+
+      const startTime = parseFloat((req.query.startTime as string) || "0");
+      const endTime = parseFloat((req.query.endTime as string) || "5");
+      console.log('Video upload - processing with trim:', { startTime, endTime, videoSize: videoBuffer.length });
 
       const uploadsDir = path.join(process.cwd(), 'data', 'uploads');
       await fs.mkdir(uploadsDir, { recursive: true });
 
-      // Save original video temporarily
       const tempFileName = `temp_${crypto.randomBytes(8).toString('hex')}.mp4`;
       const tempFilePath = path.join(uploadsDir, tempFileName);
-      await fs.writeFile(tempFilePath, req.file.buffer);
+      await fs.writeFile(tempFilePath, videoBuffer);
 
-      // Trim video using ffmpeg
       const outputFileName = `${crypto.randomBytes(16).toString('hex')}.mp4`;
       const outputFilePath = path.join(uploadsDir, outputFileName);
       
@@ -350,16 +392,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         await execAsync(ffmpegCmd);
       } catch (error) {
-        // If ffmpeg fails, just copy the original
         await fsp.copyFile(tempFilePath, outputFilePath);
       }
 
-      // Clean up temp file
       try {
         await fs.unlink(tempFilePath);
       } catch {}
 
       const videoUrl = `/uploads/${outputFileName}`;
+      console.log('Video upload success:', { videoUrl });
       res.json({ url: videoUrl, success: true });
     } catch (error) {
       console.error('Video upload error:', error);
