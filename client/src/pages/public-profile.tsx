@@ -205,18 +205,18 @@ export default function PublicProfile() {
           <div
             className="w-full h-full"
             style={{
-              background: (profile?.appliedTemplateId && THEME_BACKGROUNDS[profile.appliedTemplateId as keyof typeof THEME_BACKGROUNDS]) 
-                ? THEME_BACKGROUNDS[profile.appliedTemplateId as keyof typeof THEME_BACKGROUNDS]
-                : profile.backgroundColor || "linear-gradient(180deg, #0f0f1a 0%, #0a0a0f 50%, #050508 100%)",
+              background: profile.backgroundColor || (profile?.appliedTemplateId && THEME_BACKGROUNDS[profile.appliedTemplateId as keyof typeof THEME_BACKGROUNDS]) 
+                ? (profile?.appliedTemplateId && THEME_BACKGROUNDS[profile.appliedTemplateId as keyof typeof THEME_BACKGROUNDS]) || "linear-gradient(180deg, #0f0f1a 0%, #0a0a0f 50%, #050508 100%)"
+                : "linear-gradient(180deg, #0f0f1a 0%, #0a0a0f 50%, #050508 100%)",
             }}
           />
         )}
       </div>
 
-      {/* Cover Photo Layer */}
-      {profile.coverPhoto && (
+      {/* Cover Photo Layer - Only show if not using video background */}
+      {profile.coverPhoto && profile.backgroundType !== "video" && (
         <div
-          className="w-full h-40 sm:h-48 md:h-56 bg-cover bg-center relative"
+          className="w-full h-40 sm:h-48 md:h-56 bg-cover bg-center relative z-5"
           style={{
             backgroundImage: `url(${profile.coverPhoto})`,
             backgroundSize: "cover",
