@@ -351,6 +351,35 @@ export default function PublicProfile() {
                               />
                             );
                           }
+                          // Instagram detection (posts and reels)
+                          if (url.includes("instagram.com") || url.includes("instagr.am")) {
+                            return (
+                              <div className="w-full h-full flex items-center justify-center bg-gray-950">
+                                <iframe
+                                  src={`https://www.instagram.com/p/${url.split("/p/")[1]?.split("/")[0] || url.split("/reel/")[1]?.split("/")[0]}/embed`}
+                                  className="w-full"
+                                  style={{ maxWidth: "540px", minHeight: "500px" }}
+                                  allowFullScreen
+                                />
+                              </div>
+                            );
+                          }
+                          // Facebook detection (videos and posts)
+                          if (url.includes("facebook.com") || url.includes("fb.watch") || url.includes("fb.com")) {
+                            return (
+                              <div className="w-full h-full flex items-center justify-center bg-gray-950">
+                                <div style={{ minHeight: "500px" }} className="w-full">
+                                  <iframe
+                                    src={`https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&width=500&show_text=false`}
+                                    style={{ border: "none", overflow: "hidden", width: "100%", minHeight: "500px" }}
+                                    scrolling="no"
+                                    frameBorder="0"
+                                    allowFullScreen={true}
+                                  />
+                                </div>
+                              </div>
+                            );
+                          }
                           // HTML5 video player for direct video links
                           return (
                             <video 
