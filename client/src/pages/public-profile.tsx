@@ -179,28 +179,59 @@ export default function PublicProfile() {
         <meta name="twitter:image" content={ogImage} />
       </Helmet>
 
-      <div 
-        className="min-h-screen py-12 sm:py-16 md:py-20"
-        style={{
-          background: (profile?.appliedTemplateId && THEME_BACKGROUNDS[profile.appliedTemplateId as keyof typeof THEME_BACKGROUNDS]) 
-            ? THEME_BACKGROUNDS[profile.appliedTemplateId as keyof typeof THEME_BACKGROUNDS]
-            : "linear-gradient(180deg, #0f0f1a 0%, #0a0a0f 50%, #050508 100%)",
-          fontFamily: profile.fontFamily || "DM Sans",
-          color: profile.textColor || "#E5E7EB",
-        }}
-      >
-        {profile.backgroundType === "video" && profile.backgroundVideo && (
+      {/* Full Screen Background Container */}
+      <div className="fixed inset-0 -z-50 w-full h-full">
+        {profile.backgroundType === "image" && profile.backgroundImage ? (
+          <div
+            className="w-full h-full"
+            style={{
+              backgroundImage: `url(${profile.backgroundImage})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundAttachment: "fixed",
+            }}
+          />
+        ) : profile.backgroundType === "video" && profile.backgroundVideo ? (
           <video
             autoPlay
             loop
             muted
             playsInline
-            className="fixed inset-0 w-full h-full object-cover -z-10 opacity-20"
+            className="w-full h-full object-cover"
           >
             <source src={profile.backgroundVideo} type="video/mp4" />
           </video>
+        ) : (
+          <div
+            className="w-full h-full"
+            style={{
+              background: (profile?.appliedTemplateId && THEME_BACKGROUNDS[profile.appliedTemplateId as keyof typeof THEME_BACKGROUNDS]) 
+                ? THEME_BACKGROUNDS[profile.appliedTemplateId as keyof typeof THEME_BACKGROUNDS]
+                : profile.backgroundColor || "linear-gradient(180deg, #0f0f1a 0%, #0a0a0f 50%, #050508 100%)",
+            }}
+          />
         )}
+      </div>
 
+      {/* Cover Photo Layer */}
+      {profile.coverPhoto && (
+        <div
+          className="w-full h-40 sm:h-48 md:h-56 bg-cover bg-center relative"
+          style={{
+            backgroundImage: `url(${profile.coverPhoto})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
+      )}
+
+      <div 
+        className="min-h-screen relative z-10 pt-12 sm:pt-16 md:pt-20 pb-12"
+        style={{
+          fontFamily: profile.fontFamily || "DM Sans",
+          color: profile.textColor || "#E5E7EB",
+        }}
+      >
         {profile.customCSS && (
           <style dangerouslySetInnerHTML={{ __html: sanitizeCSS(profile.customCSS) }} />
         )}

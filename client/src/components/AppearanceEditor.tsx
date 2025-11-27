@@ -246,7 +246,23 @@ export function AppearanceEditor({ profile, onUpdate, updateProfile }: Appearanc
           </div>
         </TabsContent>
 
-        <TabsContent value="background" className="space-y-4">
+        <TabsContent value="background" className="space-y-6">
+          {/* Cover Photo Upload */}
+          <div className="space-y-3 p-4 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 rounded-lg border border-cyan-500/20">
+            <Label className="text-base font-semibold flex items-center gap-2">
+              <Image className="w-4 h-4" />
+              Cover Photo
+            </Label>
+            <p className="text-xs text-muted-foreground">Upload a header image for your profile</p>
+            <Input
+              type="url"
+              placeholder="https://example.com/cover.jpg"
+              value={profile.coverPhoto || ""}
+              onChange={(e) => onUpdate({ coverPhoto: e.target.value })}
+              className="text-sm"
+            />
+          </div>
+
           <div className="space-y-3">
             <Label className="text-base font-semibold">Background Type</Label>
             <div className="grid grid-cols-4 gap-2">
