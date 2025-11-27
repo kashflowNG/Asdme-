@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -127,8 +127,8 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!timelineRef.current || (!isDraggingStart && !isDraggingEnd)) return;
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!timelineRef.current) return;
     const rect = timelineRef.current.getBoundingClientRect();
     const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     const time = percent * duration;
@@ -138,23 +138,24 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
     } else if (isDraggingEnd) {
       setEndTime(Math.max(time, startTime + 0.1));
     }
-  };
+  }, [isDraggingStart, isDraggingEnd, duration, startTime, endTime]);
 
   useEffect(() => {
+    if (!isDraggingStart && !isDraggingEnd) return;
+
     const handleMouseUp = () => {
       setIsDraggingStart(false);
       setIsDraggingEnd(false);
     };
 
-    if (isDraggingStart || isDraggingEnd) {
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
-      return () => {
-        document.removeEventListener("mousemove", handleMouseMove);
-        document.removeEventListener("mouseup", handleMouseUp);
-      };
-    }
-  }, [isDraggingStart, isDraggingEnd, duration, startTime, endTime, handleMouseMove]);
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDraggingStart, isDraggingEnd, handleMouseMove]);
 
   if (type === "image") {
     return (
