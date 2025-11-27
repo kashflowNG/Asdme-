@@ -63,6 +63,7 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
       if (isPlaying) {
         videoRef.current.pause();
       } else {
+        videoRef.current.currentTime = startTime;
         videoRef.current.play();
       }
       setIsPlaying(!isPlaying);
@@ -89,8 +90,10 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
       formData.append(type, file);
 
       if (type === "video") {
-        formData.append("startTime", startTime.toString());
-        formData.append("endTime", endTime.toString());
+        // Append trim times as FormData values
+        formData.append("startTime", String(startTime));
+        formData.append("endTime", String(endTime));
+        console.log("Uploading video with trim:", { startTime, endTime });
       }
 
       // Get auth token from localStorage
@@ -111,9 +114,11 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
 
       const data = await response.json();
       onMediaUploaded(data.url);
-      toast({ title: "Success", description: `${type === "image" ? "Image" : "Video"} uploaded!` });
+      toast({ title: "Success", description: `${type === "image" ? "Image" : "Video"} uploaded with trim ${formatTime(startTime)} → ${formatTime(endTime)}!` });
       setFile(null);
       setPreview("");
+      setStartTime(0);
+      setEndTime(0);
     } catch (error) {
       toast({ title: "Error", description: `Failed to upload ${type}: ${error instanceof Error ? error.message : "Unknown error"}` });
     } finally {
@@ -224,6 +229,11 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
               onTimeUpdate={() => {
                 if (videoRef.current) {
                   setCurrentTime(videoRef.current.currentTime);
+                  // Stop at endTime
+                  if (videoRef.current.currentTime >= endTime) {
+                    videoRef.current.pause();
+                    setIsPlaying(false);
+                  }
                 }
               }}
               className="w-full h-48 object-cover"
