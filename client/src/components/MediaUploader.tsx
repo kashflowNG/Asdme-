@@ -127,6 +127,19 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!timelineRef.current || (!isDraggingStart && !isDraggingEnd)) return;
+    const rect = timelineRef.current.getBoundingClientRect();
+    const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const time = percent * duration;
+
+    if (isDraggingStart) {
+      setStartTime(Math.min(time, endTime - 0.1));
+    } else if (isDraggingEnd) {
+      setEndTime(Math.max(time, startTime + 0.1));
+    }
+  };
+
   useEffect(() => {
     const handleMouseUp = () => {
       setIsDraggingStart(false);
@@ -141,20 +154,7 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
         document.removeEventListener("mouseup", handleMouseUp);
       };
     }
-  }, [isDraggingStart, isDraggingEnd, duration, startTime, endTime]);
-
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!timelineRef.current || (!isDraggingStart && !isDraggingEnd)) return;
-    const rect = timelineRef.current.getBoundingClientRect();
-    const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    const time = percent * duration;
-
-    if (isDraggingStart) {
-      setStartTime(Math.min(time, endTime - 0.1));
-    } else if (isDraggingEnd) {
-      setEndTime(Math.max(time, startTime + 0.1));
-    }
-  };
+  }, [isDraggingStart, isDraggingEnd, duration, startTime, endTime, handleMouseMove]);
 
   if (type === "image") {
     return (
