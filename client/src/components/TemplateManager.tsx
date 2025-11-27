@@ -16,7 +16,8 @@ import {
 } from "@/components/ui/dialog";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Gift, Sparkles, Copy, Check } from "lucide-react";
+import { Plus, Trash2, Gift, Sparkles, Copy, Check, Zap } from "lucide-react";
+import { ANIMATED_TEMPLATES } from "@/lib/premadeTemplates";
 
 interface Template {
   id: string;
