@@ -255,7 +255,8 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
             <div
               ref={timelineRef}
               onClick={handleTimelineClick}
-              className="relative h-14 bg-gradient-to-b from-gray-800 to-gray-900 rounded-lg border-2 border-gray-700 cursor-pointer hover:border-cyan-500/70 transition-colors group"
+              className="relative h-14 bg-gradient-to-b from-gray-800 to-gray-900 rounded-lg border-2 border-gray-700 cursor-pointer hover:border-cyan-500/70 transition-colors group user-select-none"
+              style={{ touchAction: 'none' }}
             >
               {/* Background segments */}
               <div className="absolute inset-0 rounded-lg overflow-hidden flex">
@@ -291,20 +292,28 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
 
               {/* Start handle */}
               <div
-                onMouseDown={() => setIsDraggingStart(true)}
-                className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-5 h-10 bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-sm cursor-col-resize hover:from-cyan-300 hover:to-cyan-400 shadow-lg transition-all ${
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDraggingStart(true);
+                }}
+                className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-5 h-10 bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-sm cursor-col-resize hover:from-cyan-300 hover:to-cyan-400 shadow-lg transition-all user-select-none ${
                   isDraggingStart ? "ring-2 ring-cyan-300 scale-110" : ""
                 }`}
-                style={{ left: `${(startTime / duration) * 100}%` }}
+                style={{ left: `${(startTime / duration) * 100}%`, touchAction: 'none' }}
               />
 
               {/* End handle */}
               <div
-                onMouseDown={() => setIsDraggingEnd(true)}
-                className={`absolute top-1/2 -translate-y-1/2 translate-x-1/2 w-5 h-10 bg-gradient-to-r from-purple-400 to-purple-500 rounded-sm cursor-col-resize hover:from-purple-300 hover:to-purple-400 shadow-lg transition-all ${
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDraggingEnd(true);
+                }}
+                className={`absolute top-1/2 -translate-y-1/2 translate-x-1/2 w-5 h-10 bg-gradient-to-r from-purple-400 to-purple-500 rounded-sm cursor-col-resize hover:from-purple-300 hover:to-purple-400 shadow-lg transition-all user-select-none ${
                   isDraggingEnd ? "ring-2 ring-purple-300 scale-110" : ""
                 }`}
-                style={{ right: `${100 - (endTime / duration) * 100}%` }}
+                style={{ right: `${100 - (endTime / duration) * 100}%`, touchAction: 'none' }}
               />
 
               {/* Current time indicator */}
