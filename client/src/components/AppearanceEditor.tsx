@@ -16,6 +16,7 @@ import { Palette, Image, Video, Code, Type, Layout, Sparkles, Link2 } from "luci
 import type { Profile } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { MediaUploader } from "./MediaUploader";
+import { MediaManager } from "./MediaManager";
 
 interface AppearanceEditorProps {
   profile: Profile;
@@ -340,6 +341,9 @@ export function AppearanceEditor({ profile, onUpdate, updateProfile }: Appearanc
                 initialUrl={profile.backgroundImage}
               />
 
+              {/* Previous Uploads */}
+              <MediaManager />
+
               {/* OR URL Input */}
               <div className="space-y-2 p-4 rounded-lg border-2 border-dashed border-purple-500/30">
                 <Label htmlFor="bg-image" className="flex items-center gap-2">
@@ -373,6 +377,9 @@ export function AppearanceEditor({ profile, onUpdate, updateProfile }: Appearanc
                 initialUrl={profile.backgroundVideo}
                 maxSize={500}
               />
+
+              {/* Previous Uploads */}
+              <MediaManager />
 
               {/* OR URL Input */}
               <div className="space-y-2 p-4 rounded-lg border-2 border-dashed border-purple-500/30">

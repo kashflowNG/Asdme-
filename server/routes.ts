@@ -345,6 +345,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete uploaded media file
+  app.delete("/api/media/:filename", async (req, res) => {
+    try {
+      const auth = authenticate(req);
+      if (!auth) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { filename } = req.params;
+      // Prevent path traversal attacks
+      if (filename.includes("..") || filename.includes("/")) {
+        return res.status(400).json({ error: "Invalid filename" });
+      }
+
+      const uploadsDir = path.join(process.cwd(), 'data', 'uploads');
+      const filePath = path.join(uploadsDir, filename);
+
+      // Verify file exists in uploads directory
+      if (!filePath.startsWith(uploadsDir)) {
+        return res.status(400).json({ error: "Invalid file path" });
+      }
+
+      try {
+        await fs.unlink(filePath);
+        res.json({ success: true, message: "File deleted successfully" });
+      } catch (error) {
+        res.status(404).json({ error: "File not found" });
+      }
+    } catch (error) {
+      console.error('Delete media error:', error);
+      res.status(500).json({ error: "Failed to delete media file" });
+    }
+  });
+
+  // List uploaded media files for current user
+  app.get("/api/media/list", async (req, res) => {
+    try {
+      const auth = authenticate(req);
+      if (!auth) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const uploadsDir = path.join(process.cwd(), 'data', 'uploads');
+      try {
+        const files = await fs.readdir(uploadsDir);
+        const mediaFiles = files.map(file => ({
+          filename: file,
+          url: `/uploads/${file}`
+        }));
+        res.json({ files: mediaFiles });
+      } catch (error) {
+        res.json({ files: [] });
+      }
+    } catch (error) {
+      console.error('List media error:', error);
+      res.status(500).json({ error: "Failed to list media files" });
+    }
+  });
+
   // Serve uploaded images and videos
   app.use('/uploads', (req, res, next) => {
     const uploadsPath = path.join(process.cwd(), 'data', 'uploads');
