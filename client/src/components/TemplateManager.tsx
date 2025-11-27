@@ -154,6 +154,48 @@ export function TemplateManager() {
 
   return (
     <div className="space-y-6">
+      {/* Animated Templates Section */}
+      <Card className="p-6 bg-gradient-to-r from-cyan-500/10 via-purple-500/10 to-pink-500/10 border-purple-300 border-2">
+        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <Zap className="w-5 h-5 text-cyan-400" />
+          ✨ Animated Ready-Made Templates
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {ANIMATED_TEMPLATES.map((template, idx) => (
+            <Card key={idx} className="p-4 border-cyan-300 bg-cyan-50/5 dark:bg-cyan-950/20 hover:border-purple-400 transition-colors">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <h4 className="font-bold text-cyan-400">{template.name}</h4>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{template.description}</p>
+                </div>
+              </div>
+              {template.badge && (
+                <Badge style={{ backgroundColor: template.badgeColor }} className="text-white text-xs mb-3">
+                  {template.badge}
+                </Badge>
+              )}
+              <div className="flex gap-2">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => loadPresetTemplate(template)} 
+                  className="flex-1 text-xs"
+                >
+                  Customize
+                </Button>
+                <Button 
+                  size="sm" 
+                  className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white text-xs" 
+                  onClick={() => deployTemplate(template)}
+                >
+                  Deploy
+                </Button>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </Card>
+
       {/* Preset Templates Section */}
       <Card className="p-6 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border-purple-200">
         <h3 className="text-lg font-semibold mb-4">📦 Preset Seasonal Templates</h3>
