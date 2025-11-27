@@ -307,7 +307,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Video upload with trimming endpoint - uses multer like image upload
+  // Video upload endpoint - simple direct save
   app.post("/api/upload-video", uploadRateLimiter, videoUpload.single('video'), async (req, res) => {
     try {
       const auth = authenticate(req);
@@ -328,44 +328,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "Access denied" });
       }
 
-      const startTime = parseFloat((req.query.startTime as string) || "0");
-      const endTime = parseFloat((req.query.endTime as string) || "5");
-
       const uploadsDir = path.join(process.cwd(), 'data', 'uploads');
       await fs.mkdir(uploadsDir, { recursive: true });
 
-      const tempFileName = `temp_${crypto.randomBytes(8).toString('hex')}.mp4`;
-      const tempFilePath = path.join(uploadsDir, tempFileName);
-      await fs.writeFile(tempFilePath, req.file.buffer);
+      const fileExtension = path.extname(req.file.originalname);
+      const fileName = `${crypto.randomBytes(16).toString('hex')}${fileExtension}`;
+      const filePath = path.join(uploadsDir, fileName);
 
-      const outputFileName = `${crypto.randomBytes(16).toString('hex')}.mp4`;
-      const outputFilePath = path.join(uploadsDir, outputFileName);
-      
-      const ffmpegCmd = `ffmpeg -i "${tempFilePath}" -ss ${startTime} -to ${endTime} -c:v libx264 -preset fast -crf 23 -c:a aac -y "${outputFilePath}" 2>&1`;
-      
-      try {
-        await execAsync(ffmpegCmd, { timeout: 120000 });
-      } catch (error) {
-        console.error('FFmpeg error, falling back to direct trim with faster settings:', error);
-        const fastFfmpegCmd = `ffmpeg -i "${tempFilePath}" -ss ${startTime} -to ${endTime} -c copy -y "${outputFilePath}" 2>&1`;
-        try {
-          await execAsync(fastFfmpegCmd, { timeout: 30000 });
-        } catch (fastError) {
-          console.error('Fast FFmpeg also failed, copying original:', fastError);
-          try {
-            await fsp.copyFile(tempFilePath, outputFilePath);
-          } catch (copyError) {
-            console.error('Failed to copy file as fallback:', copyError);
-            throw new Error('Failed to process video');
-          }
-        }
-      }
+      await fs.writeFile(filePath, req.file.buffer);
 
-      try {
-        await fs.unlink(tempFilePath);
-      } catch {}
-
-      const videoUrl = `/uploads/${outputFileName}`;
+      const videoUrl = `/uploads/${fileName}`;
       res.json({ url: videoUrl, success: true });
     } catch (error) {
       console.error('Video upload error:', error);

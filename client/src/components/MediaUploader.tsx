@@ -89,18 +89,7 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
       const formData = new FormData();
       formData.append(type, file);
 
-      let endpoint = type === "image" ? "/api/upload-image" : "/api/upload-video";
-      
-      // For videos, add trim times as query parameters
-      if (type === "video") {
-        const params = new URLSearchParams();
-        params.append("startTime", String(startTime));
-        params.append("endTime", String(endTime));
-        endpoint += "?" + params.toString();
-        console.log("Uploading video with trim:", { startTime, endTime, endpoint });
-      }
-
-      console.log("Fetch starting:", { endpoint, fileSize: file.size });
+      const endpoint = type === "image" ? "/api/upload-image" : "/api/upload-video";
       
       // Get the auth token from localStorage and add to headers
       const token = localStorage.getItem('neropage_auth_token');
@@ -116,8 +105,6 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
         headers,
       });
 
-      console.log("Fetch response:", { status: response.status, ok: response.ok });
-
       if (!response.ok) {
         let errorText = "";
         try {
@@ -130,9 +117,8 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
       }
 
       const data = await response.json();
-      console.log("Upload success:", data);
       onMediaUploaded(data.url);
-      toast({ title: "Success", description: `${type === "image" ? "Image" : "Video"} uploaded with trim ${formatTime(startTime)} → ${formatTime(endTime)}!` });
+      toast({ title: "Success", description: `${type === "image" ? "Image" : "Video"} uploaded successfully!` });
       setFile(null);
       setPreview("");
       setStartTime(0);
