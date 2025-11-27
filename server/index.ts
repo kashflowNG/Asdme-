@@ -75,6 +75,10 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
+  // Set request timeout to 3 minutes for video uploads
+  server.setTimeout(180000);
+  server.keepAliveTimeout = 185000;
+
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
