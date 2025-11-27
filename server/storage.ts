@@ -374,6 +374,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateProfile(id: string, updates: Partial<Profile>): Promise<Profile | undefined> {
+    console.log("[Storage] updateProfile called with:", {
+      id,
+      seoTitle: updates.seoTitle,
+      seoDescription: updates.seoDescription,
+      ogImage: updates.ogImage,
+    });
+    
     if (this.memoryStore) {
       const current = this.memoryStore.profiles.get(id);
       if (!current) return undefined;
@@ -391,6 +398,11 @@ export class DatabaseStorage implements IStorage {
     }
     try {
       const result = await this.db.update(profiles).set(updates).where(eq(profiles.id, id)).returning();
+      console.log("[Storage] Profile updated in DB:", {
+        seoTitle: result[0]?.seoTitle,
+        seoDescription: result[0]?.seoDescription,
+        ogImage: result[0]?.ogImage,
+      });
       return result[0];
     } catch (error) {
       console.error("updateProfile error:", error);

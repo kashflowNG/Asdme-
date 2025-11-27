@@ -21,6 +21,11 @@ export function SEOEditor({ profile, onUpdate }: SEOEditorProps) {
 
   useEffect(() => {
     if (profile) {
+      console.log("[SEOEditor] Profile loaded:", {
+        seoTitle: profile.seoTitle,
+        seoDescription: profile.seoDescription,
+        ogImage: profile.ogImage,
+      });
       setLocalSeoTitle(profile.seoTitle || "");
       setLocalSeoDescription(profile.seoDescription || "");
       setLocalOgImage(profile.ogImage || "");
@@ -45,16 +50,19 @@ export function SEOEditor({ profile, onUpdate }: SEOEditorProps) {
   }, []);
 
   const handleSeoTitleChange = (value: string) => {
+    console.log("[SEOEditor] Title changed:", value);
     setLocalSeoTitle(value);
     debouncedUpdate({ seoTitle: value });
   };
 
   const handleSeoDescriptionChange = (value: string) => {
+    console.log("[SEOEditor] Description changed:", value);
     setLocalSeoDescription(value);
     debouncedUpdate({ seoDescription: value });
   };
 
   const handleOgImageChange = (value: string) => {
+    console.log("[SEOEditor] OG Image changed:", value);
     setLocalOgImage(value);
     debouncedUpdate({ ogImage: value });
   };

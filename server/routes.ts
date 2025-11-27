@@ -485,6 +485,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const updates = updateProfileSchema.parse(_req.body);
+      console.log("[SEO] Updates received:", {
+        seoTitle: updates.seoTitle,
+        seoDescription: updates.seoDescription,
+        ogImage: updates.ogImage,
+      });
 
       if (updates.username && updates.username !== profile.username) {
         const existing = await storage.getProfileByUsername(updates.username);
@@ -505,7 +510,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         dbUpdates.verificationBadge = updates.verificationBadge ? 1 : 0;
       }
 
+      console.log("[SEO] DB updates:", dbUpdates);
       const updatedProfile = await storage.updateProfile(profile.id, dbUpdates);
+      console.log("[SEO] Profile updated:", {
+        seoTitle: updatedProfile?.seoTitle,
+        seoDescription: updatedProfile?.seoDescription,
+        ogImage: updatedProfile?.ogImage,
+      });
 
       if (!updatedProfile) {
         return res.status(404).json({ error: "Profile not found" });
