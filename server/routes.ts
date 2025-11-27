@@ -273,23 +273,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Image upload endpoint
   app.post("/api/upload-image", uploadRateLimiter, upload.single('image'), async (req, res) => {
     try {
+      console.log("[UPLOAD-IMAGE] Starting image upload");
       const auth = authenticate(req);
       if (!auth) {
+        console.log("[UPLOAD-IMAGE] Auth failed");
         return res.status(401).json({ error: "Not authenticated" });
       }
 
       if (!req.file) {
+        console.log("[UPLOAD-IMAGE] No file provided");
         return res.status(400).json({ error: "No image file provided" });
       }
 
-      const profile = await storage.getProfileByUsername(auth.username);
-      if (!profile) {
-        return res.status(404).json({ error: "Profile not found" });
-      }
-
-      if (profile.userId !== auth.userId) {
-        return res.status(403).json({ error: "Access denied" });
-      }
+      console.log("[UPLOAD-IMAGE] File received:", req.file.originalname, "Size:", req.file.size);
 
       const uploadsDir = path.join(process.cwd(), 'data', 'uploads');
       await fs.mkdir(uploadsDir, { recursive: true });
@@ -298,35 +294,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fileName = `${crypto.randomBytes(16).toString('hex')}${fileExtension}`;
       const filePath = path.join(uploadsDir, fileName);
 
+      console.log("[UPLOAD-IMAGE] Writing file to:", filePath);
       await fs.writeFile(filePath, req.file.buffer);
+      console.log("[UPLOAD-IMAGE] File written successfully");
 
       const imageUrl = `/uploads/${fileName}`;
+      console.log("[UPLOAD-IMAGE] Returning URL:", imageUrl);
       res.json({ url: imageUrl, success: true });
     } catch (error) {
-      res.status(500).json({ error: "Failed to upload image" });
+      console.error("[UPLOAD-IMAGE] Error:", error);
+      res.status(500).json({ error: "Failed to upload image", details: String(error) });
     }
   });
 
   // Video upload endpoint - simple direct save
   app.post("/api/upload-video", uploadRateLimiter, videoUpload.single('video'), async (req, res) => {
     try {
+      console.log("[UPLOAD-VIDEO] Starting video upload");
       const auth = authenticate(req);
       if (!auth) {
+        console.log("[UPLOAD-VIDEO] Auth failed");
         return res.status(401).json({ error: "Not authenticated" });
       }
 
       if (!req.file) {
+        console.log("[UPLOAD-VIDEO] No file provided");
         return res.status(400).json({ error: "No video file provided" });
       }
 
-      const profile = await storage.getProfileByUsername(auth.username);
-      if (!profile) {
-        return res.status(404).json({ error: "Profile not found" });
-      }
-
-      if (profile.userId !== auth.userId) {
-        return res.status(403).json({ error: "Access denied" });
-      }
+      console.log("[UPLOAD-VIDEO] File received:", req.file.originalname, "Size:", req.file.size);
 
       const uploadsDir = path.join(process.cwd(), 'data', 'uploads');
       await fs.mkdir(uploadsDir, { recursive: true });
@@ -335,13 +331,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fileName = `${crypto.randomBytes(16).toString('hex')}${fileExtension}`;
       const filePath = path.join(uploadsDir, fileName);
 
+      console.log("[UPLOAD-VIDEO] Writing file to:", filePath);
       await fs.writeFile(filePath, req.file.buffer);
+      console.log("[UPLOAD-VIDEO] File written successfully");
 
       const videoUrl = `/uploads/${fileName}`;
+      console.log("[UPLOAD-VIDEO] Returning URL:", videoUrl);
       res.json({ url: videoUrl, success: true });
     } catch (error) {
-      console.error('Video upload error:', error);
-      res.status(500).json({ error: "Failed to upload video" });
+      console.error("[UPLOAD-VIDEO] Error:", error);
+      res.status(500).json({ error: "Failed to upload video", details: String(error) });
     }
   });
 
