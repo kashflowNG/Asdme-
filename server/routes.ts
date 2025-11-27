@@ -271,11 +271,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Image upload endpoint
-  app.post("/api/upload-image", uploadRateLimiter, async (req, res, next) => {
+  app.post("/api/upload-image", uploadRateLimiter, upload.single('image'), async (req, res) => {
     try {
       const auth = authenticate(req);
       if (!auth) {
         return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: "No image file provided" });
       }
 
       const profile = await storage.getProfileByUsername(auth.username);
@@ -285,16 +289,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (profile.userId !== auth.userId) {
         return res.status(403).json({ error: "Access denied" });
-      }
-
-      next();
-    } catch (error) {
-      return res.status(500).json({ error: "Authentication failed" });
-    }
-  }, upload.single('image'), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ error: "No image file provided" });
       }
 
       const uploadsDir = path.join(process.cwd(), 'data', 'uploads');
@@ -314,11 +308,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Video upload with trimming endpoint
-  app.post("/api/upload-video", uploadRateLimiter, async (req, res, next) => {
+  app.post("/api/upload-video", uploadRateLimiter, videoUpload.single('video'), async (req, res) => {
     try {
       const auth = authenticate(req);
       if (!auth) {
         return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: "No video file provided" });
       }
 
       const profile = await storage.getProfileByUsername(auth.username);
@@ -328,16 +326,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (profile.userId !== auth.userId) {
         return res.status(403).json({ error: "Access denied" });
-      }
-
-      next();
-    } catch (error) {
-      return res.status(500).json({ error: "Authentication failed" });
-    }
-  }, videoUpload.single('video'), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ error: "No video file provided" });
       }
 
       const startTime = parseFloat(req.body.startTime || "0");
