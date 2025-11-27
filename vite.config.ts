@@ -19,6 +19,13 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
+    middlewareMode: false,
+    hmr: {
+      host: "0.0.0.0",
+      port: 5000,
+      protocol: "ws",
+    },
+    allowedHosts: true,
     fs: {
       strict: true,
       deny: ["**/.*"],
