@@ -311,13 +311,27 @@ export default function PublicProfile() {
                   {block.type === "video" && block.mediaUrl && (
                     <div>
                       {block.title && <h3 className="text-lg font-bold mb-3" style={{ color: profile.textColor || "#E5E7EB" }}>{block.title}</h3>}
-                      <div className="aspect-video rounded-lg overflow-hidden border border-gray-700/50">
-                        <iframe
-                          src={block.mediaUrl.replace("watch?v=", "embed/")}
-                          className="w-full h-full"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        />
+                      <div className="aspect-video rounded-lg overflow-hidden border border-gray-700/50 bg-black">
+                        {(block.mediaUrl.includes("youtube.com") || block.mediaUrl.includes("youtu.be")) ? (
+                          <iframe
+                            src={block.mediaUrl.includes("youtu.be") 
+                              ? `https://www.youtube.com/embed/${block.mediaUrl.split("youtu.be/")[1]?.split("?")[0]}` 
+                              : block.mediaUrl.replace("watch?v=", "embed/").replace("youtube.com/watch?v=", "youtube.com/embed/")}
+                            className="w-full h-full"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        ) : (
+                          <video 
+                            controls 
+                            controlsList="nodownload"
+                            className="w-full h-full"
+                            style={{ objectFit: "cover" }}
+                          >
+                            <source src={block.mediaUrl} type="video/mp4" />
+                            Your browser does not support the video tag.
+                          </video>
+                        )}
                       </div>
                     </div>
                   )}
