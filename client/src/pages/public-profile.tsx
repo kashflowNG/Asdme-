@@ -180,7 +180,7 @@ export default function PublicProfile() {
       </Helmet>
 
       {/* Full Screen Background Container */}
-      <div className="fixed inset-0 -z-50 w-full h-full">
+      <div className="fixed inset-0 w-full h-full" style={{ zIndex: -1 }}>
         {profile.backgroundType === "image" && profile.backgroundImage ? (
           <div
             className="w-full h-full"
@@ -216,17 +216,19 @@ export default function PublicProfile() {
       {/* Cover Photo Layer - Only show if not using video background */}
       {profile.coverPhoto && profile.backgroundType !== "video" && (
         <div
-          className="w-full h-40 sm:h-48 md:h-56 bg-cover bg-center relative z-5"
+          className="relative w-full h-40 sm:h-48 md:h-56 bg-cover bg-center"
           style={{
             backgroundImage: `url(${profile.coverPhoto})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
+            zIndex: 5,
           }}
         />
       )}
 
       <div 
-        className="min-h-screen relative z-10 pt-12 sm:pt-16 md:pt-20 pb-12"
+        className="min-h-screen relative pt-12 sm:pt-16 md:pt-20 pb-12"
+        style={{ zIndex: 10 }}
         style={{
           fontFamily: profile.fontFamily || "DM Sans",
           color: profile.textColor || "#E5E7EB",
