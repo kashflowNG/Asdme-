@@ -127,35 +127,31 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!timelineRef.current) return;
+  const handleTimelineMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!timelineRef.current || (!isDraggingStart && !isDraggingEnd)) return;
+    
     const rect = timelineRef.current.getBoundingClientRect();
     const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     const time = percent * duration;
 
-    if (isDraggingStart) {
-      setStartTime(Math.min(time, endTime - 0.1));
-    } else if (isDraggingEnd) {
-      setEndTime(Math.max(time, startTime + 0.1));
+    if (isDraggingStart && time < endTime - 0.1) {
+      setStartTime(time);
+    } else if (isDraggingEnd && time > startTime + 0.1) {
+      setEndTime(time);
     }
-  }, [isDraggingStart, isDraggingEnd, duration, startTime, endTime]);
+  };
 
   useEffect(() => {
-    if (!isDraggingStart && !isDraggingEnd) return;
-
     const handleMouseUp = () => {
       setIsDraggingStart(false);
       setIsDraggingEnd(false);
     };
 
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
-
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [isDraggingStart, isDraggingEnd, handleMouseMove]);
+    if (isDraggingStart || isDraggingEnd) {
+      window.addEventListener("mouseup", handleMouseUp);
+      return () => window.removeEventListener("mouseup", handleMouseUp);
+    }
+  }, [isDraggingStart, isDraggingEnd]);
 
   if (type === "image") {
     return (
@@ -255,6 +251,7 @@ export function MediaUploader({ type, onMediaUploaded, initialUrl, maxSize = 100
             <div
               ref={timelineRef}
               onClick={handleTimelineClick}
+              onMouseMove={handleTimelineMouseMove}
               className="relative h-14 bg-gradient-to-b from-gray-800 to-gray-900 rounded-lg border-2 border-gray-700 cursor-pointer hover:border-cyan-500/70 transition-colors group user-select-none"
               style={{ touchAction: 'none' }}
             >
