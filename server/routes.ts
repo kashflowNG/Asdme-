@@ -344,9 +344,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const ffmpegCmd = `ffmpeg -i "${tempFilePath}" -ss ${startTime} -to ${endTime} -c:v libx264 -crf 23 -c:a aac -y "${outputFilePath}" 2>&1`;
       
       try {
-        await execAsync(ffmpegCmd);
+        await execAsync(ffmpegCmd, { timeout: 60000 });
       } catch (error) {
-        await fsp.copyFile(tempFilePath, outputFilePath);
+        console.error('FFmpeg error, falling back to copy:', error);
+        try {
+          await fsp.copyFile(tempFilePath, outputFilePath);
+        } catch (copyError) {
+          console.error('Failed to copy file as fallback:', copyError);
+          throw new Error('Failed to process video');
+        }
       }
 
       try {
