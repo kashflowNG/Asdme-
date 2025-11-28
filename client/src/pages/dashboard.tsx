@@ -767,40 +767,40 @@ export default function Dashboard() {
 
           <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-6">
             <TabsList className="grid w-full grid-cols-7 h-auto p-1 bg-card/50 backdrop-blur-sm border border-border/50">
-              <TabsTrigger value="overview" className="gap-2 py-3" title="View analytics and performance metrics">
-                <BarChart3 className="w-4 h-4" />
-                <span className="hidden sm:inline text-xs font-medium">Overview</span>
-                <span className="sm:hidden text-xs">📊</span>
+              <TabsTrigger value="overview" className="gap-1 py-3 px-1 text-xs" title="View analytics and performance metrics">
+                <BarChart3 className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline font-medium">Overview</span>
+                <span className="sm:hidden font-medium">Over</span>
               </TabsTrigger>
-              <TabsTrigger value="profile" className="gap-2 py-3" title="Edit profile info and photos">
-                <Settings className="w-4 h-4" />
-                <span className="hidden sm:inline text-xs font-medium">Profile</span>
-                <span className="sm:hidden text-xs">👤</span>
+              <TabsTrigger value="profile" className="gap-1 py-3 px-1 text-xs" title="Edit profile info and photos">
+                <Settings className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline font-medium">Profile</span>
+                <span className="sm:hidden font-medium">Prof</span>
               </TabsTrigger>
-              <TabsTrigger value="links" className="gap-2 py-3" title="Manage your social links">
-                <Link2 className="w-4 h-4" />
-                <span className="hidden sm:inline text-xs font-medium">Links</span>
-                <span className="sm:hidden text-xs">🔗</span>
+              <TabsTrigger value="links" className="gap-1 py-3 px-1 text-xs" title="Manage your social links">
+                <Link2 className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline font-medium">Links</span>
+                <span className="sm:hidden font-medium">Link</span>
               </TabsTrigger>
-              <TabsTrigger value="media" className="gap-2 py-3" title="Upload and manage media files">
-                <Upload className="w-4 h-4" />
-                <span className="hidden sm:inline text-xs font-medium">Media</span>
-                <span className="sm:hidden text-xs">📁</span>
+              <TabsTrigger value="media" className="gap-1 py-3 px-1 text-xs" title="Upload and manage media files">
+                <Upload className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline font-medium">Media</span>
+                <span className="sm:hidden font-medium">Med</span>
               </TabsTrigger>
-              <TabsTrigger value="appearance" className="gap-2 py-3" title="Customize colors and styling">
-                <Palette className="w-4 h-4" />
-                <span className="hidden sm:inline text-xs font-medium">Appearance</span>
-                <span className="sm:hidden text-xs">🎨</span>
+              <TabsTrigger value="appearance" className="gap-1 py-3 px-1 text-xs" title="Customize colors and styling">
+                <Palette className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline font-medium">Appearance</span>
+                <span className="sm:hidden font-medium">App</span>
               </TabsTrigger>
-              <TabsTrigger value="templates" className="gap-2 py-3" title="Browse and apply design templates">
-                <Sparkles className="w-4 h-4" />
-                <span className="hidden sm:inline text-xs font-medium">Templates</span>
-                <span className="sm:hidden text-xs">✨</span>
+              <TabsTrigger value="templates" className="gap-1 py-3 px-1 text-xs" title="Browse and apply design templates">
+                <Sparkles className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline font-medium">Templates</span>
+                <span className="sm:hidden font-medium">Tmpl</span>
               </TabsTrigger>
-              <TabsTrigger value="advanced" className="gap-2 py-3" title="Advanced features and settings">
-                <Zap className="w-4 h-4" />
-                <span className="hidden sm:inline text-xs font-medium">Advanced</span>
-                <span className="sm:hidden text-xs">⚡</span>
+              <TabsTrigger value="advanced" className="gap-1 py-3 px-1 text-xs" title="Advanced features and settings">
+                <Zap className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline font-medium">Advanced</span>
+                <span className="sm:hidden font-medium">Adv</span>
               </TabsTrigger>
             </TabsList>
 
