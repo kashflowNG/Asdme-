@@ -2,7 +2,8 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Zap, ShoppingBag, Lock } from "lucide-react";
+import { Zap, ShoppingBag, Lock, ChevronLeft } from "lucide-react";
+import { useLocation } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
@@ -10,6 +11,7 @@ import { Helmet } from "react-helmet";
 
 export default function Shop() {
   const { toast } = useToast();
+  const [, navigate] = useLocation();
 
   const { data: items = [] } = useQuery<any[]>({
     queryKey: ["/api/shop/items"],
@@ -40,6 +42,19 @@ export default function Shop() {
       </Helmet>
 
       <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black">
+        {/* Back Button */}
+        <div className="max-w-6xl mx-auto px-4 pt-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/dashboard")}
+            className="gap-2 mb-6"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Back to Dashboard
+          </Button>
+        </div>
+
         <div className="max-w-6xl mx-auto px-4 py-12">
           {/* Header */}
           <motion.div

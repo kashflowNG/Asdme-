@@ -1464,6 +1464,16 @@ export default function Dashboard() {
             </AlertDialogContent>
           </AlertDialog>
         )}
+
+        {/* Shop Button Footer */}
+        <div className="fixed bottom-6 right-6">
+          <a href="/shop">
+            <Button className="gap-2 bg-gradient-to-r from-yellow-500 to-cyan-500 hover:from-yellow-600 hover:to-cyan-600 text-black font-bold">
+              <Zap className="w-4 h-4" />
+              Points Shop
+            </Button>
+          </a>
+        </div>
       </div>
     </>
   );

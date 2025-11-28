@@ -801,12 +801,50 @@ export class DatabaseStorage implements IStorage {
   }
 
   async addPoints(userId: string, points: number): Promise<void> {
-    const current = await this.getPointsByUserId(userId) || { userId, totalPoints: 0, earnedPoints: 0, spentPoints: 0 };
-    const updated = { ...current, totalPoints: current.totalPoints + points, earnedPoints: current.earnedPoints + points };
+    let current = await this.getPointsByUserId(userId);
+    
+    if (!current) {
+      // Initialize new points record
+      if (this.memoryStore) {
+        current = { 
+          id: crypto.randomUUID(), 
+          userId, 
+          totalPoints: points,
+          earnedPoints: points,
+          spentPoints: 0,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        } as any;
+        this.memoryStore.userPoints.set(userId, current);
+        return;
+      }
+      // For database, try to insert new record
+      try {
+        await this.db.insert(userPoints).values({ 
+          userId, 
+          totalPoints: points,
+          earnedPoints: points,
+          spentPoints: 0 
+        });
+        return;
+      } catch (error) {
+        console.error("Failed to create new points record:", error);
+        return;
+      }
+    }
+
+    const updated = { 
+      ...current, 
+      totalPoints: current.totalPoints + points, 
+      earnedPoints: current.earnedPoints + points,
+      updatedAt: new Date().toISOString()
+    };
+    
     if (this.memoryStore) {
-      this.memoryStore.userPoints.set(userId, { ...updated, id: crypto.randomUUID(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as any);
+      this.memoryStore.userPoints.set(userId, updated as any);
       return;
     }
+    
     try {
       await this.db.update(userPoints).set(updated).where(eq(userPoints.userId, userId));
     } catch (error) {
