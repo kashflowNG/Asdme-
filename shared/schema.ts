@@ -195,6 +195,22 @@ export const updateProfileSchema = z.object({
 
 export const insertSocialLinkSchema = createInsertSchema(socialLinks).omit({
   id: true,
+}).extend({
+  platform: z.string(),
+  url: z.string(),
+  profileId: z.string(),
+  order: z.number().int().default(0),
+  clicks: z.number().int().default(0),
+  isScheduled: z.boolean().default(false),
+  enabled: z.boolean().default(true),
+  isPriority: z.boolean().default(false),
+  customTitle: z.string().optional(),
+  badge: z.string().optional(),
+  description: z.string().optional(),
+  groupId: z.string().optional(),
+  scheduleStart: z.string().optional(),
+  scheduleEnd: z.string().optional(),
+  thumbnail: z.string().optional(),
 });
 
 export const updateSocialLinkSchema = z.object({
