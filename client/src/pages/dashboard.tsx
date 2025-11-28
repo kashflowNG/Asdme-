@@ -766,34 +766,41 @@ export default function Dashboard() {
           </div>
 
           <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-6">
-            <TabsList className="grid w-full grid-cols-7 h-auto p-1">
-              <TabsTrigger value="overview" className="gap-2 py-3">
+            <TabsList className="grid w-full grid-cols-7 h-auto p-1 bg-card/50 backdrop-blur-sm border border-border/50">
+              <TabsTrigger value="overview" className="gap-2 py-3" title="View analytics and performance metrics">
                 <BarChart3 className="w-4 h-4" />
-                <span className="hidden sm:inline">Overview</span>
+                <span className="hidden sm:inline text-xs font-medium">Overview</span>
+                <span className="sm:hidden text-xs">📊</span>
               </TabsTrigger>
-              <TabsTrigger value="profile" className="gap-2 py-3">
+              <TabsTrigger value="profile" className="gap-2 py-3" title="Edit profile info and photos">
                 <Settings className="w-4 h-4" />
-                <span className="hidden sm:inline">Profile</span>
+                <span className="hidden sm:inline text-xs font-medium">Profile</span>
+                <span className="sm:hidden text-xs">👤</span>
               </TabsTrigger>
-              <TabsTrigger value="links" className="gap-2 py-3">
+              <TabsTrigger value="links" className="gap-2 py-3" title="Manage your social links">
                 <Link2 className="w-4 h-4" />
-                <span className="hidden sm:inline">Links</span>
+                <span className="hidden sm:inline text-xs font-medium">Links</span>
+                <span className="sm:hidden text-xs">🔗</span>
               </TabsTrigger>
-              <TabsTrigger value="media" className="gap-2 py-3">
+              <TabsTrigger value="media" className="gap-2 py-3" title="Upload and manage media files">
                 <Upload className="w-4 h-4" />
-                <span className="hidden sm:inline">Media</span>
+                <span className="hidden sm:inline text-xs font-medium">Media</span>
+                <span className="sm:hidden text-xs">📁</span>
               </TabsTrigger>
-              <TabsTrigger value="appearance" className="gap-2 py-3">
+              <TabsTrigger value="appearance" className="gap-2 py-3" title="Customize colors and styling">
                 <Palette className="w-4 h-4" />
-                <span className="hidden sm:inline">Appearance</span>
+                <span className="hidden sm:inline text-xs font-medium">Appearance</span>
+                <span className="sm:hidden text-xs">🎨</span>
               </TabsTrigger>
-              <TabsTrigger value="templates" className="gap-2 py-3">
+              <TabsTrigger value="templates" className="gap-2 py-3" title="Browse and apply design templates">
                 <Sparkles className="w-4 h-4" />
-                <span className="hidden sm:inline">Templates</span>
+                <span className="hidden sm:inline text-xs font-medium">Templates</span>
+                <span className="sm:hidden text-xs">✨</span>
               </TabsTrigger>
-              <TabsTrigger value="advanced" className="gap-2 py-3">
+              <TabsTrigger value="advanced" className="gap-2 py-3" title="Advanced features and settings">
                 <Zap className="w-4 h-4" />
-                <span className="hidden sm:inline">Advanced</span>
+                <span className="hidden sm:inline text-xs font-medium">Advanced</span>
+                <span className="sm:hidden text-xs">⚡</span>
               </TabsTrigger>
             </TabsList>
 

@@ -249,13 +249,13 @@ export function AppearanceEditor({ profile, onUpdate, updateProfile }: Appearanc
         </TabsContent>
 
         <TabsContent value="background" className="space-y-6">
-          {/* Cover Photo Upload */}
+          {/* Cover Photo - Simple Section */}
           <div className="space-y-3 p-4 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 rounded-lg border border-cyan-500/20">
             <Label className="text-base font-semibold flex items-center gap-2">
               <Image className="w-4 h-4" />
-              Cover Photo
+              Cover Photo (Optional)
             </Label>
-            <p className="text-xs text-muted-foreground">Upload a header image for your profile</p>
+            <p className="text-xs text-muted-foreground">Displays as the hero background on your profile</p>
             <Input
               type="url"
               placeholder="https://example.com/cover.jpg"
@@ -265,18 +265,20 @@ export function AppearanceEditor({ profile, onUpdate, updateProfile }: Appearanc
             />
           </div>
 
+          {/* Background Type Selection */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold">Background Type</Label>
+            <Label className="text-base font-semibold">Choose Background Style</Label>
             <div className="grid grid-cols-4 gap-2">
               {[
-                { id: "color", name: "Solid Color", icon: Palette },
-                { id: "gradient", name: "Gradient", icon: Palette },
-                { id: "image", name: "Image", icon: Image },
-                { id: "video", name: "Video", icon: Video },
+                { id: "color", name: "Solid", icon: Palette, desc: "Single color" },
+                { id: "gradient", name: "Gradient", icon: Palette, desc: "CSS gradient" },
+                { id: "image", name: "Image", icon: Image, desc: "Static image" },
+                { id: "video", name: "Video", icon: Video, desc: "Video loop" },
               ].map((type) => (
                 <button
                   key={type.id}
                   onClick={() => handleBackgroundTypeChange(type.id)}
+                  title={type.desc}
                   className={`p-3 rounded-lg border-2 transition-all hover-elevate ${
                     backgroundType === type.id
                       ? "border-primary bg-primary/10"
@@ -291,62 +293,61 @@ export function AppearanceEditor({ profile, onUpdate, updateProfile }: Appearanc
             </div>
           </div>
 
+          {/* Solid Color Section */}
           {backgroundType === "color" && (
-            <div className="space-y-4 p-4 rounded-lg border-2 border-purple-500/30">
-              <div className="space-y-2">
-                <Label htmlFor="bg-solid-color" className="text-base font-semibold">Solid Background Color</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="bg-solid-color"
-                    type="color"
-                    value={profile.backgroundColor || "#0A0A0F"}
-                    onChange={(e) => onUpdate({ backgroundColor: e.target.value })}
-                    className="w-20 h-10"
-                  />
-                  <Input
-                    type="text"
-                    value={profile.backgroundColor || "#0A0A0F"}
-                    onChange={(e) => onUpdate({ backgroundColor: e.target.value })}
-                    className="flex-1 font-mono text-sm"
-                    placeholder="#0A0A0F"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {backgroundType === "gradient" && (
-            <div className="space-y-4 p-4 rounded-lg border-2 border-purple-500/30">
-              <p className="text-sm text-muted-foreground">Use CSS gradient syntax in the Custom CSS tab for advanced gradients</p>
-              <div className="space-y-2">
-                <Label htmlFor="gradient-preview">Gradient Preview</Label>
-                <div
-                  className="w-full h-24 rounded-lg border-2 border-border"
-                  style={{
-                    background: "linear-gradient(135deg, #8B5CF6, #EC4899, #06B6D4)"
-                  }}
+            <div className="space-y-3 p-4 rounded-lg bg-primary/5 border-2 border-primary/30">
+              <Label htmlFor="bg-solid-color" className="text-sm font-semibold">Background Color</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="bg-solid-color"
+                  type="color"
+                  value={profile.backgroundColor || "#0A0A0F"}
+                  onChange={(e) => onUpdate({ backgroundColor: e.target.value })}
+                  className="w-20 h-10 cursor-pointer"
+                />
+                <Input
+                  type="text"
+                  value={profile.backgroundColor || "#0A0A0F"}
+                  onChange={(e) => onUpdate({ backgroundColor: e.target.value })}
+                  className="flex-1 font-mono text-sm"
+                  placeholder="#0A0A0F"
                 />
               </div>
+              <p className="text-xs text-muted-foreground">Click the color box or enter a hex color code</p>
             </div>
           )}
 
+          {/* Gradient Section */}
+          {backgroundType === "gradient" && (
+            <div className="space-y-3 p-4 rounded-lg bg-primary/5 border-2 border-primary/30">
+              <Label className="text-sm font-semibold">Gradient Background</Label>
+              <div className="w-full h-24 rounded-lg border-2 border-primary/30 bg-black shadow-lg"
+                style={{
+                  background: "linear-gradient(135deg, #8B5CF6, #EC4899, #06B6D4)"
+                }}
+              />
+              <p className="text-xs text-muted-foreground">Go to the Custom CSS tab to create a custom gradient using CSS syntax</p>
+            </div>
+          )}
+
+          {/* Image Upload Section */}
           {backgroundType === "image" && (
             <div className="space-y-4">
-              {/* File Upload */}
-              <ImageUploader
-                onImageUploaded={(url) => {
-                  onUpdate({ backgroundImage: url });
-                  toast({ title: "Success", description: "Background image uploaded!" });
-                }}
-                initialUrl={profile.backgroundImage}
-              />
-
-              {/* Previous Uploads */}
-              <MediaManager />
+              <div className="p-4 rounded-lg bg-primary/5 border-2 border-primary/30">
+                <h3 className="font-semibold text-sm mb-3">Upload Background Image</h3>
+                <ImageUploader
+                  onImageUploaded={(url) => {
+                    onUpdate({ backgroundImage: url });
+                    toast({ title: "Success", description: "Background image updated!" });
+                  }}
+                  initialUrl={profile.backgroundImage}
+                  maxSize={100}
+                />
+              </div>
 
               {/* OR URL Input */}
-              <div className="space-y-2 p-4 rounded-lg border-2 border-dashed border-purple-500/30">
-                <Label htmlFor="bg-image" className="flex items-center gap-2">
+              <div className="space-y-2 p-4 rounded-lg border-2 border-dashed border-primary/30">
+                <Label htmlFor="bg-image" className="flex items-center gap-2 font-semibold text-sm">
                   <Link2 className="w-4 h-4" />
                   Or Paste Image URL
                 </Label>
@@ -358,31 +359,32 @@ export function AppearanceEditor({ profile, onUpdate, updateProfile }: Appearanc
                   onChange={(e) => onUpdate({ backgroundImage: e.target.value })}
                   data-testid="input-background-image"
                 />
-                <p className="text-xs text-muted-foreground">
-                  High-quality images (1920x1080+) work best
-                </p>
+                <p className="text-xs text-muted-foreground">PNG, JPG, or WebP (recommended 1920x1080+)</p>
               </div>
-            </div>
-          )}
-
-          {backgroundType === "video" && (
-            <div className="space-y-4">
-              {/* File Upload with Trimmer */}
-              <VideoUploader
-                onVideoUploaded={(url) => {
-                  onUpdate({ backgroundVideo: url });
-                  toast({ title: "Success", description: "Background video uploaded!" });
-                }}
-                initialUrl={profile.backgroundVideo}
-                maxSize={500}
-              />
 
               {/* Previous Uploads */}
               <MediaManager />
+            </div>
+          )}
+
+          {/* Video Upload Section */}
+          {backgroundType === "video" && (
+            <div className="space-y-4">
+              <div className="p-4 rounded-lg bg-primary/5 border-2 border-primary/30">
+                <h3 className="font-semibold text-sm mb-3">Upload Background Video</h3>
+                <VideoUploader
+                  onVideoUploaded={(url) => {
+                    onUpdate({ backgroundVideo: url });
+                    toast({ title: "Success", description: "Background video updated!" });
+                  }}
+                  initialUrl={profile.backgroundVideo}
+                  maxSize={500}
+                />
+              </div>
 
               {/* OR URL Input */}
-              <div className="space-y-2 p-4 rounded-lg border-2 border-dashed border-purple-500/30">
-                <Label htmlFor="bg-video" className="flex items-center gap-2">
+              <div className="space-y-2 p-4 rounded-lg border-2 border-dashed border-primary/30">
+                <Label htmlFor="bg-video" className="flex items-center gap-2 font-semibold text-sm">
                   <Link2 className="w-4 h-4" />
                   Or Paste Video URL
                 </Label>
@@ -394,10 +396,11 @@ export function AppearanceEditor({ profile, onUpdate, updateProfile }: Appearanc
                   onChange={(e) => onUpdate({ backgroundVideo: e.target.value })}
                   data-testid="input-background-video"
                 />
-                <p className="text-xs text-muted-foreground">
-                  MP4 format recommended (max 500MB when uploading)
-                </p>
+                <p className="text-xs text-muted-foreground">MP4 format recommended (video will loop)</p>
               </div>
+
+              {/* Previous Uploads */}
+              <MediaManager />
             </div>
           )}
         </TabsContent>
