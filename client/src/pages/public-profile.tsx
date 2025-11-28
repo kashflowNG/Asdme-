@@ -13,6 +13,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Helmet } from "react-helmet";
 import DOMPurify from "dompurify";
+import { motion } from "framer-motion";
 
 const THEME_BACKGROUNDS: Record<string, string> = {
   "d7cacdd5-42a7-4535-a5fd-9bd214c4825b": "linear-gradient(135deg, #0d1b2a 0%, #1a3a52 100%)",
@@ -242,12 +243,23 @@ export default function PublicProfile() {
         )}
           
           {/* Profile Header - Centered */}
-          <div className="text-center space-y-4">
+          <motion.div 
+            className="text-center space-y-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
             {/* Avatar */}
-            <div className="relative inline-block">
-              <div 
-                className="absolute -inset-3 rounded-full blur-2xl opacity-40"
+            <motion.div 
+              className="relative inline-block"
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <motion.div 
+                className="absolute -inset-3 rounded-full blur-2xl"
                 style={{ background: profile.primaryColor || "#8B5CF6" }}
+                animate={{ opacity: [0.3, 0.6, 0.3] }}
+                transition={{ duration: 3, repeat: Infinity }}
               />
               <Avatar className="w-24 h-24 sm:w-32 sm:h-32 border-4 border-gray-900 shadow-2xl relative">
                 <AvatarImage src={profile.avatar || undefined} alt={profile.username} />
@@ -258,50 +270,74 @@ export default function PublicProfile() {
                   {initials}
                 </AvatarFallback>
               </Avatar>
-            </div>
+            </motion.div>
 
             {/* Username & Verification */}
-            <div className="space-y-2">
+            <motion.div 
+              className="space-y-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+            >
               <div className="flex items-center justify-center gap-2">
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-black" style={{ color: profile.textColor || "#E5E7EB" }}>
                   {profile.username}
                 </h1>
                 {profile.verificationBadge && (
-                  <CheckCircle2 className="w-5 h-5" style={{ color: profile.primaryColor || "#8B5CF6" }} />
+                  <motion.div animate={{ rotate: [0, 360] }} transition={{ duration: 3, repeat: Infinity }}>
+                    <CheckCircle2 className="w-5 h-5" style={{ color: profile.primaryColor || "#8B5CF6" }} />
+                  </motion.div>
                 )}
               </div>
               <p className="text-sm" style={{ color: profile.textColor ? `${profile.textColor}99` : "#9CA3AF" }}>@{profile.username}</p>
-            </div>
+            </motion.div>
 
             {/* Bio */}
             {profile.bio && (
-              <p className="text-sm sm:text-base leading-relaxed" style={{ color: profile.textColor || "#E5E7EB" }}>
+              <motion.p 
+                className="text-sm sm:text-base leading-relaxed" 
+                style={{ color: profile.textColor || "#E5E7EB" }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3, duration: 0.6 }}
+              >
                 {profile.bio}
-              </p>
+              </motion.p>
             )}
 
             {/* Share Button */}
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-gray-800/50 border-gray-700 hover:bg-gray-700/50 text-white gap-2 mx-auto"
-              onClick={() => {
-                navigator.clipboard.writeText(profileUrl);
-                toast({ title: "Link copied!" });
-              }}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
             >
-              <Share2 className="w-4 h-4" />
-              Copy Link
-            </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-gray-800/50 border-gray-700 hover:bg-gray-700/50 text-white gap-2 mx-auto"
+                onClick={() => {
+                  navigator.clipboard.writeText(profileUrl);
+                  toast({ title: "Link copied!" });
+                }}
+              >
+                <Share2 className="w-4 h-4" />
+                Copy Link
+              </Button>
+            </motion.div>
 
             {/* Premium Badge */}
             {profile.verificationBadge && (
-              <div className="flex items-center justify-center gap-1 px-3 py-1.5 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-full w-fit mx-auto">
+              <motion.div 
+                className="flex items-center justify-center gap-1 px-3 py-1.5 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-full w-fit mx-auto"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5, duration: 0.6 }}
+              >
                 <Award className="w-4 h-4 text-amber-400" />
                 <span className="text-xs font-semibold text-amber-300">Pro Member</span>
-              </div>
+              </motion.div>
             )}
-          </div>
+          </motion.div>
 
           {/* Content Blocks */}
           {sortedBlocks.length > 0 && (
@@ -495,8 +531,13 @@ export default function PublicProfile() {
               <p className="text-gray-400 text-sm">No links added yet</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {sortedLinks.map((link) => {
+            <motion.div 
+              className="space-y-3"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5, duration: 0.6 }}
+            >
+              {sortedLinks.map((link, index) => {
                 const now = new Date();
                 const isScheduled = link.isScheduled && link.scheduleStart && link.scheduleEnd;
                 const scheduleStart = link.scheduleStart ? new Date(link.scheduleStart) : null;
@@ -506,18 +547,30 @@ export default function PublicProfile() {
                 if (!isActive) return null;
 
                 return (
-                  <div key={link.id} className="group relative">
+                  <motion.div 
+                    key={link.id} 
+                    className="group relative"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5 + index * 0.1, duration: 0.4 }}
+                    whileHover={{ x: 4 }}
+                  >
                     <div 
                       className="absolute -inset-0.5 rounded-xl opacity-0 group-hover:opacity-30 blur-sm transition-opacity"
                       style={{ background: profile.primaryColor || "#8B5CF6" }}
                     />
                     <div className="relative">
                       {link.badge && link.badge !== "none" && (
-                        <div className="mb-2">
+                        <motion.div 
+                          className="mb-2"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.5 + index * 0.1 + 0.1 }}
+                        >
                           <Badge className="text-[10px] font-bold uppercase px-2 py-0.5 text-white" style={{ background: profile.primaryColor || "#8B5CF6" }}>
                             {link.badge}
                           </Badge>
-                        </div>
+                        </motion.div>
                       )}
                       <SocialLinkButton
                         platformId={link.platform}
@@ -526,13 +579,20 @@ export default function PublicProfile() {
                         onClick={() => handleLinkClick(link.id)}
                       />
                       {link.description && (
-                        <p className="text-xs text-gray-400 mt-1 px-4 pb-2">{link.description}</p>
+                        <motion.p 
+                          className="text-xs text-gray-400 mt-1 px-4 pb-2"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.5 + index * 0.1 + 0.15 }}
+                        >
+                          {link.description}
+                        </motion.p>
                       )}
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
-            </div>
+            </motion.div>
           )}
 
           {/* About & Business Info */}
