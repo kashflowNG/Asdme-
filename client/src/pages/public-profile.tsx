@@ -223,54 +223,83 @@ export default function PublicProfile() {
           color: profile.textColor || "#E5E7EB",
         }}
       >
-        {/* Cover Photo - Inside content div so it displays properly */}
-        {profile.coverPhoto && profile.backgroundType !== "video" && (
-          <div
-            className="w-full h-40 sm:h-48 md:h-56 bg-cover bg-center -mx-4 sm:-mx-6"
-            style={{
-              backgroundImage: `url(${profile.coverPhoto})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
-          />
-        )}
-
-        <div 
-          className="max-w-md mx-auto px-4 space-y-8 pt-12 sm:pt-16 md:pt-20"
-        >
         {profile.customCSS && (
           <style dangerouslySetInnerHTML={{ __html: sanitizeCSS(profile.customCSS) }} />
         )}
-          
-          {/* Profile Header - Centered */}
-          <motion.div 
-            className="text-center space-y-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            {/* Avatar */}
-            <motion.div 
-              className="relative inline-block"
+
+        {/* Hero Section with Cover Photo */}
+        <motion.div 
+          className="relative w-full h-60 sm:h-72 md:h-80 overflow-hidden group"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6 }}
+        >
+          {/* Cover Photo Background */}
+          {profile.coverPhoto && profile.backgroundType !== "video" ? (
+            <motion.div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{
+                backgroundImage: `url(${profile.coverPhoto})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
               whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 300 }}
+              transition={{ duration: 0.4 }}
+            />
+          ) : (
+            <div
+              className="absolute inset-0"
+              style={{
+                background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}40, ${profile.primaryColor || "#8B5CF6"}10)`,
+              }}
+            />
+          )}
+
+          {/* Dark overlay for better text readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60" />
+
+          {/* Avatar positioned on top */}
+          <div className="absolute inset-0 flex flex-col items-center justify-end pb-0">
+            <motion.div
+              className="relative mb-0"
+              initial={{ opacity: 0, scale: 0.8, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.6, type: "spring", stiffness: 100 }}
+              whileHover={{ scale: 1.08 }}
             >
-              <motion.div 
-                className="absolute -inset-3 rounded-full blur-2xl"
+              {/* Glow effect */}
+              <motion.div
+                className="absolute -inset-4 rounded-full blur-2xl"
                 style={{ background: profile.primaryColor || "#8B5CF6" }}
-                animate={{ opacity: [0.3, 0.6, 0.3] }}
+                animate={{ opacity: [0.4, 0.7, 0.4] }}
                 transition={{ duration: 3, repeat: Infinity }}
               />
-              <Avatar className="w-24 h-24 sm:w-32 sm:h-32 border-4 border-gray-900 shadow-2xl relative">
+              
+              {/* Avatar */}
+              <Avatar className="w-32 h-32 sm:w-40 sm:h-40 border-8 shadow-2xl relative" style={{ borderColor: profile.backgroundColor || "#0A0A0F" }}>
                 <AvatarImage src={profile.avatar || undefined} alt={profile.username} />
                 <AvatarFallback 
-                  className="text-3xl sm:text-4xl font-black text-white"
+                  className="text-4xl sm:text-5xl font-black text-white"
                   style={{ background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}, ${profile.primaryColor || "#8B5CF6"}99)` }}
                 >
                   {initials}
                 </AvatarFallback>
               </Avatar>
             </motion.div>
+          </div>
+        </motion.div>
+
+        <div 
+          className="max-w-md mx-auto px-4 space-y-8 pt-4 sm:pt-6 md:pt-8"
+        >
+          
+          {/* Profile Header - Centered */}
+          <motion.div 
+            className="text-center space-y-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+          >
 
             {/* Username & Verification */}
             <motion.div 
