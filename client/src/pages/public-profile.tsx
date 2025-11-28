@@ -208,9 +208,7 @@ export default function PublicProfile() {
           <div
             className="w-full h-full"
             style={{
-              background: profile.backgroundColor || (profile?.appliedTemplateId && THEME_BACKGROUNDS[profile.appliedTemplateId as keyof typeof THEME_BACKGROUNDS]) 
-                ? (profile?.appliedTemplateId && THEME_BACKGROUNDS[profile.appliedTemplateId as keyof typeof THEME_BACKGROUNDS]) || "linear-gradient(180deg, #0f0f1a 0%, #0a0a0f 50%, #050508 100%)"
-                : "linear-gradient(180deg, #0f0f1a 0%, #0a0a0f 50%, #050508 100%)",
+              background: profile.backgroundColor || (profile?.appliedTemplateId ? THEME_BACKGROUNDS[profile.appliedTemplateId as keyof typeof THEME_BACKGROUNDS] : null) || "linear-gradient(180deg, #0f0f1a 0%, #0a0a0f 50%, #050508 100%)",
             }}
           />
         )}
