@@ -655,6 +655,38 @@ export default function PublicProfile() {
               {profile.businessInfo && <p className="text-gray-300">{profile.businessInfo}</p>}
             </motion.div>
           )}
+
+          {/* Footer CTA */}
+          <motion.div 
+            className="mt-16 pt-8 border-t border-gray-800/50 text-center space-y-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8, duration: 0.6 }}
+          >
+            <div className="space-y-2">
+              <p className="text-sm text-gray-400">Want your own landing page?</p>
+              <h3 className="text-xl font-bold" style={{ color: profile.textColor || "#E5E7EB" }}>Create Free with Neropage</h3>
+            </div>
+            
+            <p className="text-xs text-gray-500 max-w-sm mx-auto">
+              Share all your links, media, and content in one beautiful place. Built for creators, solopreneurs, and businesses.
+            </p>
+
+            <div className="flex flex-col gap-3 pt-2">
+              <a
+                href="/"
+                className="inline-block px-6 py-2.5 rounded-lg font-semibold text-sm transition-all hover:scale-105"
+                style={{
+                  background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}, ${profile.primaryColor || "#8B5CF6"}dd)`,
+                  color: "white",
+                  boxShadow: `0 0 20px ${profile.primaryColor || "#8B5CF6"}40`
+                }}
+              >
+                Start Building →
+              </a>
+              <p className="text-xs text-gray-600">Free forever • No credit card needed</p>
+            </div>
+          </motion.div>
         </div>
       </div>
     </>
