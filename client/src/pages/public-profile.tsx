@@ -6,13 +6,15 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Globe, Mail, Share2, CheckCircle2, TrendingUp, Zap, Award, Clock, Users, Eye } from "lucide-react";
+import { Globe, Mail, Share2, CheckCircle2, TrendingUp, Zap, Award, Clock, Users, Eye, Download, Copy, Sparkles } from "lucide-react";
+import { Facebook, Twitter, Linkedin, MessageCircle, QrCode as QRIcon } from "lucide-react";
 import type { Profile, SocialLink, ContentBlock } from "@shared/schema";
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useState, useRef } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Helmet } from "react-helmet";
 import DOMPurify from "dompurify";
+import QRCodeStyling from "qr-code-styling";
 
 const THEME_BACKGROUNDS: Record<string, string> = {
   "d7cacdd5-42a7-4535-a5fd-9bd214c4825b": "linear-gradient(135deg, #0d1b2a 0%, #1a3a52 100%)",
@@ -31,6 +33,8 @@ export default function PublicProfile() {
   const username = params?.username || "";
   const { toast } = useToast();
   const [emailFormData, setEmailFormData] = useState({ name: "", email: "", message: "" });
+  const [showQRCode, setShowQRCode] = useState(false);
+  const qrRef = useRef<HTMLDivElement>(null);
 
   const { data: profile, isLoading: profileLoading } = useQuery<Profile>({
     queryKey: ["/api/profiles", username],
@@ -98,6 +102,33 @@ export default function PublicProfile() {
     if (profile) trackViewMutation.mutate();
   }, [profile?.id]);
 
+  // Generate QR Code
+  useEffect(() => {
+    if (showQRCode && qrRef.current && profile) {
+      const url = `${window.location.origin}/user/${profile.username}`;
+      const qrCode = new QRCodeStyling({
+        width: 300,
+        height: 300,
+        data: url,
+        image: profile.avatar || undefined,
+        dotsOptions: {
+          color: profile.primaryColor || "#8B5CF6",
+        },
+        cornersSquareOptions: {
+          color: profile.primaryColor || "#8B5CF6",
+        },
+        cornersDotOptions: {
+          color: profile.primaryColor || "#8B5CF6",
+        },
+        backgroundOptions: {
+          color: "#1a1a2e",
+        },
+      });
+      qrRef.current.innerHTML = "";
+      qrCode.append(qrRef.current);
+    }
+  }, [showQRCode, profile]);
+
   const handleLinkClick = (linkId: string) => {
     trackClickMutation.mutate(linkId);
   };
@@ -154,6 +185,43 @@ export default function PublicProfile() {
   const pageTitle = profile.seoTitle || `${profile.username} - Link Hub`;
   const pageDescription = profile.seoDescription || profile.bio || `Check out all of ${profile.username}'s social media links`;
   const ogImage = profile.ogImage || profile.avatar || `${window.location.origin}/default-og-image.png`;
+
+  // Sharing functions
+  const shareText = `Check out ${profile.username}'s link page!`;
+  const encodedUrl = encodeURIComponent(profileUrl);
+  const encodedText = encodeURIComponent(shareText);
+
+  const shareToTwitter = () => {
+    window.open(`https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`, "_blank");
+  };
+
+  const shareToFacebook = () => {
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, "_blank");
+  };
+
+  const shareToLinkedIn = () => {
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`, "_blank");
+  };
+
+  const shareToWhatsApp = () => {
+    window.open(`https://wa.me/?text=${encodedText}%20${encodedUrl}`, "_blank");
+  };
+
+  const copyLink = async () => {
+    await navigator.clipboard.writeText(profileUrl);
+    toast({ title: "Link copied!", description: "Profile URL copied to clipboard" });
+  };
+
+  const downloadQR = async () => {
+    if (qrRef.current?.querySelector("canvas")) {
+      const canvas = qrRef.current.querySelector("canvas") as HTMLCanvasElement;
+      const link = document.createElement("a");
+      link.href = canvas.toDataURL("image/png");
+      link.download = `${profile.username}-qrcode.png`;
+      link.click();
+      toast({ title: "Downloaded!", description: "QR code saved to downloads" });
+    }
+  };
 
   return (
     <>
@@ -542,6 +610,106 @@ export default function PublicProfile() {
               {profile.businessInfo && <p className="text-gray-400">{profile.businessInfo}</p>}
             </div>
           )}
+
+          {/* Easy Sharing Section */}
+          <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-300/30 rounded-xl p-6 space-y-4">
+            <h3 className="text-lg font-semibold flex items-center gap-2 text-center justify-center" style={{ color: profile.textColor || "#E5E7EB" }}>
+              <Share2 className="w-5 h-5" style={{ color: profile.primaryColor || "#8B5CF6" }} />
+              Share This Page
+            </h3>
+
+            {/* Social Share Buttons */}
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                onClick={shareToTwitter}
+                className="bg-gray-800/70 hover:bg-gray-700/70 border border-gray-600/50 h-10 text-white flex items-center justify-center gap-2"
+              >
+                <Twitter className="w-4 h-4" />
+                <span className="text-xs">Twitter</span>
+              </Button>
+              <Button
+                onClick={shareToFacebook}
+                className="bg-gray-800/70 hover:bg-gray-700/70 border border-gray-600/50 h-10 text-white flex items-center justify-center gap-2"
+              >
+                <Facebook className="w-4 h-4" />
+                <span className="text-xs">Facebook</span>
+              </Button>
+              <Button
+                onClick={shareToWhatsApp}
+                className="bg-gray-800/70 hover:bg-gray-700/70 border border-gray-600/50 h-10 text-white flex items-center justify-center gap-2"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span className="text-xs">WhatsApp</span>
+              </Button>
+              <Button
+                onClick={shareToLinkedIn}
+                className="bg-gray-800/70 hover:bg-gray-700/70 border border-gray-600/50 h-10 text-white flex items-center justify-center gap-2"
+              >
+                <Linkedin className="w-4 h-4" />
+                <span className="text-xs">LinkedIn</span>
+              </Button>
+            </div>
+
+            {/* Copy Link & QR Code Buttons */}
+            <div className="flex gap-2">
+              <Button
+                onClick={copyLink}
+                variant="outline"
+                className="flex-1 bg-gray-800/50 border-gray-600/50 hover:bg-gray-700/50 h-10"
+              >
+                <Copy className="w-4 h-4 mr-2" />
+                Copy Link
+              </Button>
+              <Button
+                onClick={() => setShowQRCode(!showQRCode)}
+                variant="outline"
+                className="flex-1 bg-gray-800/50 border-gray-600/50 hover:bg-gray-700/50 h-10"
+              >
+                <QRIcon className="w-4 h-4 mr-2" />
+                QR Code
+              </Button>
+            </div>
+
+            {/* QR Code Display */}
+            {showQRCode && (
+              <div className="flex flex-col items-center gap-3 pt-4 border-t border-gray-700/50">
+                <p className="text-xs text-gray-400">Scan to visit this profile</p>
+                <div ref={qrRef} className="bg-gray-900/50 p-4 rounded-lg" />
+                <Button
+                  onClick={downloadQR}
+                  size="sm"
+                  className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white w-full"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download QR Code
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Call to Action - Get Your Own Link Page */}
+          <div className="bg-gradient-to-r from-cyan-500/20 via-purple-500/20 to-pink-500/20 border-2 border-cyan-400/50 rounded-xl p-6 text-center space-y-4">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Sparkles className="w-5 h-5 text-cyan-400" />
+              <span className="text-sm font-semibold text-cyan-300">Ready to share your own links?</span>
+              <Sparkles className="w-5 h-5 text-cyan-400" />
+            </div>
+            <h3 className="text-xl font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Create Your Free Link Page
+            </h3>
+            <p className="text-sm text-gray-300">
+              Join thousands of creators sharing their social media and custom links in one beautiful page.
+            </p>
+            <Button
+              onClick={() => window.location.href = "/signup"}
+              className="w-full h-12 bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-700 hover:to-purple-700 text-white font-semibold text-base rounded-lg"
+            >
+              Get Started Free
+            </Button>
+            <p className="text-xs text-gray-400">
+              No credit card required • Takes 30 seconds to set up
+            </p>
+          </div>
         </div>
       </div>
     </>
