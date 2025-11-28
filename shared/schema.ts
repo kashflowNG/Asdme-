@@ -193,24 +193,21 @@ export const updateProfileSchema = z.object({
   verificationBadge: z.boolean().optional(),
 });
 
-export const insertSocialLinkSchema = createInsertSchema(socialLinks).omit({
-  id: true,
-}).extend({
+export const insertSocialLinkSchema = z.object({
+  profileId: z.string(),
   platform: z.string(),
   url: z.string(),
-  profileId: z.string(),
-  order: z.number().int().default(0),
-  clicks: z.number().int().default(0),
-  isScheduled: z.boolean().default(false),
-  enabled: z.boolean().default(true),
-  isPriority: z.boolean().default(false),
+  order: z.number().int().optional(),
   customTitle: z.string().optional(),
   badge: z.string().optional(),
   description: z.string().optional(),
-  groupId: z.string().optional(),
+  isScheduled: z.boolean().optional(),
   scheduleStart: z.string().optional(),
   scheduleEnd: z.string().optional(),
   thumbnail: z.string().optional(),
+  enabled: z.boolean().optional(),
+  groupId: z.string().optional(),
+  isPriority: z.boolean().optional(),
 });
 
 export const updateSocialLinkSchema = z.object({
