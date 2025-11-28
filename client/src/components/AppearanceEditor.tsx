@@ -340,7 +340,7 @@ export function AppearanceEditor({ profile, onUpdate, updateProfile }: Appearanc
                     onUpdate({ backgroundImage: url });
                     toast({ title: "Success", description: "Background image updated!" });
                   }}
-                  initialUrl={profile.backgroundImage}
+                  initialUrl={profile.backgroundImage || undefined}
                   maxSize={100}
                 />
               </div>
@@ -377,7 +377,7 @@ export function AppearanceEditor({ profile, onUpdate, updateProfile }: Appearanc
                     onUpdate({ backgroundVideo: url });
                     toast({ title: "Success", description: "Background video updated!" });
                   }}
-                  initialUrl={profile.backgroundVideo}
+                  initialUrl={profile.backgroundVideo || undefined}
                   maxSize={500}
                 />
               </div>
