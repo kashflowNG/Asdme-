@@ -129,9 +129,24 @@ export default function PublicProfile() {
   ];
 
   const sanitizeCSS = (css: string): string => {
+    if (!css) return '';
     let sanitized = css;
-    sanitized = sanitized.replace(/<\s*\/?\s*style[^>]*>/gi, '');
+    // Remove all script tags and attributes
     sanitized = sanitized.replace(/<\s*script[^>]*>[\s\S]*?<\s*\/\s*script\s*>/gi, '');
+    // Remove on* event handlers
+    sanitized = sanitized.replace(/on\w+\s*=\s*["'][^"']*["']/gi, '');
+    sanitized = sanitized.replace(/on\w+\s*=\s*[^\s>]*/gi, '');
+    // Remove javascript: protocol
+    sanitized = sanitized.replace(/javascript:/gi, '');
+    // Remove vbscript: protocol
+    sanitized = sanitized.replace(/vbscript:/gi, '');
+    // Remove data: protocol (for potential XSS)
+    sanitized = sanitized.replace(/data:text\/html/gi, '');
+    // Remove style tags
+    sanitized = sanitized.replace(/<\s*\/?\s*style[^>]*>/gi, '');
+    // Remove link tags (except stylesheets)
+    sanitized = sanitized.replace(/<\s*link\s+(?!rel=["']?stylesheet)[^>]*>/gi, '');
+    // Remove any remaining HTML tags except style content
     sanitized = sanitized.replace(/<[^>]+>/g, '');
     return sanitized;
   };
