@@ -150,6 +150,45 @@ export const readyMadeTemplates = pgTable("ready_made_templates", {
   usageCount: integer("usage_count").notNull().default(0),
 });
 
+export const dailyStreaks = pgTable("daily_streaks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().unique(),
+  streakCount: integer("streak_count").notNull().default(0),
+  lastClaimedDate: text("last_claimed_date"),
+  totalPointsEarned: integer("total_points_earned").notNull().default(0),
+  createdAt: text("created_at").notNull().default(sql`now()`),
+  updatedAt: text("updated_at").notNull().default(sql`now()`),
+});
+
+export const userPoints = pgTable("user_points", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().unique(),
+  totalPoints: integer("total_points").notNull().default(0),
+  earnedPoints: integer("earned_points").notNull().default(0),
+  spentPoints: integer("spent_points").notNull().default(0),
+  createdAt: text("created_at").notNull().default(sql`now()`),
+  updatedAt: text("updated_at").notNull().default(sql`now()`),
+});
+
+export const shopItems = pgTable("shop_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description"),
+  pointCost: integer("point_cost").notNull(),
+  type: text("type").notNull(), // 'template', 'theme', 'feature'
+  templateId: varchar("template_id"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: text("created_at").notNull().default(sql`now()`),
+});
+
+export const userPurchases = pgTable("user_purchases", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  itemId: varchar("item_id").notNull(),
+  purchaseDate: text("purchase_date").notNull().default(sql`now()`),
+  consumedDate: text("consumed_date"),
+});
+
 export const insertProfileSchema = createInsertSchema(profiles).omit({
   id: true,
 });
@@ -269,6 +308,10 @@ export type InsertContentBlock = z.infer<typeof insertContentBlockSchema>;
 export type FormSubmission = typeof formSubmissions.$inferSelect;
 export type InsertFormSubmission = z.infer<typeof insertFormSubmissionSchema>;
 export type ReadyMadeTemplate = typeof readyMadeTemplates.$inferSelect;
+export type DailyStreak = typeof dailyStreaks.$inferSelect;
+export type UserPoints = typeof userPoints.$inferSelect;
+export type ShopItem = typeof shopItems.$inferSelect;
+export type UserPurchase = typeof userPurchases.$inferSelect;
 
 export const insertReadyMadeTemplateSchema = createInsertSchema(readyMadeTemplates).omit({
   id: true,

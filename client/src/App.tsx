@@ -10,6 +10,7 @@ import PublicProfile from "@/pages/public-profile";
 import Landing from "@/pages/landing";
 import Login from "@/pages/login";
 import Signup from "@/pages/signup";
+import Shop from "@/pages/shop";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 function Router() {
@@ -21,6 +22,11 @@ function Router() {
       <Route path="/dashboard">
         <ProtectedRoute>
           <Dashboard />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/shop">
+        <ProtectedRoute>
+          <Shop />
         </ProtectedRoute>
       </Route>
       <Route path="/admin">

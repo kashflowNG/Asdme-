@@ -6,11 +6,14 @@ import {
   type FormSubmission, type InsertFormSubmission,
   type User, type InsertUser,
   type ReadyMadeTemplate, type InsertReadyMadeTemplate,
-  profiles, socialLinks, linkGroups, contentBlocks, formSubmissions, linkClicks, profileViews, users, readyMadeTemplates
+  type DailyStreak, type UserPoints, type ShopItem, type UserPurchase,
+  profiles, socialLinks, linkGroups, contentBlocks, formSubmissions, linkClicks, profileViews, users, readyMadeTemplates,
+  dailyStreaks, userPoints, shopItems, userPurchases
 } from "@shared/schema";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { eq, sql as drizzleSql } from "drizzle-orm";
+import crypto from "crypto";
 
 export interface IStorage {
   // User methods
@@ -81,6 +84,10 @@ export class DatabaseStorage implements IStorage {
     formSubmissions: Map<string, FormSubmission>;
     linkClicks: any[];
     profileViews: any[];
+    dailyStreaks: Map<string, DailyStreak>;
+    userPoints: Map<string, UserPoints>;
+    shopItems: Map<string, ShopItem>;
+    userPurchases: any[];
   } | null = null;
 
   constructor() {
@@ -96,7 +103,11 @@ export class DatabaseStorage implements IStorage {
         contentBlocks: new Map(),
         formSubmissions: new Map(),
         linkClicks: [],
-        profileViews: []
+        profileViews: [],
+        dailyStreaks: new Map(),
+        userPoints: new Map(),
+        shopItems: new Map(),
+        userPurchases: []
       };
 
       // No database setup needed
@@ -752,6 +763,56 @@ export class DatabaseStorage implements IStorage {
         referrer: v.referrer || undefined,
       })),
     };
+  }
+
+  async getStreakByUserId(userId: string): Promise<DailyStreak | undefined> {
+    if (this.memoryStore) return this.memoryStore.dailyStreaks.get(userId);
+    return await this.db?.query.dailyStreaks.findFirst({ where: eq(dailyStreaks.userId, userId) });
+  }
+
+  async updateStreak(userId: string, data: Partial<DailyStreak>): Promise<void> {
+    if (this.memoryStore) {
+      const current = this.memoryStore.dailyStreaks.get(userId) || { userId, streakCount: 0, totalPointsEarned: 0 };
+      this.memoryStore.dailyStreaks.set(userId, { ...current as any, ...data, id: current.id || crypto.randomUUID() } as any);
+    }
+  }
+
+  async getPointsByUserId(userId: string): Promise<UserPoints | undefined> {
+    if (this.memoryStore) return this.memoryStore.userPoints.get(userId);
+    return await this.db?.query.userPoints.findFirst({ where: eq(userPoints.userId, userId) });
+  }
+
+  async addPoints(userId: string, points: number): Promise<void> {
+    const current = await this.getPointsByUserId(userId) || { userId, totalPoints: 0, earnedPoints: 0, spentPoints: 0 };
+    const updated = { ...current, totalPoints: current.totalPoints + points, earnedPoints: current.earnedPoints + points };
+    if (this.memoryStore) this.memoryStore.userPoints.set(userId, { ...updated, id: crypto.randomUUID(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as any);
+  }
+
+  async deductPoints(userId: string, points: number): Promise<void> {
+    const current = await this.getPointsByUserId(userId) || { userId, totalPoints: 0, earnedPoints: 0, spentPoints: 0 };
+    const updated = { ...current, totalPoints: Math.max(0, current.totalPoints - points), spentPoints: current.spentPoints + points };
+    if (this.memoryStore) this.memoryStore.userPoints.set(userId, { ...updated, id: crypto.randomUUID(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as any);
+  }
+
+  async getShopItems(): Promise<ShopItem[]> {
+    if (this.memoryStore) return Array.from(this.memoryStore.shopItems.values());
+    return [];
+  }
+
+  async getShopItem(id: string): Promise<ShopItem | undefined> {
+    if (this.memoryStore) return this.memoryStore.shopItems.get(id);
+    return undefined;
+  }
+
+  async getPurchasesByUserId(userId: string): Promise<UserPurchase[]> {
+    if (this.memoryStore) return this.memoryStore.userPurchases.filter(p => p.userId === userId);
+    return [];
+  }
+
+  async createPurchase(userId: string, itemId: string): Promise<void> {
+    if (this.memoryStore) {
+      this.memoryStore.userPurchases.push({ id: crypto.randomUUID(), userId, itemId, purchaseDate: new Date().toISOString() });
+    }
   }
 }
 

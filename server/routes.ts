@@ -1386,6 +1386,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) { res.status(500).json({ error: "Failed to delete template" }); }
   });
 
+  // Streaks - Claim daily streak
+  app.post("/api/streaks/claim", async (req, res) => {
+    try {
+      const auth = authenticate(req);
+      if (!auth) return res.status(401).json({ error: "Not authenticated" });
+      
+      const today = new Date().toISOString().split('T')[0];
+      const streak = await storage.getStreakByUserId(auth.userId);
+      
+      if (streak?.lastClaimedDate === today) {
+        return res.status(400).json({ error: "Already claimed today!" });
+      }
+      
+      const newStreakCount = (streak?.streakCount || 0) + 1;
+      const pointsEarned = 10 + Math.floor(newStreakCount / 10);
+      
+      await storage.updateStreak(auth.userId, {
+        streakCount: newStreakCount,
+        lastClaimedDate: today,
+        totalPointsEarned: (streak?.totalPointsEarned || 0) + pointsEarned,
+      });
+      
+      await storage.addPoints(auth.userId, pointsEarned);
+      res.json({ streakCount: newStreakCount, pointsEarned });
+    } catch (error) { res.status(500).json({ error: "Failed to claim streak" }); }
+  });
+
+  // Streaks - Get status
+  app.get("/api/streaks/status", async (req, res) => {
+    try {
+      const auth = authenticate(req);
+      if (!auth) return res.status(401).json({ error: "Not authenticated" });
+      
+      const today = new Date().toISOString().split('T')[0];
+      const streak = await storage.getStreakByUserId(auth.userId) || { streakCount: 0, lastClaimedDate: null };
+      const canClaim = streak.lastClaimedDate !== today;
+      
+      res.json({ ...streak, canClaim });
+    } catch (error) { res.status(500).json({ error: "Failed to get streak" }); }
+  });
+
+  // Points - Get balance
+  app.get("/api/points", async (req, res) => {
+    try {
+      const auth = authenticate(req);
+      if (!auth) return res.status(401).json({ error: "Not authenticated" });
+      
+      const points = await storage.getPointsByUserId(auth.userId) || { totalPoints: 0, earnedPoints: 0, spentPoints: 0 };
+      res.json(points);
+    } catch (error) { res.status(500).json({ error: "Failed to get points" }); }
+  });
+
+  // Shop - Get items
+  app.get("/api/shop/items", async (req, res) => {
+    try {
+      const auth = authenticate(req);
+      const items = await storage.getShopItems();
+      
+      if (auth) {
+        const purchases = await storage.getPurchasesByUserId(auth.userId);
+        const purchasedIds = new Set(purchases.map(p => p.itemId));
+        return res.json(items.map(item => ({ ...item, isPurchased: purchasedIds.has(item.id) })));
+      }
+      
+      res.json(items);
+    } catch (error) { res.status(500).json({ error: "Failed to get shop items" }); }
+  });
+
+  // Shop - Purchase item
+  app.post("/api/shop/purchase", async (req, res) => {
+    try {
+      const auth = authenticate(req);
+      if (!auth) return res.status(401).json({ error: "Not authenticated" });
+      
+      const { itemId } = req.body;
+      const item = await storage.getShopItem(itemId);
+      if (!item) return res.status(404).json({ error: "Item not found" });
+      
+      const points = await storage.getPointsByUserId(auth.userId);
+      if ((points?.totalPoints || 0) < item.pointCost) {
+        return res.status(400).json({ error: "Not enough points" });
+      }
+      
+      await storage.deductPoints(auth.userId, item.pointCost);
+      await storage.createPurchase(auth.userId, itemId);
+      
+      res.json({ success: true, itemName: item.name });
+    } catch (error) { res.status(500).json({ error: "Failed to purchase item" }); }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
