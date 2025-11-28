@@ -11,11 +11,11 @@ import { Helmet } from "react-helmet";
 export default function Shop() {
   const { toast } = useToast();
 
-  const { data: items = [] } = useQuery({
+  const { data: items = [] } = useQuery<any[]>({
     queryKey: ["/api/shop/items"],
   });
 
-  const { data: pointsData } = useQuery({
+  const { data: pointsData } = useQuery<any>({
     queryKey: ["/api/points"],
   });
 
@@ -24,19 +24,12 @@ export default function Shop() {
       return await apiRequest("POST", "/api/shop/purchase", { itemId });
     },
     onSuccess: async (data: any) => {
-      toast({
-        title: "Purchase Successful!",
-        description: `You now have access to: ${data.itemName}`,
-      });
+      toast({ title: `Unlocked: ${data.itemName}` });
       await queryClient.refetchQueries({ queryKey: ["/api/points"] });
       await queryClient.refetchQueries({ queryKey: ["/api/shop/items"] });
     },
     onError: (error: any) => {
-      toast({
-        title: "Purchase Failed",
-        description: error.message || "Not enough points",
-        variant: "destructive",
-      });
+      toast({ title: "Not enough points" });
     },
   });
 

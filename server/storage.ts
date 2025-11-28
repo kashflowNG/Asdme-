@@ -767,51 +767,107 @@ export class DatabaseStorage implements IStorage {
 
   async getStreakByUserId(userId: string): Promise<DailyStreak | undefined> {
     if (this.memoryStore) return this.memoryStore.dailyStreaks.get(userId);
-    return await this.db?.query.dailyStreaks.findFirst({ where: eq(dailyStreaks.userId, userId) });
+    try {
+      const result = await this.db.select().from(dailyStreaks).where(eq(dailyStreaks.userId, userId)).limit(1);
+      return result[0];
+    } catch (error) {
+      console.error("getStreakByUserId error:", error);
+      return undefined;
+    }
   }
 
   async updateStreak(userId: string, data: Partial<DailyStreak>): Promise<void> {
     if (this.memoryStore) {
-      const current = this.memoryStore.dailyStreaks.get(userId) || { userId, streakCount: 0, totalPointsEarned: 0 };
-      this.memoryStore.dailyStreaks.set(userId, { ...current as any, ...data, id: current.id || crypto.randomUUID() } as any);
+      const current = this.memoryStore.dailyStreaks.get(userId) || { userId, streakCount: 0, totalPointsEarned: 0, id: crypto.randomUUID() };
+      this.memoryStore.dailyStreaks.set(userId, { ...current as any, ...data } as any);
+      return;
+    }
+    try {
+      await this.db.update(dailyStreaks).set(data).where(eq(dailyStreaks.userId, userId));
+    } catch (error) {
+      console.error("updateStreak error:", error);
     }
   }
 
   async getPointsByUserId(userId: string): Promise<UserPoints | undefined> {
     if (this.memoryStore) return this.memoryStore.userPoints.get(userId);
-    return await this.db?.query.userPoints.findFirst({ where: eq(userPoints.userId, userId) });
+    try {
+      const result = await this.db.select().from(userPoints).where(eq(userPoints.userId, userId)).limit(1);
+      return result[0];
+    } catch (error) {
+      console.error("getPointsByUserId error:", error);
+      return undefined;
+    }
   }
 
   async addPoints(userId: string, points: number): Promise<void> {
     const current = await this.getPointsByUserId(userId) || { userId, totalPoints: 0, earnedPoints: 0, spentPoints: 0 };
     const updated = { ...current, totalPoints: current.totalPoints + points, earnedPoints: current.earnedPoints + points };
-    if (this.memoryStore) this.memoryStore.userPoints.set(userId, { ...updated, id: crypto.randomUUID(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as any);
+    if (this.memoryStore) {
+      this.memoryStore.userPoints.set(userId, { ...updated, id: crypto.randomUUID(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as any);
+      return;
+    }
+    try {
+      await this.db.update(userPoints).set(updated).where(eq(userPoints.userId, userId));
+    } catch (error) {
+      console.error("addPoints error:", error);
+    }
   }
 
   async deductPoints(userId: string, points: number): Promise<void> {
     const current = await this.getPointsByUserId(userId) || { userId, totalPoints: 0, earnedPoints: 0, spentPoints: 0 };
     const updated = { ...current, totalPoints: Math.max(0, current.totalPoints - points), spentPoints: current.spentPoints + points };
-    if (this.memoryStore) this.memoryStore.userPoints.set(userId, { ...updated, id: crypto.randomUUID(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as any);
+    if (this.memoryStore) {
+      this.memoryStore.userPoints.set(userId, { ...updated, id: crypto.randomUUID(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as any);
+      return;
+    }
+    try {
+      await this.db.update(userPoints).set(updated).where(eq(userPoints.userId, userId));
+    } catch (error) {
+      console.error("deductPoints error:", error);
+    }
   }
 
   async getShopItems(): Promise<ShopItem[]> {
     if (this.memoryStore) return Array.from(this.memoryStore.shopItems.values());
-    return [];
+    try {
+      return await this.db.select().from(shopItems).where(eq(shopItems.isActive, true));
+    } catch (error) {
+      console.error("getShopItems error:", error);
+      return [];
+    }
   }
 
   async getShopItem(id: string): Promise<ShopItem | undefined> {
     if (this.memoryStore) return this.memoryStore.shopItems.get(id);
-    return undefined;
+    try {
+      const result = await this.db.select().from(shopItems).where(eq(shopItems.id, id)).limit(1);
+      return result[0];
+    } catch (error) {
+      console.error("getShopItem error:", error);
+      return undefined;
+    }
   }
 
   async getPurchasesByUserId(userId: string): Promise<UserPurchase[]> {
     if (this.memoryStore) return this.memoryStore.userPurchases.filter(p => p.userId === userId);
-    return [];
+    try {
+      return await this.db.select().from(userPurchases).where(eq(userPurchases.userId, userId));
+    } catch (error) {
+      console.error("getPurchasesByUserId error:", error);
+      return [];
+    }
   }
 
   async createPurchase(userId: string, itemId: string): Promise<void> {
     if (this.memoryStore) {
       this.memoryStore.userPurchases.push({ id: crypto.randomUUID(), userId, itemId, purchaseDate: new Date().toISOString() });
+      return;
+    }
+    try {
+      await this.db.insert(userPurchases).values({ userId, itemId });
+    } catch (error) {
+      console.error("createPurchase error:", error);
     }
   }
 }

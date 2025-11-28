@@ -9,11 +9,11 @@ import { motion } from "framer-motion";
 export function StreakWidget() {
   const { toast } = useToast();
 
-  const { data: streakData } = useQuery({
+  const { data: streakData } = useQuery<any>({
     queryKey: ["/api/streaks/status"],
   });
 
-  const { data: pointsData } = useQuery({
+  const { data: pointsData } = useQuery<any>({
     queryKey: ["/api/points"],
   });
 
@@ -22,19 +22,12 @@ export function StreakWidget() {
       return await apiRequest("POST", "/api/streaks/claim", {});
     },
     onSuccess: async (data: any) => {
-      toast({
-        title: "Streak Claimed!",
-        description: `+${data.pointsEarned} points! Streak: ${data.streakCount} days 🔥`,
-      });
+      toast({ title: `Claimed! +${data.pointsEarned} points 🔥` });
       await queryClient.refetchQueries({ queryKey: ["/api/streaks/status"] });
       await queryClient.refetchQueries({ queryKey: ["/api/points"] });
     },
     onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Already claimed today!",
-        variant: "destructive",
-      });
+      toast({ title: "Already claimed today!" });
     },
   });
 
