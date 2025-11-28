@@ -53,41 +53,52 @@ export function SocialLinkButton({ platformId, url, customTitle, onClick }: Soci
       target="_blank"
       rel="noopener noreferrer"
       onClick={onClick}
-      className="group relative block w-full h-16 px-6 rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-gradient-to-r from-card to-card/80 border-2 border-border hover:border-primary/50 shadow-lg hover:shadow-xl"
+      className="group relative block w-full px-6 py-4 rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.03] active:scale-[0.98]"
+      style={{
+        background: `linear-gradient(135deg, ${platform.color}15, ${platform.color}08)`,
+        border: `2px solid ${platform.color}40`,
+      }}
       data-testid={`social-link-${platformId}`}
     >
+      {/* Glow effect on hover */}
+      <div 
+        className="absolute -inset-1 opacity-0 group-hover:opacity-50 blur-lg transition-opacity duration-500"
+        style={{ background: platform.color }}
+      />
+
       {/* Animated gradient background on hover */}
       <div 
         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
         style={{
-          background: `linear-gradient(135deg, ${platform.color}15, ${platform.color}05)`,
+          background: `linear-gradient(135deg, ${platform.color}25, ${platform.color}10)`,
         }}
       />
 
       {/* Shimmer effect */}
-      <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+      <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
-      <div className="relative z-10 flex items-center gap-4 h-full">
-        {/* Platform icon with color */}
+      <div className="relative z-10 flex items-center gap-4">
+        {/* Platform icon with animated background */}
         <div 
-          className="w-10 h-10 rounded-lg flex items-center justify-center transition-transform duration-300 group-hover:scale-110"
+          className="w-12 h-12 rounded-lg flex items-center justify-center transition-all duration-300 group-hover:scale-125 group-hover:shadow-lg flex-shrink-0"
           style={{
-            backgroundColor: `${platform.color}20`,
+            backgroundColor: `${platform.color}30`,
+            boxShadow: `0 0 20px ${platform.color}40`,
           }}
         >
           <Icon className="w-6 h-6" style={{ color: platform.color }} />
         </div>
 
         {/* Platform name */}
-        <div className="relative z-10 flex-1">
-          <p className="text-sm font-semibold group-hover:text-primary transition-colors duration-300">
+        <div className="relative z-10 flex-1 min-w-0">
+          <p className="text-sm font-bold group-hover:text-white transition-colors duration-300" style={{ color: platform.color }}>
             {displayName}
           </p>
         </div>
 
         {/* External link indicator */}
         <div className="relative z-10 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300">
-          <ExternalLink className="w-5 h-5" />
+          <ExternalLink className="w-5 h-5" style={{ color: platform.color }} />
         </div>
       </div>
     </a>

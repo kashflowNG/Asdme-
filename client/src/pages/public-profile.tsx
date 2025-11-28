@@ -341,9 +341,24 @@ export default function PublicProfile() {
 
           {/* Content Blocks */}
           {sortedBlocks.length > 0 && (
-            <div className="space-y-4">
-              {sortedBlocks.map((block) => (
-                <div key={block.id} className="bg-gray-900/80 rounded-xl border border-gray-800/50 p-4 sm:p-6">
+            <motion.div 
+              className="space-y-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+            >
+              {sortedBlocks.map((block, idx) => (
+                <motion.div 
+                  key={block.id} 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 + idx * 0.1, duration: 0.5 }}
+                  className="group relative rounded-xl overflow-hidden p-4 sm:p-6 backdrop-blur-sm"
+                  style={{
+                    background: `linear-gradient(135deg, rgba(${profile.primaryColor ? parseInt(profile.primaryColor.slice(1,3), 16) : 139},${profile.primaryColor ? parseInt(profile.primaryColor.slice(3,5), 16) : 92},${profile.primaryColor ? parseInt(profile.primaryColor.slice(5,7), 16) : 246}, 0.15), rgba(${profile.primaryColor ? parseInt(profile.primaryColor.slice(1,3), 16) : 139},${profile.primaryColor ? parseInt(profile.primaryColor.slice(3,5), 16) : 92},${profile.primaryColor ? parseInt(profile.primaryColor.slice(5,7), 16) : 246}, 0.05))`,
+                    border: `2px solid ${profile.primaryColor || "#8B5CF6"}40`,
+                  }}
+                >
                   {block.type === "video" && block.mediaUrl && (
                     <div>
                       {block.title && <h3 className="text-lg font-bold mb-3" style={{ color: profile.textColor || "#E5E7EB" }}>{block.title}</h3>}
@@ -519,9 +534,9 @@ export default function PublicProfile() {
                       </div>
                     </div>
                   )}
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           )}
 
           {/* Links Section */}
@@ -597,10 +612,19 @@ export default function PublicProfile() {
 
           {/* About & Business Info */}
           {(profile.aboutMe || profile.businessInfo) && (
-            <div className="space-y-3 text-center text-sm">
-              {profile.aboutMe && <p className="text-gray-300">{profile.aboutMe}</p>}
-              {profile.businessInfo && <p className="text-gray-400">{profile.businessInfo}</p>}
-            </div>
+            <motion.div 
+              className="space-y-3 text-center text-sm rounded-xl p-4 backdrop-blur-sm"
+              style={{
+                background: `linear-gradient(135deg, ${profile.primaryColor || "#8B5CF6"}15, ${profile.primaryColor || "#8B5CF6"}05)`,
+                border: `2px solid ${profile.primaryColor || "#8B5CF6"}30`,
+              }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7, duration: 0.6 }}
+            >
+              {profile.aboutMe && <p className="text-gray-200 font-medium">{profile.aboutMe}</p>}
+              {profile.businessInfo && <p className="text-gray-300">{profile.businessInfo}</p>}
+            </motion.div>
           )}
         </div>
       </div>
