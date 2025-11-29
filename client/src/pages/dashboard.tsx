@@ -27,6 +27,7 @@ import { LinkScheduleVisualizer } from "@/components/LinkScheduleVisualizer";
 import { EngagementAlerts } from "@/components/EngagementAlerts";
 import { ImageToPNGConverter } from "@/components/ImageToPNGConverter";
 import { StreakWidget } from "@/components/StreakWidget";
+import { PointsBalance } from "@/components/PointsBalance";
 import { getPlatform } from "@/lib/platforms";
 import { GripVertical, Trash2, Plus, Eye, Upload, Copy, Check, ExternalLink, LogOut, QrCode, BarChart3, Link2, Palette, Settings, Zap, Edit, EyeOff, FileCode, Mail, Sparkles, Camera, Shield } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
@@ -807,7 +808,10 @@ export default function Dashboard() {
 
             {/* Overview Tab */}
             <TabsContent value="overview" className="space-y-6 mt-6">
-              <StreakWidget />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <StreakWidget />
+                <PointsBalance />
+              </div>
               <AnalyticsDashboard />
               <ClickHeatmap />
               <LinkScheduleVisualizer links={sortedLinks.map(l => ({ ...l, scheduleStart: l.scheduleStart || undefined, scheduleEnd: l.scheduleEnd || undefined }))} />

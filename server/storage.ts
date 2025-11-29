@@ -853,12 +853,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deductPoints(userId: string, points: number): Promise<void> {
-    const current = await this.getPointsByUserId(userId) || { userId, totalPoints: 0, earnedPoints: 0, spentPoints: 0 };
-    const updated = { ...current, totalPoints: Math.max(0, current.totalPoints - points), spentPoints: current.spentPoints + points };
-    if (this.memoryStore) {
-      this.memoryStore.userPoints.set(userId, { ...updated, id: crypto.randomUUID(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as any);
+    let current = await this.getPointsByUserId(userId);
+    
+    if (!current) {
+      console.warn("deductPoints called for user with no points record:", userId);
       return;
     }
+
+    const updated = { 
+      ...current, 
+      totalPoints: Math.max(0, current.totalPoints - points), 
+      spentPoints: current.spentPoints + points,
+      updatedAt: new Date().toISOString()
+    };
+    
+    if (this.memoryStore) {
+      this.memoryStore.userPoints.set(userId, updated as any);
+      return;
+    }
+    
     try {
       await this.db.update(userPoints).set(updated).where(eq(userPoints.userId, userId));
     } catch (error) {
