@@ -783,7 +783,21 @@ export class DatabaseStorage implements IStorage {
       return;
     }
     try {
-      await this.db.update(dailyStreaks).set(data).where(eq(dailyStreaks.userId, userId));
+      // Check if record exists
+      const existing = await this.db.select().from(dailyStreaks).where(eq(dailyStreaks.userId, userId)).limit(1);
+      
+      if (existing.length > 0) {
+        // Update existing record
+        await this.db.update(dailyStreaks).set({ ...data, updatedAt: new Date().toISOString() }).where(eq(dailyStreaks.userId, userId));
+      } else {
+        // Insert new record
+        await this.db.insert(dailyStreaks).values({
+          userId,
+          streakCount: data.streakCount || 0,
+          lastClaimedDate: data.lastClaimedDate || null,
+          totalPointsEarned: data.totalPointsEarned || 0,
+        });
+      }
     } catch (error) {
       console.error("updateStreak error:", error);
     }
