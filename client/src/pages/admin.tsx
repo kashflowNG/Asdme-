@@ -188,57 +188,72 @@ export default function AdminDashboard() {
         <AnimatedGalaxyBackground />
       
       <main className="max-w-7xl mx-auto relative z-10">
-        {/* Header with glow */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent mb-2">
-              Admin Dashboard
-            </h1>
-            <p className="text-muted-foreground">Manage users and monitor platform activity</p>
+        {/* Header Section */}
+        <div className="space-y-6 mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent mb-2">
+                Admin Dashboard
+              </h1>
+              <p className="text-muted-foreground">Manage users and monitor platform activity</p>
+            </div>
+            <Button variant="outline" onClick={() => window.location.href = "/dashboard"} className="gap-2 hover:bg-purple-500/20 hover:border-purple-400">
+              <LogOut className="w-4 h-4" />
+              Exit Admin
+            </Button>
           </div>
-          <Button variant="outline" onClick={() => window.location.href = "/dashboard"} className="gap-2 hover:bg-purple-500/20 hover:border-purple-400">
-            <LogOut className="w-4 h-4" />
-            Exit Admin
-          </Button>
+
+          {/* Ad Banner Section */}
+          <div className="flex justify-center bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-lg p-4 border border-primary/10">
+            <div id="ad-container" style={{ minHeight: '90px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <p className="text-xs text-muted-foreground">Advertisement</p>
+            </div>
+          </div>
         </div>
 
-        {/* Platform Loadout Component */}
-        {stats && (
-          <AdminDashboardLoadout
-            totalUsers={stats.totalUsers}
-            totalLinks={stats.totalLinks}
-            totalViews={stats.totalViews}
-            uniqueCountries={stats.uniqueCountries}
-          />
-        )}
+        {/* Stats Section */}
+        <div className="space-y-4 mb-8">
+          <h2 className="text-lg font-semibold text-gray-300">Platform Overview</h2>
+          {stats && (
+            <AdminDashboardLoadout
+              totalUsers={stats.totalUsers}
+              totalLinks={stats.totalLinks}
+              totalViews={stats.totalViews}
+              uniqueCountries={stats.uniqueCountries}
+            />
+          )}
+        </div>
 
-        {/* Users Management */}
-        <Card className="glass-card neon-glow border-primary/20 relative mt-8">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-lg blur opacity-10 pointer-events-none"></div>
-          <div className="relative">
-          <Tabs defaultValue="users" className="w-full">
-            <div className="border-b border-primary/10 px-6 pt-6">
-              <TabsList className="border-0">
-                <TabsTrigger value="users" className="gap-2">
-                  <Users className="w-4 h-4" />
-                  Users ({filteredUsers.length})
-                </TabsTrigger>
-                <TabsTrigger value="locations" className="gap-2">
-                  <Globe className="w-4 h-4" />
-                  Locations
-                </TabsTrigger>
-                <TabsTrigger value="templates" className="gap-2">
-                  <Sparkles className="w-4 h-4" />
-                  Templates
-                </TabsTrigger>
-                <TabsTrigger value="points" className="gap-2">
-                  <BarChart3 className="w-4 h-4" />
-                  Send Points
-                </TabsTrigger>
-              </TabsList>
-            </div>
+        {/* Management Sections */}
+        <div className="space-y-6">
+          <h2 className="text-lg font-semibold text-gray-300">Management & Tools</h2>
+          
+          <Card className="glass-card neon-glow border-primary/20 relative">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-lg blur opacity-10 pointer-events-none"></div>
+            <div className="relative">
+              <Tabs defaultValue="users" className="w-full">
+                <div className="border-b border-primary/10 px-6 pt-6 pb-4">
+                  <TabsList className="border-0 bg-slate-800/50 p-1 rounded-lg">
+                    <TabsTrigger value="users" className="gap-2 data-[state=active]:bg-primary/20">
+                      <Users className="w-4 h-4" />
+                      Users ({filteredUsers.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="locations" className="gap-2 data-[state=active]:bg-primary/20">
+                      <Globe className="w-4 h-4" />
+                      Locations
+                    </TabsTrigger>
+                    <TabsTrigger value="templates" className="gap-2 data-[state=active]:bg-primary/20">
+                      <Sparkles className="w-4 h-4" />
+                      Templates
+                    </TabsTrigger>
+                    <TabsTrigger value="points" className="gap-2 data-[state=active]:bg-primary/20">
+                      <BarChart3 className="w-4 h-4" />
+                      Send Points
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
 
-            <TabsContent value="users" className="p-6 space-y-4">
+                <TabsContent value="users" className="p-6 space-y-4">
               {/* Filters */}
               <div className="flex gap-4 mb-6">
                 <div className="flex-1 relative">
@@ -354,9 +369,9 @@ export default function AdminDashboard() {
                   </table>
                 </div>
               )}
-            </TabsContent>
+                </TabsContent>
 
-            <TabsContent value="locations" className="p-6">
+                <TabsContent value="locations" className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto">
                 {(users as AdminUser[]).reduce((acc: any[], user) => {
                   user.locations.forEach(loc => {
@@ -397,18 +412,19 @@ export default function AdminDashboard() {
                     </Card>
                   ))}
               </div>
-            </TabsContent>
+                </TabsContent>
 
-            <TabsContent value="templates" className="p-6">
+                <TabsContent value="templates" className="p-6">
               <TemplateManager />
-            </TabsContent>
+                </TabsContent>
 
-            <TabsContent value="points" className="p-6">
-              <SendPointsToUsers />
-            </TabsContent>
-          </Tabs>
-          </div>
-        </Card>
+                <TabsContent value="points" className="p-6">
+                  <SendPointsToUsers />
+                </TabsContent>
+              </Tabs>
+            </div>
+          </Card>
+        </div>
       </main>
       </div>
     </>
