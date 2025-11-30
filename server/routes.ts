@@ -1476,6 +1476,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) { res.status(500).json({ error: "Failed to purchase item" }); }
   });
 
+  // Admin - Send points to user
+  app.post("/api/admin/send-points", async (req, res) => {
+    try {
+      const auth = authenticate(req);
+      if (!auth) return res.status(401).json({ error: "Not authenticated" });
+      
+      const admin = await storage.getUserById(auth.userId);
+      if (!admin?.isAdmin) return res.status(403).json({ error: "Not authorized" });
+      
+      const { userId, points } = req.body;
+      if (!userId || !points || points <= 0) {
+        return res.status(400).json({ error: "Invalid userId or points" });
+      }
+      
+      const user = await storage.getUserById(userId);
+      if (!user) return res.status(404).json({ error: "User not found" });
+      
+      await storage.addPoints(userId, points);
+      res.json({ success: true, username: user.username, pointsSent: points });
+    } catch (error) { res.status(500).json({ error: "Failed to send points" }); }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

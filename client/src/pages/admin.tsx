@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { TemplateManager } from "@/components/TemplateManager";
+import { SendPointsToUsers } from "@/components/SendPointsToUsers";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Users, Globe, Activity, BarChart3, LogOut, Search, Trash2, Shield, Sparkles, ArrowUpDown, Eye, Link2, MapPin, Calendar } from "lucide-react";
@@ -216,6 +217,10 @@ export default function AdminDashboard() {
                   <Sparkles className="w-4 h-4" />
                   Templates
                 </TabsTrigger>
+                <TabsTrigger value="points" className="gap-2">
+                  <BarChart3 className="w-4 h-4" />
+                  Send Points
+                </TabsTrigger>
               </TabsList>
             </div>
 
@@ -382,6 +387,10 @@ export default function AdminDashboard() {
 
             <TabsContent value="templates" className="p-6">
               <TemplateManager />
+            </TabsContent>
+
+            <TabsContent value="points" className="p-6">
+              <SendPointsToUsers />
             </TabsContent>
           </Tabs>
           </div>
