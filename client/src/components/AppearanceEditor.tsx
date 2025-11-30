@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ImageUploader } from "./ImageUploader";
 import { VideoUploader } from "./VideoUploader";
 import { MediaManager } from "./MediaManager";
+import { LayoutsGallery } from "./LayoutsGallery";
 
 interface AppearanceEditorProps {
   profile: Profile;
@@ -405,27 +406,11 @@ export function AppearanceEditor({ profile, onUpdate, updateProfile }: Appearanc
           )}
         </TabsContent>
 
-        <TabsContent value="layout" className="space-y-4">
-          <div className="space-y-3">
-            <Label className="text-base font-semibold">Layout Style</Label>
-            <div className="grid gap-3">
-              {layouts.map((layout) => (
-                <button
-                  key={layout.id}
-                  onClick={() => onUpdate({ layout: layout.id })}
-                  className={`p-4 rounded-lg border-2 text-left transition-all hover-elevate ${
-                    profile.layout === layout.id
-                      ? "border-primary bg-primary/10"
-                      : "border-border hover:border-primary/50"
-                  }`}
-                  data-testid={`button-layout-${layout.id}`}
-                >
-                  <p className="font-semibold">{layout.name}</p>
-                  <p className="text-sm text-muted-foreground">{layout.description}</p>
-                </button>
-              ))}
-            </div>
-          </div>
+        <TabsContent value="layout" className="space-y-6">
+          <LayoutsGallery 
+            selectedLayout={profile.layout || "stacked"}
+            onSelectLayout={(layoutId) => onUpdate({ layout: layoutId })}
+          />
 
           <div className="space-y-3">
             <Label className="text-base font-semibold">Button Style</Label>
