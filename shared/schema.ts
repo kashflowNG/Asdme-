@@ -189,6 +189,18 @@ export const userPurchases = pgTable("user_purchases", {
   consumedDate: text("consumed_date"),
 });
 
+export const styles = pgTable("styles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description"),
+  css: text("css").notNull(), // Custom CSS for the style
+  preview: text("preview"), // Preview image URL
+  pointCost: integer("point_cost").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: text("created_at").notNull().default(sql`now()`),
+  updatedAt: text("updated_at").notNull().default(sql`now()`),
+});
+
 export const insertProfileSchema = createInsertSchema(profiles).omit({
   id: true,
 });

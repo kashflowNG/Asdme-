@@ -7,9 +7,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { TemplateManager } from "@/components/TemplateManager";
 import { SendPointsToUsers } from "@/components/SendPointsToUsers";
+import { StylesManager } from "@/components/StylesManager";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Users, Globe, Activity, BarChart3, LogOut, Search, Trash2, Shield, Sparkles, ArrowUpDown, Eye, Link2, MapPin, Calendar, ShoppingBag, Plus } from "lucide-react";
+import { Users, Globe, Activity, BarChart3, LogOut, Search, Trash2, Shield, Sparkles, ArrowUpDown, Eye, Link2, MapPin, Calendar, ShoppingBag, Plus, Palette } from "lucide-react";
 import { AnimatedGalaxyBackground } from "@/components/AnimatedGalaxyBackground";
 import { AdminDashboardLoadout } from "@/components/AdminDashboardLoadout";
 import { Helmet } from "react-helmet";
@@ -302,6 +303,13 @@ export default function AdminDashboard() {
                         <span className="hidden sm:inline">Shop</span>
                         <Badge variant="outline" className="text-xs ml-1">{fetchedShopItems.length}</Badge>
                       </TabsTrigger>
+                      <TabsTrigger 
+                        value="styles" 
+                        className="gap-2 data-[state=active]:bg-primary/20 data-[state=active]:text-cyan-400 rounded-lg px-4 py-2"
+                      >
+                        <Palette className="w-4 h-4" />
+                        <span className="hidden sm:inline">Styles</span>
+                      </TabsTrigger>
                     </TabsList>
                   </div>
                 </div>
@@ -479,6 +487,11 @@ export default function AdminDashboard() {
                 {/* Points Tab */}
                 <TabsContent value="points" className="p-4 sm:p-6">
                   <SendPointsToUsers />
+                </TabsContent>
+
+                {/* Styles Tab */}
+                <TabsContent value="styles" className="p-4 sm:p-6">
+                  <StylesManager />
                 </TabsContent>
 
                 {/* Shop Tab */}

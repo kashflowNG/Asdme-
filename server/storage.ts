@@ -8,12 +8,15 @@ import {
   type ReadyMadeTemplate, type InsertReadyMadeTemplate,
   type DailyStreak, type UserPoints, type ShopItem, type UserPurchase,
   profiles, socialLinks, linkGroups, contentBlocks, formSubmissions, linkClicks, profileViews, users, readyMadeTemplates,
-  dailyStreaks, userPoints, shopItems, userPurchases
+  dailyStreaks, userPoints, shopItems, userPurchases, styles
 } from "@shared/schema";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { eq, sql as drizzleSql } from "drizzle-orm";
 import crypto from "crypto";
+
+const client = postgres(process.env.DATABASE_URL!);
+export const db = drizzle(client);
 
 export interface IStorage {
   // User methods

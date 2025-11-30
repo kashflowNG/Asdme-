@@ -1,10 +1,12 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { storage, db } from "./storage";
 import {
   insertProfileSchema, updateProfileSchema, insertSocialLinkSchema, updateSocialLinkSchema,
-  insertLinkGroupSchema, insertContentBlockSchema, insertFormSubmissionSchema
+  insertLinkGroupSchema, insertContentBlockSchema, insertFormSubmissionSchema,
+  shopItems, styles
 } from "@shared/schema";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 import multer from "multer";
 import path from "path";
@@ -1536,6 +1538,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await db.delete(shopItems).where(eq(shopItems.id, req.params.id));
       res.json({ success: true });
     } catch (error) { res.status(500).json({ error: "Failed to delete shop item" }); }
+  });
+
+  // Admin - Get all styles
+  app.get("/api/admin/styles", async (req, res) => {
+    try {
+      const auth = authenticate(req);
+      if (!auth) return res.status(401).json({ error: "Not authenticated" });
+      
+      const admin = await storage.getUserById(auth.userId);
+      if (!admin?.isAdmin) return res.status(403).json({ error: "Not authorized" });
+      
+      const allStyles = await db.select().from(styles);
+      res.json(allStyles);
+    } catch (error) { res.status(500).json({ error: "Failed to get styles" }); }
+  });
+
+  // Admin - Create style
+  app.post("/api/admin/styles", async (req, res) => {
+    try {
+      const auth = authenticate(req);
+      if (!auth) return res.status(401).json({ error: "Not authenticated" });
+      
+      const admin = await storage.getUserById(auth.userId);
+      if (!admin?.isAdmin) return res.status(403).json({ error: "Not authorized" });
+      
+      const { name, description, css, preview, pointCost } = req.body;
+      if (!name || !css || !pointCost) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+      
+      const newStyle = await db.insert(styles).values({
+        name,
+        description: description || '',
+        css,
+        preview: preview || '',
+        pointCost,
+        isActive: true,
+      }).returning();
+      
+      res.json({ success: true, style: newStyle[0] });
+    } catch (error) { res.status(500).json({ error: "Failed to create style" }); }
+  });
+
+  // Admin - Update style
+  app.patch("/api/admin/styles/:id", async (req, res) => {
+    try {
+      const auth = authenticate(req);
+      if (!auth) return res.status(401).json({ error: "Not authenticated" });
+      
+      const admin = await storage.getUserById(auth.userId);
+      if (!admin?.isAdmin) return res.status(403).json({ error: "Not authorized" });
+      
+      const { name, description, css, preview, pointCost, isActive } = req.body;
+      const updates: any = {};
+      
+      if (name !== undefined) updates.name = name;
+      if (description !== undefined) updates.description = description;
+      if (css !== undefined) updates.css = css;
+      if (preview !== undefined) updates.preview = preview;
+      if (pointCost !== undefined) updates.pointCost = pointCost;
+      if (isActive !== undefined) updates.isActive = isActive;
+      updates.updatedAt = new Date().toISOString();
+      
+      const updated = await db.update(styles)
+        .set(updates)
+        .where(eq(styles.id, req.params.id))
+        .returning();
+      
+      res.json({ success: true, style: updated[0] });
+    } catch (error) { res.status(500).json({ error: "Failed to update style" }); }
+  });
+
+  // Admin - Delete style
+  app.delete("/api/admin/styles/:id", async (req, res) => {
+    try {
+      const auth = authenticate(req);
+      if (!auth) return res.status(401).json({ error: "Not authenticated" });
+      
+      const admin = await storage.getUserById(auth.userId);
+      if (!admin?.isAdmin) return res.status(403).json({ error: "Not authorized" });
+      
+      await db.delete(styles).where(eq(styles.id, req.params.id));
+      res.json({ success: true });
+    } catch (error) { res.status(500).json({ error: "Failed to delete style" }); }
   });
 
   const httpServer = createServer(app);
