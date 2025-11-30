@@ -227,7 +227,7 @@ export default function Shop() {
                     purchaseMutation.mutate(previewStyle.id);
                     setPreviewStyle(null);
                   }}
-                  disabled={!canAfford || previewStyle.isPurchased || purchaseMutation.isPending}
+                  disabled={(pointsData?.totalPoints || 0) < previewStyle.pointCost || previewStyle.isPurchased || purchaseMutation.isPending}
                   className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500"
                 >
                   <Zap className="w-4 h-4 mr-2" />
