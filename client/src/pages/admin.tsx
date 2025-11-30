@@ -9,7 +9,7 @@ import { TemplateManager } from "@/components/TemplateManager";
 import { SendPointsToUsers } from "@/components/SendPointsToUsers";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Users, Globe, Activity, BarChart3, LogOut, Search, Trash2, Shield, Sparkles, ArrowUpDown, Eye, Link2, MapPin, Calendar } from "lucide-react";
+import { Users, Globe, Activity, BarChart3, LogOut, Search, Trash2, Shield, Sparkles, ArrowUpDown, Eye, Link2, MapPin, Calendar, ShoppingBag, Plus } from "lucide-react";
 import { AnimatedGalaxyBackground } from "@/components/AnimatedGalaxyBackground";
 import { AdminDashboardLoadout } from "@/components/AdminDashboardLoadout";
 import { Helmet } from "react-helmet";
@@ -35,6 +35,8 @@ export default function AdminDashboard() {
   const [filterAdmin, setFilterAdmin] = useState<'all' | 'admin' | 'user'>('all');
   const [sortKey, setSortKey] = useState<SortKey>('createdAt');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  const [shopForm, setShopForm] = useState({ name: '', description: '', pointCost: 100, type: 'layout' });
+  const [shopItems, setShopItems] = useState<any[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -58,6 +60,11 @@ export default function AdminDashboard() {
     queryKey: ["/api/admin/stats"],
     enabled: isAdmin,
     initialData: { totalUsers: 0, totalLinks: 0, totalViews: 0, uniqueCountries: 0 },
+  });
+
+  const { data: fetchedShopItems = [] } = useQuery<any[]>({
+    queryKey: ["/api/shop/items"],
+    enabled: isAdmin,
   });
 
   const deleteUserMutation = useMutation({
@@ -95,6 +102,29 @@ export default function AdminDashboard() {
         description: "Failed to update user",
         variant: "destructive",
       });
+    },
+  });
+
+  const createShopItemMutation = useMutation({
+    mutationFn: (data: any) => apiRequest("POST", "/api/admin/shop/items", data),
+    onSuccess: () => {
+      setShopForm({ name: '', description: '', pointCost: 100, type: 'layout' });
+      queryClient.invalidateQueries({ queryKey: ["/api/shop/items"] });
+      toast({ title: "Shop item created successfully" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to create shop item", variant: "destructive" });
+    },
+  });
+
+  const deleteShopItemMutation = useMutation({
+    mutationFn: (itemId: string) => apiRequest("DELETE", `/api/admin/shop/items/${itemId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/shop/items"] });
+      toast({ title: "Item deleted successfully" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to delete item", variant: "destructive" });
     },
   });
 
@@ -263,6 +293,14 @@ export default function AdminDashboard() {
                       >
                         <BarChart3 className="w-4 h-4" />
                         <span className="hidden sm:inline">Points</span>
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="shop" 
+                        className="gap-2 data-[state=active]:bg-primary/20 data-[state=active]:text-cyan-400 rounded-lg px-4 py-2"
+                      >
+                        <ShoppingBag className="w-4 h-4" />
+                        <span className="hidden sm:inline">Shop</span>
+                        <Badge variant="outline" className="text-xs ml-1">{fetchedShopItems.length}</Badge>
                       </TabsTrigger>
                     </TabsList>
                   </div>
@@ -441,6 +479,106 @@ export default function AdminDashboard() {
                 {/* Points Tab */}
                 <TabsContent value="points" className="p-4 sm:p-6">
                   <SendPointsToUsers />
+                </TabsContent>
+
+                {/* Shop Tab */}
+                <TabsContent value="shop" className="p-4 sm:p-6 space-y-6">
+                  {/* Create Item Form */}
+                  <Card className="p-4 sm:p-6 bg-slate-800/30 border-primary/20">
+                    <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                      <Plus className="w-5 h-5 text-cyan-400" />
+                      Add New Shop Item
+                    </h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium text-gray-300 mb-1 block">Item Name</label>
+                        <Input
+                          placeholder="e.g., Grid Layout Pack"
+                          value={shopForm.name}
+                          onChange={(e) => setShopForm({ ...shopForm, name: e.target.value })}
+                          className="bg-slate-800/50 border-primary/20"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-300 mb-1 block">Description</label>
+                        <Input
+                          placeholder="e.g., Professional grid-based layouts"
+                          value={shopForm.description}
+                          onChange={(e) => setShopForm({ ...shopForm, description: e.target.value })}
+                          className="bg-slate-800/50 border-primary/20"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm font-medium text-gray-300 mb-1 block">Point Cost</label>
+                          <Input
+                            type="number"
+                            min="10"
+                            value={shopForm.pointCost}
+                            onChange={(e) => setShopForm({ ...shopForm, pointCost: parseInt(e.target.value) })}
+                            className="bg-slate-800/50 border-primary/20"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-300 mb-1 block">Type</label>
+                          <select 
+                            value={shopForm.type}
+                            onChange={(e) => setShopForm({ ...shopForm, type: e.target.value })}
+                            className="w-full bg-slate-800/50 border border-primary/20 rounded-lg px-3 py-2 text-white text-sm"
+                          >
+                            <option value="layout">Layout</option>
+                            <option value="theme">Theme</option>
+                            <option value="feature">Feature</option>
+                          </select>
+                        </div>
+                      </div>
+                      <Button 
+                        onClick={() => createShopItemMutation.mutate(shopForm)}
+                        disabled={!shopForm.name || createShopItemMutation.isPending}
+                        className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
+                      >
+                        Add Item
+                      </Button>
+                    </div>
+                  </Card>
+
+                  {/* Items List */}
+                  <div>
+                    <h3 className="text-lg font-bold text-white mb-4">Marketplace Items ({fetchedShopItems.length})</h3>
+                    {fetchedShopItems.length === 0 ? (
+                      <div className="text-center py-8">
+                        <ShoppingBag className="w-12 h-12 text-gray-600 mx-auto mb-2" />
+                        <p className="text-gray-400">No items in shop yet</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {fetchedShopItems.map((item: any) => (
+                          <Card key={item.id} className="p-4 bg-slate-800/30 border-primary/20">
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex-1">
+                                <h4 className="font-bold text-white">{item.name}</h4>
+                                <Badge className="text-xs mt-1 bg-primary/20">{item.type}</Badge>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => deleteShopItemMutation.mutate(item.id)}
+                                disabled={deleteShopItemMutation.isPending}
+                                className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                            <p className="text-sm text-gray-400 mb-2">{item.description}</p>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-xs">💎 {item.pointCost} points</Badge>
+                              {!item.isActive && <Badge className="text-xs bg-gray-600">Inactive</Badge>}
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </TabsContent>
               </Tabs>
             </div>

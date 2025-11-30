@@ -1498,6 +1498,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) { res.status(500).json({ error: "Failed to send points" }); }
   });
 
+  // Admin - Create shop item
+  app.post("/api/admin/shop/items", async (req, res) => {
+    try {
+      const auth = authenticate(req);
+      if (!auth) return res.status(401).json({ error: "Not authenticated" });
+      
+      const admin = await storage.getUserById(auth.userId);
+      if (!admin?.isAdmin) return res.status(403).json({ error: "Not authorized" });
+      
+      const { name, description, pointCost, type } = req.body;
+      if (!name || !pointCost || !type) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+      
+      const item = await db.insert(shopItems).values({
+        name,
+        description: description || '',
+        pointCost,
+        type,
+        isActive: true,
+      }).returning();
+      
+      res.json({ success: true, item: item[0] });
+    } catch (error) { res.status(500).json({ error: "Failed to create shop item" }); }
+  });
+
+  // Admin - Delete shop item
+  app.delete("/api/admin/shop/items/:id", async (req, res) => {
+    try {
+      const auth = authenticate(req);
+      if (!auth) return res.status(401).json({ error: "Not authenticated" });
+      
+      const admin = await storage.getUserById(auth.userId);
+      if (!admin?.isAdmin) return res.status(403).json({ error: "Not authorized" });
+      
+      await db.delete(shopItems).where(eq(shopItems.id, req.params.id));
+      res.json({ success: true });
+    } catch (error) { res.status(500).json({ error: "Failed to delete shop item" }); }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
