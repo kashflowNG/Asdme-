@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Users, Globe, Activity, BarChart3, LogOut, Search, Trash2, Shield, Sparkles, ArrowUpDown, Eye, Link2, MapPin, Calendar } from "lucide-react";
 import { AnimatedGalaxyBackground } from "@/components/AnimatedGalaxyBackground";
 import { AdminDashboardLoadout } from "@/components/AdminDashboardLoadout";
+import { Helmet } from "react-helmet";
 
 interface AdminUser {
   id: string;
@@ -170,8 +171,21 @@ export default function AdminDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black p-6 relative overflow-hidden">
-      <AnimatedGalaxyBackground />
+    <>
+      <Helmet>
+        <script type="text/javascript" dangerouslySetInnerHTML={{__html: `
+          atOptions = {
+            'key' : '8bd5c897e1f98135aa8350b9bda11e4b',
+            'format' : 'iframe',
+            'height' : 90,
+            'width' : 728,
+            'params' : {}
+          };
+        `}} />
+        <script type='text/javascript' src='//www.highperformanceformat.com/8bd5c897e1f98135aa8350b9bda11e4b/invoke.js'></script>
+      </Helmet>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black p-6 relative overflow-hidden">
+        <AnimatedGalaxyBackground />
       
       <main className="max-w-7xl mx-auto relative z-10">
         {/* Header with glow */}
@@ -396,6 +410,7 @@ export default function AdminDashboard() {
           </div>
         </Card>
       </main>
-    </div>
+      </div>
+    </>
   );
 }
