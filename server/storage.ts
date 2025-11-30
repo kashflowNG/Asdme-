@@ -896,21 +896,46 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getShopItems(): Promise<ShopItem[]> {
+  async getShopItems(): Promise<any[]> {
     if (this.memoryStore) return Array.from(this.memoryStore.shopItems.values());
     try {
-      return await this.db.select().from(shopItems).where(eq(shopItems.isActive, true));
+      const items = await this.db.select().from(shopItems).where(eq(shopItems.isActive, true));
+      const allStyles = await this.db.select().from(styles).where(eq(styles.isActive, true));
+      
+      const styledItems = allStyles.map(style => ({
+        id: style.id,
+        name: style.name,
+        description: style.description,
+        pointCost: style.pointCost,
+        type: 'style',
+        isActive: style.isActive
+      }));
+      
+      return [...items, ...styledItems];
     } catch (error) {
       console.error("getShopItems error:", error);
       return [];
     }
   }
 
-  async getShopItem(id: string): Promise<ShopItem | undefined> {
+  async getShopItem(id: string): Promise<any | undefined> {
     if (this.memoryStore) return this.memoryStore.shopItems.get(id);
     try {
       const result = await this.db.select().from(shopItems).where(eq(shopItems.id, id)).limit(1);
-      return result[0];
+      if (result[0]) return result[0];
+      
+      const styleResult = await this.db.select().from(styles).where(eq(styles.id, id)).limit(1);
+      if (styleResult[0]) {
+        return {
+          id: styleResult[0].id,
+          name: styleResult[0].name,
+          description: styleResult[0].description,
+          pointCost: styleResult[0].pointCost,
+          type: 'style',
+          isActive: styleResult[0].isActive
+        };
+      }
+      return undefined;
     } catch (error) {
       console.error("getShopItem error:", error);
       return undefined;
