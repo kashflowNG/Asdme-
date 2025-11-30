@@ -36,6 +36,28 @@ export default function AdminDashboard() {
   const [sortKey, setSortKey] = useState<SortKey>('createdAt');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
+  // Load ad scripts
+  useEffect(() => {
+    (window as any).atOptions = {
+      'key': '8bd5c897e1f98135aa8350b9bda11e4b',
+      'format': 'iframe',
+      'height': 90,
+      'width': 728,
+      'params': {}
+    };
+    
+    const script = document.createElement('script');
+    script.src = '//www.highperformanceformat.com/8bd5c897e1f98135aa8350b9bda11e4b/invoke.js';
+    script.async = true;
+    document.body.appendChild(script);
+    
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     (async () => {
       try {
@@ -171,20 +193,7 @@ export default function AdminDashboard() {
   );
 
   return (
-    <>
-      <Helmet>
-        <script type="text/javascript" dangerouslySetInnerHTML={{__html: `
-          atOptions = {
-            'key' : '8bd5c897e1f98135aa8350b9bda11e4b',
-            'format' : 'iframe',
-            'height' : 90,
-            'width' : 728,
-            'params' : {}
-          };
-        `}} />
-        <script type='text/javascript' src='//www.highperformanceformat.com/8bd5c897e1f98135aa8350b9bda11e4b/invoke.js'></script>
-      </Helmet>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black p-6 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black p-6 relative overflow-hidden">
         <AnimatedGalaxyBackground />
         
         <main className="max-w-7xl mx-auto relative z-10 space-y-8">
@@ -420,6 +429,5 @@ export default function AdminDashboard() {
           </Card>
         </main>
       </div>
-    </>
   );
 }
