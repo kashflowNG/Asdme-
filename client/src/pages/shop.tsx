@@ -2,16 +2,18 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Zap, ShoppingBag, Lock, ChevronLeft } from "lucide-react";
+import { Zap, ShoppingBag, Lock, ChevronLeft, Eye, X } from "lucide-react";
 import { useLocation } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { Helmet } from "react-helmet";
+import { useState } from "react";
 
 export default function Shop() {
   const { toast } = useToast();
   const [, navigate] = useLocation();
+  const [previewStyle, setPreviewStyle] = useState<any>(null);
 
   const { data: items = [] } = useQuery<any[]>({
     queryKey: ["/api/shop/items"],
@@ -105,6 +107,7 @@ export default function Shop() {
                       {item.type === "template" && "Premium Template"}
                       {item.type === "theme" && "Theme"}
                       {item.type === "feature" && "Feature"}
+                      {item.type === "style" && "Style"}
                     </Badge>
 
                     {/* Title & Description */}
@@ -118,6 +121,19 @@ export default function Shop() {
                       <div className="mb-4 p-3 rounded-lg bg-green-500/10 border border-green-500/30">
                         <p className="text-sm text-green-400 font-semibold">✓ Already Owned</p>
                       </div>
+                    )}
+
+                    {/* Preview Button for Styles */}
+                    {item.type === "style" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPreviewStyle(item)}
+                        className="mb-4 w-full gap-2"
+                      >
+                        <Eye className="w-4 h-4" />
+                        Preview Style
+                      </Button>
                     )}
 
                     {/* Price & Button */}
@@ -159,6 +175,69 @@ export default function Shop() {
           )}
         </div>
       </div>
+
+      {/* Style Preview Modal */}
+      {previewStyle && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-gray-900 rounded-lg border-2 border-primary/50 max-w-2xl w-full"
+          >
+            <div className="p-6 border-b border-gray-800 flex items-center justify-between">
+              <h2 className="text-2xl font-bold">{previewStyle.name} Preview</h2>
+              <button
+                onClick={() => setPreviewStyle(null)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-8 space-y-8">
+              <p className="text-gray-400 text-center">{previewStyle.description}</p>
+
+              <div className="bg-gray-800/50 rounded-lg p-8 space-y-4">
+                <p className="text-sm text-gray-400 mb-4">Sample buttons with this style:</p>
+                <style>{previewStyle.css}</style>
+                <div className="flex flex-wrap gap-4 justify-center">
+                  <button className="link-button px-6 py-3 text-white font-semibold rounded-lg">
+                    Link Button
+                  </button>
+                  <button className="link-button px-6 py-3 text-white font-semibold rounded-lg">
+                    Another Link
+                  </button>
+                  <button className="link-button px-6 py-3 text-white font-semibold rounded-lg">
+                    Learn More
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setPreviewStyle(null)}
+                  className="flex-1"
+                >
+                  Close Preview
+                </Button>
+                <Button
+                  onClick={() => {
+                    purchaseMutation.mutate(previewStyle.id);
+                    setPreviewStyle(null);
+                  }}
+                  disabled={!canAfford || previewStyle.isPurchased || purchaseMutation.isPending}
+                  className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500"
+                >
+                  <Zap className="w-4 h-4 mr-2" />
+                  Buy for {previewStyle.pointCost} points
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </>
   );
 }
