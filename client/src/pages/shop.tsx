@@ -202,28 +202,28 @@ export default function Shop() {
                 <p className="text-sm text-gray-400 mb-4">Sample buttons with this style:</p>
                 <style>
                   {`
-                    .preview-link-button {
+                    #preview-container .link-button {
                       display: inline-block;
+                      margin: 8px;
                       padding: 12px 24px;
                       background: linear-gradient(135deg, #8B5CF6, #3B82F6);
                       color: white;
                       font-weight: 600;
                       border: none;
                       cursor: pointer;
-                      transition: all 0.3s ease;
                       font-size: 16px;
                     }
-                    ${previewStyle.css?.replace(/\.link-button/g, '.preview-link-button') || ''}
+                    ${previewStyle.css || ''}
                   `}
                 </style>
-                <div className="flex flex-wrap gap-4 justify-center">
-                  <button className="preview-link-button">
+                <div id="preview-container" className="flex flex-wrap gap-4 justify-center">
+                  <button className="link-button">
                     Link Button
                   </button>
-                  <button className="preview-link-button">
+                  <button className="link-button">
                     Another Link
                   </button>
-                  <button className="preview-link-button">
+                  <button className="link-button">
                     Learn More
                   </button>
                 </div>
