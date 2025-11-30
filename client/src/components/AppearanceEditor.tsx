@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,13 +12,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Palette, Image, Video, Code, Type, Layout, Sparkles, Link2 } from "lucide-react";
+import { Palette, Image, Video, Code, Type, Layout, Sparkles, Link2, Zap } from "lucide-react";
 import type { Profile } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { ImageUploader } from "./ImageUploader";
 import { VideoUploader } from "./VideoUploader";
 import { MediaManager } from "./MediaManager";
 import { LayoutsGallery } from "./LayoutsGallery";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 interface AppearanceEditorProps {
   profile: Profile;
@@ -80,9 +82,17 @@ const layouts = [
 ];
 
 export function AppearanceEditor({ profile, onUpdate, updateProfile }: AppearanceEditorProps) {
-  const { toast } = useToast(); // Initialize toast
+  const { toast } = useToast();
   const [backgroundType, setBackgroundType] = useState<string>(
     profile.backgroundType || "color"
+  );
+
+  const { data: shopItems = [] } = useQuery<any[]>({
+    queryKey: ["/api/shop/items"],
+  });
+
+  const purchasedStyles = shopItems.filter(
+    (item: any) => item.type === "style" && item.isPurchased
   );
 
   const handleThemeChange = (themeId: string) => {
@@ -154,7 +164,7 @@ export function AppearanceEditor({ profile, onUpdate, updateProfile }: Appearanc
       </div>
 
       <Tabs defaultValue="theme" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="theme" className="gap-2">
             <Palette className="w-4 h-4" />
             Theme
@@ -170,6 +180,10 @@ export function AppearanceEditor({ profile, onUpdate, updateProfile }: Appearanc
           <TabsTrigger value="typography" className="gap-2">
             <Type className="w-4 h-4" />
             Typography
+          </TabsTrigger>
+          <TabsTrigger value="styles" className="gap-2">
+            <Zap className="w-4 h-4" />
+            Styles
           </TabsTrigger>
           <TabsTrigger value="custom" className="gap-2">
             <Code className="w-4 h-4" />
@@ -493,6 +507,40 @@ export function AppearanceEditor({ profile, onUpdate, updateProfile }: Appearanc
                 This is how your profile text will look with the selected font and color.
               </p>
             </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="styles" className="space-y-4">
+          <div className="space-y-3">
+            <Label className="text-base font-semibold">Purchased Styles</Label>
+            {purchasedStyles.length === 0 ? (
+              <div className="p-6 bg-muted/30 rounded-lg text-center">
+                <Zap className="w-8 h-8 mx-auto mb-3 text-muted-foreground opacity-50" />
+                <p className="text-muted-foreground mb-3">You haven't purchased any styles yet</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {purchasedStyles.map((style: any) => (
+                  <div
+                    key={style.id}
+                    className="p-4 rounded-lg border-2 border-muted-foreground/20 hover:border-primary/50 cursor-pointer transition-all"
+                    onClick={() => {
+                      onUpdate({ customCSS: style.css || "" });
+                      toast({
+                        title: "Style applied!",
+                        description: `${style.name} has been applied to your profile`,
+                      });
+                    }}
+                  >
+                    <h4 className="font-semibold mb-1">{style.name}</h4>
+                    <p className="text-sm text-muted-foreground mb-3">{style.description}</p>
+                    <Button size="sm" variant="outline" className="w-full">
+                      Apply Style
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </TabsContent>
 
