@@ -36,28 +36,6 @@ export default function AdminDashboard() {
   const [sortKey, setSortKey] = useState<SortKey>('createdAt');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
-  // Load ad scripts
-  useEffect(() => {
-    (window as any).atOptions = {
-      'key': '8bd5c897e1f98135aa8350b9bda11e4b',
-      'format': 'iframe',
-      'height': 90,
-      'width': 728,
-      'params': {}
-    };
-    
-    const script = document.createElement('script');
-    script.src = '//www.highperformanceformat.com/8bd5c897e1f98135aa8350b9bda11e4b/invoke.js';
-    script.async = true;
-    document.body.appendChild(script);
-    
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
-    };
-  }, []);
-
   useEffect(() => {
     (async () => {
       try {
@@ -193,7 +171,12 @@ export default function AdminDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black p-6 relative overflow-hidden">
+    <>
+      <Helmet>
+        <script async data-cfasync="false" src="//pl28091865.effectivegatecpm.com/d3086215aaf6d1aac4a8cf2c4eda801b/invoke.js"></script>
+        <script type='text/javascript' src='//pl28091887.effectivegatecpm.com/cf/47/df/cf47df159320ecb4f3636e497a6d0d1f.js'></script>
+      </Helmet>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black p-6 relative overflow-hidden">
         <AnimatedGalaxyBackground />
         
         <main className="max-w-7xl mx-auto relative z-10 space-y-8">
@@ -211,12 +194,6 @@ export default function AdminDashboard() {
             </Button>
           </div>
 
-          {/* Ad Banner */}
-          <div className="flex justify-center bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-lg p-4 border border-primary/10 min-h-[100px]">
-            <div id="ad-container" className="w-full flex items-center justify-center">
-              <p className="text-xs text-muted-foreground">Advertisement Space</p>
-            </div>
-          </div>
 
           {/* Stats */}
           {stats && (
@@ -429,5 +406,6 @@ export default function AdminDashboard() {
           </Card>
         </main>
       </div>
+    </>
   );
 }
