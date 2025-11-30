@@ -176,29 +176,39 @@ export default function AdminDashboard() {
         <script async data-cfasync="false" src="//pl28091865.effectivegatecpm.com/d3086215aaf6d1aac4a8cf2c4eda801b/invoke.js"></script>
         <script type='text/javascript' src='//pl28091887.effectivegatecpm.com/cf/47/df/cf47df159320ecb4f3636e497a6d0d1f.js'></script>
       </Helmet>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black p-6 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black p-4 sm:p-6 relative overflow-hidden">
         <AnimatedGalaxyBackground />
         
-        <main className="max-w-7xl mx-auto relative z-10 space-y-8">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent mb-2">
-                Admin Dashboard
-              </h1>
-              <p className="text-muted-foreground">Manage users and monitor platform activity</p>
+        <div className="max-w-7xl mx-auto relative z-10">
+          {/* Header Section */}
+          <div className="mb-10 pb-8 border-b border-primary/10">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h1 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+                  Admin Dashboard
+                </h1>
+                <p className="text-gray-400">Manage platform, users, and system settings</p>
+              </div>
+              <Button 
+                variant="outline" 
+                onClick={() => window.location.href = "/dashboard"} 
+                className="gap-2 hover:bg-purple-500/20 hover:border-purple-400 whitespace-nowrap"
+              >
+                <LogOut className="w-4 h-4" />
+                Exit Admin
+              </Button>
             </div>
-            <Button variant="outline" onClick={() => window.location.href = "/dashboard"} className="gap-2 hover:bg-purple-500/20 hover:border-purple-400">
-              <LogOut className="w-4 h-4" />
-              Exit Admin
-            </Button>
           </div>
 
-
-          {/* Stats */}
+          {/* Platform Overview */}
           {stats && (
-            <div className="space-y-2">
-              <h2 className="text-lg font-semibold text-gray-300">Platform Overview</h2>
+            <div className="mb-12">
+              <div className="mb-4">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-cyan-400" />
+                  Platform Overview
+                </h2>
+              </div>
               <AdminDashboardLoadout
                 totalUsers={stats.totalUsers}
                 totalLinks={stats.totalLinks}
@@ -208,120 +218,148 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* Management */}
-          <Card className="glass-card neon-glow border-primary/20 relative">
+          {/* Management Section */}
+          <div className="mb-8">
+            <h2 className="text-xl font-bold text-white flex items-center gap-2 mb-4">
+              <Shield className="w-5 h-5 text-purple-400" />
+              Management & Controls
+            </h2>
+          </div>
+
+          {/* Management Tabs */}
+          <Card className="glass-card neon-glow border-primary/20 relative overflow-hidden">
             <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-lg blur opacity-10 pointer-events-none"></div>
             <div className="relative">
               <Tabs defaultValue="users" className="w-full">
-                <div className="border-b border-primary/10 px-6 pt-6">
-                  <TabsList className="border-0">
-                    <TabsTrigger value="users" className="gap-2">
-                      <Users className="w-4 h-4" />
-                      Users ({filteredUsers.length})
-                    </TabsTrigger>
-                    <TabsTrigger value="locations" className="gap-2">
-                      <Globe className="w-4 h-4" />
-                      Locations
-                    </TabsTrigger>
-                    <TabsTrigger value="templates" className="gap-2">
-                      <Sparkles className="w-4 h-4" />
-                      Templates
-                    </TabsTrigger>
-                    <TabsTrigger value="points" className="gap-2">
-                      <BarChart3 className="w-4 h-4" />
-                      Send Points
-                    </TabsTrigger>
-                  </TabsList>
+                {/* Tab Headers */}
+                <div className="border-b border-primary/10 bg-slate-800/30 backdrop-blur-sm">
+                  <div className="px-4 sm:px-6 pt-4">
+                    <TabsList className="border-0 bg-transparent gap-1 w-full sm:w-auto flex flex-wrap">
+                      <TabsTrigger 
+                        value="users" 
+                        className="gap-2 data-[state=active]:bg-primary/20 data-[state=active]:text-cyan-400 rounded-lg px-4 py-2"
+                      >
+                        <Users className="w-4 h-4" />
+                        <span className="hidden sm:inline">Users</span>
+                        <Badge variant="outline" className="text-xs ml-1">{filteredUsers.length}</Badge>
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="locations" 
+                        className="gap-2 data-[state=active]:bg-primary/20 data-[state=active]:text-cyan-400 rounded-lg px-4 py-2"
+                      >
+                        <Globe className="w-4 h-4" />
+                        <span className="hidden sm:inline">Locations</span>
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="templates" 
+                        className="gap-2 data-[state=active]:bg-primary/20 data-[state=active]:text-cyan-400 rounded-lg px-4 py-2"
+                      >
+                        <Sparkles className="w-4 h-4" />
+                        <span className="hidden sm:inline">Templates</span>
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="points" 
+                        className="gap-2 data-[state=active]:bg-primary/20 data-[state=active]:text-cyan-400 rounded-lg px-4 py-2"
+                      >
+                        <BarChart3 className="w-4 h-4" />
+                        <span className="hidden sm:inline">Points</span>
+                      </TabsTrigger>
+                    </TabsList>
+                  </div>
                 </div>
 
-                <TabsContent value="users" className="p-6 space-y-4">
-                  <div className="flex gap-4 mb-6">
+                {/* Users Tab */}
+                <TabsContent value="users" className="p-4 sm:p-6 space-y-4">
+                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                     <div className="flex-1 relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
                         placeholder="Search users..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
+                        className="pl-10 bg-slate-800/50 border-primary/20"
                       />
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap sm:flex-nowrap">
                       {['all', 'admin', 'user'].map(filter => (
                         <Button
                           key={filter}
                           variant={filterAdmin === filter ? 'default' : 'outline'}
                           size="sm"
                           onClick={() => setFilterAdmin(filter as 'all' | 'admin' | 'user')}
-                          className="capitalize"
+                          className="capitalize text-xs sm:text-sm"
                         >
-                          {filter === 'all' ? 'All Users' : filter === 'admin' ? 'Admins' : 'Regular Users'}
+                          {filter === 'all' ? 'All' : filter === 'admin' ? 'Admins' : 'Users'}
                         </Button>
                       ))}
                     </div>
                   </div>
 
                   {isLoading ? (
-                    <p className="text-muted-foreground text-center py-12">Loading users...</p>
+                    <div className="text-center py-12">
+                      <p className="text-muted-foreground">Loading users...</p>
+                    </div>
                   ) : filteredUsers.length === 0 ? (
-                    <p className="text-muted-foreground text-center py-12">No users found</p>
+                    <div className="text-center py-12">
+                      <p className="text-muted-foreground">No users found</p>
+                    </div>
                   ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
+                    <div className="overflow-x-auto rounded-lg border border-primary/10">
+                      <table className="w-full text-sm">
                         <thead>
-                          <tr className="border-b border-primary/10">
-                            <th className="text-left py-3 px-4"><SortButton label="Username" field="username" /></th>
-                            <th className="text-left py-3 px-4"><SortButton label="Created" field="createdAt" /></th>
-                            <th className="text-center py-3 px-4"><SortButton label="Links" field="totalLinks" /></th>
-                            <th className="text-center py-3 px-4"><SortButton label="Views" field="totalViews" /></th>
-                            <th className="text-left py-3 px-4">Location</th>
-                            <th className="text-left py-3 px-4">Status</th>
-                            <th className="text-right py-3 px-4">Actions</th>
+                          <tr className="border-b border-primary/10 bg-slate-800/50">
+                            <th className="text-left py-3 px-4 font-semibold"><SortButton label="Username" field="username" /></th>
+                            <th className="text-left py-3 px-4 font-semibold hidden sm:table-cell"><SortButton label="Created" field="createdAt" /></th>
+                            <th className="text-center py-3 px-4 font-semibold"><SortButton label="Links" field="totalLinks" /></th>
+                            <th className="text-center py-3 px-4 font-semibold hidden md:table-cell"><SortButton label="Views" field="totalViews" /></th>
+                            <th className="text-left py-3 px-4 font-semibold hidden lg:table-cell">Location</th>
+                            <th className="text-left py-3 px-4 font-semibold">Status</th>
+                            <th className="text-right py-3 px-4 font-semibold">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-primary/5">
                           {filteredUsers.map((user) => (
                             <tr key={user.id} className="hover:bg-primary/5 transition-colors">
-                              <td className="py-4 px-4">
+                              <td className="py-3 px-4">
                                 <div className="flex items-center gap-2">
-                                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold">
+                                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold flex-shrink-0">
                                     {user.username[0].toUpperCase()}
                                   </div>
-                                  <span className="font-semibold">{user.username}</span>
+                                  <span className="font-semibold truncate">{user.username}</span>
                                 </div>
                               </td>
-                              <td className="py-4 px-4 text-sm text-muted-foreground flex items-center gap-1">
-                                <Calendar className="w-4 h-4" />
+                              <td className="py-3 px-4 text-muted-foreground hidden sm:table-cell text-xs">
                                 {new Date(user.createdAt).toLocaleDateString()}
                               </td>
-                              <td className="py-4 px-4 text-center">
-                                <Badge variant="outline" className="gap-1">
+                              <td className="py-3 px-4 text-center">
+                                <Badge variant="outline" className="gap-1 text-xs">
                                   <Link2 className="w-3 h-3" />
                                   {user.totalLinks}
                                 </Badge>
                               </td>
-                              <td className="py-4 px-4 text-center">
-                                <Badge variant="outline" className="gap-1 bg-primary/10">
+                              <td className="py-3 px-4 text-center hidden md:table-cell">
+                                <Badge variant="outline" className="gap-1 bg-primary/10 text-xs">
                                   <Eye className="w-3 h-3" />
                                   {user.totalViews}
                                 </Badge>
                               </td>
-                              <td className="py-4 px-4 text-sm">
+                              <td className="py-3 px-4 text-sm hidden lg:table-cell">
                                 <div className="flex items-center gap-1 text-muted-foreground">
-                                  <MapPin className="w-4 h-4" />
-                                  <span>{user.locations && user.locations.length > 0 ? `${user.locations[0].country}${user.locations[0].city ? `, ${user.locations[0].city}` : ''}` : 'Not tracked'}</span>
+                                  <MapPin className="w-4 h-4 flex-shrink-0" />
+                                  <span className="truncate">{user.locations && user.locations.length > 0 ? `${user.locations[0].country}` : 'N/A'}</span>
                                 </div>
                               </td>
-                              <td className="py-4 px-4">
+                              <td className="py-3 px-4">
                                 {user.isAdmin ? (
-                                  <Badge className="bg-yellow-600/20 text-yellow-400 border-yellow-600/30 gap-1">
+                                  <Badge className="bg-yellow-600/20 text-yellow-400 border-yellow-600/30 gap-1 text-xs">
                                     <Shield className="w-3 h-3" />
                                     Admin
                                   </Badge>
                                 ) : (
-                                  <Badge variant="outline" className="text-muted-foreground">Regular User</Badge>
+                                  <Badge variant="outline" className="text-muted-foreground text-xs">User</Badge>
                                 )}
                               </td>
-                              <td className="py-4 px-4">
+                              <td className="py-3 px-4">
                                 <div className="flex gap-2 justify-end">
                                   <Button
                                     size="sm"
@@ -330,7 +368,7 @@ export default function AdminDashboard() {
                                     disabled={toggleAdminMutation.isPending}
                                     className="text-xs"
                                   >
-                                    {user.isAdmin ? "Remove" : "Make"} Admin
+                                    {user.isAdmin ? "Remove" : "Make"}
                                   </Button>
                                   <Button
                                     size="sm"
@@ -351,8 +389,9 @@ export default function AdminDashboard() {
                   )}
                 </TabsContent>
 
-                <TabsContent value="locations" className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto">
+                {/* Locations Tab */}
+                <TabsContent value="locations" className="p-4 sm:p-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[600px] overflow-y-auto">
                     {(users as AdminUser[]).reduce((acc: any[], user) => {
                       user.locations.forEach(loc => {
                         const existing = acc.find(
@@ -374,37 +413,39 @@ export default function AdminDashboard() {
                     }, [])
                       .sort((a, b) => b.count - a.count)
                       .map((loc, idx) => (
-                        <Card key={idx} className="p-4 border-primary/20 glass-card">
+                        <Card key={idx} className="p-4 border-primary/20 glass-card bg-slate-800/30">
                           <div className="flex items-start justify-between mb-3">
                             <div className="flex items-start gap-2">
-                              <MapPin className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                              <MapPin className="w-5 h-5 text-cyan-400 mt-0.5 flex-shrink-0" />
                               <div>
-                                <h3 className="font-bold">{loc.city}, {loc.country}</h3>
-                                <p className="text-xs text-muted-foreground">{loc.count} profile view{loc.count !== 1 ? 's' : ''}</p>
+                                <h3 className="font-bold text-sm">{loc.city || loc.country}, {loc.country}</h3>
+                                <p className="text-xs text-muted-foreground">{loc.count} view{loc.count !== 1 ? 's' : ''}</p>
                               </div>
                             </div>
-                            <Badge className="bg-primary/20">{loc.count}</Badge>
+                            <Badge className="bg-cyan-500/20 text-cyan-400 text-xs">{loc.count}</Badge>
                           </div>
                           <div className="mt-3 pt-3 border-t border-primary/10">
-                            <p className="text-xs text-muted-foreground">Active users:</p>
-                            <p className="text-sm mt-1">{loc.users.slice(0, 3).join(", ")}{loc.users.length > 3 && ` +${loc.users.length - 3}`}</p>
+                            <p className="text-xs text-muted-foreground mb-1">Users:</p>
+                            <p className="text-xs">{loc.users.slice(0, 2).join(", ")}{loc.users.length > 2 && ` +${loc.users.length - 2}`}</p>
                           </div>
                         </Card>
                       ))}
                   </div>
                 </TabsContent>
 
-                <TabsContent value="templates" className="p-6">
+                {/* Templates Tab */}
+                <TabsContent value="templates" className="p-4 sm:p-6">
                   <TemplateManager />
                 </TabsContent>
 
-                <TabsContent value="points" className="p-6">
+                {/* Points Tab */}
+                <TabsContent value="points" className="p-4 sm:p-6">
                   <SendPointsToUsers />
                 </TabsContent>
               </Tabs>
             </div>
           </Card>
-        </main>
+        </div>
       </div>
     </>
   );
