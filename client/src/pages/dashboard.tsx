@@ -285,22 +285,19 @@ export default function Dashboard() {
       isScheduled?: boolean;
       scheduleStart?: string;
       scheduleEnd?: string;
-      image?: File; // Added for image upload
-      order?: number; // Added order field
+      order?: number;
     }) => {
-      const formData = new FormData();
-      formData.append("platform", data.platform);
-      formData.append("url", data.url);
-      if (data.customTitle) formData.append("customTitle", data.customTitle);
-      if (data.badge) formData.append("badge", data.badge);
-      if (data.description) formData.append("description", data.description);
-      if (data.isScheduled !== undefined) formData.append("isScheduled", String(data.isScheduled));
-      if (data.scheduleStart) formData.append("scheduleStart", data.scheduleStart);
-      if (data.scheduleEnd) formData.append("scheduleEnd", data.scheduleEnd);
-      if (data.image) formData.append("image", data.image); // Append image file
-      if (data.order !== undefined) formData.append("order", String(data.order)); // Append order
-
-      return await apiRequest("POST", "/api/links", formData);
+      return await apiRequest("POST", "/api/links", {
+        platform: data.platform,
+        url: data.url,
+        customTitle: data.customTitle,
+        badge: data.badge,
+        description: data.description,
+        isScheduled: data.isScheduled,
+        scheduleStart: data.scheduleStart,
+        scheduleEnd: data.scheduleEnd,
+        order: data.order,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/links"] });
@@ -576,8 +573,7 @@ export default function Dashboard() {
     description?: string,
     isScheduled?: boolean,
     scheduleStart?: string,
-    scheduleEnd?: string,
-    order?: number // Added order parameter
+    scheduleEnd?: string
   ) => {
     createLinkMutation.mutate({
       platform,
@@ -588,8 +584,7 @@ export default function Dashboard() {
       isScheduled,
       scheduleStart,
       scheduleEnd,
-      order, // Pass order to mutation
-      image: undefined, // Ensure image is not passed if not provided
+      order: links.length,
     });
     setShowAddDialog(false);
   };

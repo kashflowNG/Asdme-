@@ -64,8 +64,7 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
         formData.description || undefined,
         formData.isScheduled,
         formData.scheduleStart || undefined,
-        formData.scheduleEnd || undefined,
-        existingPlatforms.length
+        formData.scheduleEnd || undefined
       );
       handleClose();
     }
