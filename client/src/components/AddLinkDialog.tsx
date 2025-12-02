@@ -56,17 +56,17 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
 
   const handleAdd = () => {
     if (formData.platform && formData.url) {
-      addLinkMutation.mutate({
-        platform: formData.platform,
-        url: formData.url,
-        customTitle: formData.customTitle || undefined,
-        badge: formData.badge === "none" ? undefined : formData.badge,
-        description: formData.description || undefined,
-        isScheduled: formData.isScheduled,
-        scheduleStart: formData.scheduleStart || undefined,
-        scheduleEnd: formData.scheduleEnd || undefined,
-        order: existingPlatforms.length,
-      });
+      onAdd(
+        formData.platform,
+        formData.url,
+        formData.customTitle || undefined,
+        formData.badge === "none" ? undefined : formData.badge,
+        formData.description || undefined,
+        formData.isScheduled,
+        formData.scheduleStart || undefined,
+        formData.scheduleEnd || undefined
+      );
+      handleClose();
     }
   };
 
@@ -135,27 +135,6 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
       setIsUploading(false);
     }
   };
-
-  const addLinkMutation = useMutation({
-    mutationFn: async (linkData: any) => {
-      return apiRequest("POST", "/api/links", linkData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/links"] });
-      toast({
-        title: "Success",
-        description: "Link added successfully",
-      });
-      handleClose();
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to add link",
-        variant: "destructive",
-      });
-    },
-  });
 
   const availablePlatforms = PLATFORMS.filter(
     (p) => !existingPlatforms.includes(p.id)
@@ -389,11 +368,11 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
           {selectedPlatform && (
             <Button
               onClick={handleAdd}
-              disabled={!formData.url.trim() || addLinkMutation.isPending}
+              disabled={!formData.url.trim()}
               data-testid="button-add"
               className="bg-primary hover:bg-primary/90"
             >
-              {addLinkMutation.isPending ? "Adding..." : "Add Link"}
+              Add Link
             </Button>
           )}
         </DialogFooter>
