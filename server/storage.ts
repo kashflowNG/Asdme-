@@ -62,7 +62,7 @@ export interface IStorage {
 
   // Analytics methods
   trackLinkClick(linkId: string, userAgent?: string, referrer?: string): Promise<void>;
-  trackProfileView(profileId: string, userAgent?: string, referrer?: string, ipAddress?: string): Promise<void>;
+  trackProfileView(profileId: string, userAgent?: string, referrer?: string, ipAddress?: string, country?: string | null, city?: string | null): Promise<void>;
   getLinkAnalytics(linkId: string): Promise<{ clicks: number }>;
   getProfileAnalytics(profileId: string): Promise<{ views: number; totalClicks: number; linkCount: number }>;
   getDetailedAnalytics(profileId: string): Promise<{
@@ -660,21 +660,28 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
-  async trackProfileView(profileId: string, userAgent?: string, referrer?: string, ipAddress?: string): Promise<void> {
+  async trackProfileView(profileId: string, userAgent?: string, referrer?: string, ipAddress?: string, country?: string | null, city?: string | null): Promise<void> {
     if (this.memoryStore) {
       // In-memory tracking for profile views
-      this.memoryStore.profileViews.push({ profileId, timestamp: new Date().toISOString(), userAgent, referrer, ipAddress });
+      this.memoryStore.profileViews.push({ 
+        profileId, 
+        timestamp: new Date().toISOString(), 
+        userAgent, 
+        referrer, 
+        ipAddress,
+        country: country || 'Unknown',
+        city: city || 'Unknown'
+      });
       return;
     }
-    // Basic placeholder - in production you'd use a geolocation API
-    // For now, we'll set a default that can be updated with real data later
+    // Store profile view with geolocation data
     await this.db.insert(profileViews).values({
       profileId,
       userAgent,
       referrer,
       timestamp: new Date().toISOString(),
-      country: null, // Will be populated by geolocation service
-      city: null,    // Will be populated by geolocation service
+      country: country || null,
+      city: city || null,
     });
   }
 

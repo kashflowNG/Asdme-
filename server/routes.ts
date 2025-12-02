@@ -755,9 +755,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const userAgent = req.headers['user-agent'];
       const referrer = req.headers['referer'];
-      const ipAddress = req.headers['x-forwarded-for'] as string || req.socket.remoteAddress;
+      let ipAddress = req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || '';
+      
+      // Extract first IP if multiple are present
+      if (ipAddress.includes(',')) {
+        ipAddress = ipAddress.split(',')[0].trim();
+      }
+      
+      // Remove IPv6 prefix if present
+      ipAddress = ipAddress.replace('::ffff:', '');
 
-      await storage.trackProfileView(profile.id, userAgent, referrer, ipAddress);
+      // Get geolocation data
+      let country = null;
+      let city = null;
+      
+      // Skip geolocation for localhost/private IPs
+      if (ipAddress && !ipAddress.startsWith('127.') && !ipAddress.startsWith('192.168.') && ipAddress !== '::1') {
+        try {
+          const geoResponse = await fetch(`http://ip-api.com/json/${ipAddress}?fields=country,city,status`);
+          const geoData = await geoResponse.json();
+          
+          if (geoData.status === 'success') {
+            country = geoData.country;
+            city = geoData.city;
+          }
+        } catch (geoError) {
+          console.log('Geolocation lookup failed:', geoError);
+          // Continue without geolocation data
+        }
+      }
+
+      await storage.trackProfileView(profile.id, userAgent, referrer, ipAddress, country, city);
       res.status(200).json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to track view" });
