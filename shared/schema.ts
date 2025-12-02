@@ -252,13 +252,13 @@ export const insertSocialLinkSchema = z.object({
   customTitle: z.string().optional(),
   badge: z.string().optional(),
   description: z.string().optional(),
-  isScheduled: z.boolean().optional(),
+  isScheduled: z.union([z.boolean(), z.number()]).optional().transform(val => typeof val === 'number' ? val === 1 : val),
   scheduleStart: z.string().optional(),
   scheduleEnd: z.string().optional(),
   thumbnail: z.string().optional(),
-  enabled: z.boolean().optional(),
+  enabled: z.union([z.boolean(), z.number()]).optional().transform(val => typeof val === 'number' ? val === 1 : val),
   groupId: z.string().optional(),
-  isPriority: z.boolean().optional(),
+  isPriority: z.union([z.boolean(), z.number()]).optional().transform(val => typeof val === 'number' ? val === 1 : val),
 });
 
 export const updateSocialLinkSchema = z.object({

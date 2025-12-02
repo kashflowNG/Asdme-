@@ -597,13 +597,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         url: req.body.url.trim(),
       };
 
-      if (typeof req.body.isScheduled === 'boolean') {
-        linkData.isScheduled = req.body.isScheduled ? 1 : 0;
-      }
-      if (typeof req.body.isPriority === 'boolean') {
-        linkData.isPriority = req.body.isPriority ? 1 : 0;
-      }
-
       const validatedData = insertSocialLinkSchema.parse(linkData);
       const link = await storage.createSocialLink(validatedData);
       res.status(201).json(link);
