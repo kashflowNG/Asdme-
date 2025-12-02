@@ -164,30 +164,36 @@ export function AppearanceEditor({ profile, onUpdate, updateProfile }: Appearanc
       </div>
 
       <Tabs defaultValue="theme" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="theme" className="gap-2">
-            <Palette className="w-4 h-4" />
-            Theme
+        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 gap-1">
+          <TabsTrigger value="theme" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+            <Palette className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden sm:inline">Theme</span>
+            <span className="sm:hidden">Theme</span>
           </TabsTrigger>
-          <TabsTrigger value="background" className="gap-2">
-            <Image className="w-4 h-4" />
-            Background
+          <TabsTrigger value="background" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+            <Image className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden sm:inline">Background</span>
+            <span className="sm:hidden">BG</span>
           </TabsTrigger>
-          <TabsTrigger value="layout" className="gap-2">
-            <Layout className="w-4 h-4" />
-            Layout
+          <TabsTrigger value="layout" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+            <Layout className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden sm:inline">Layout</span>
+            <span className="sm:hidden">Layout</span>
           </TabsTrigger>
-          <TabsTrigger value="typography" className="gap-2">
-            <Type className="w-4 h-4" />
-            Typography
+          <TabsTrigger value="typography" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+            <Type className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden sm:inline">Typography</span>
+            <span className="sm:hidden">Type</span>
           </TabsTrigger>
-          <TabsTrigger value="styles" className="gap-2">
-            <Zap className="w-4 h-4" />
-            Styles
+          <TabsTrigger value="styles" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+            <Zap className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden sm:inline">Styles</span>
+            <span className="sm:hidden">Style</span>
           </TabsTrigger>
-          <TabsTrigger value="custom" className="gap-2">
-            <Code className="w-4 h-4" />
-            Custom
+          <TabsTrigger value="custom" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+            <Code className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden sm:inline">Custom</span>
+            <span className="sm:hidden">CSS</span>
           </TabsTrigger>
         </TabsList>
 
