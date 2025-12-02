@@ -755,8 +755,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const userAgent = req.headers['user-agent'];
       const referrer = req.headers['referer'];
+      const ipAddress = req.headers['x-forwarded-for'] as string || req.socket.remoteAddress;
 
-      await storage.trackProfileView(profile.id, userAgent, referrer);
+      await storage.trackProfileView(profile.id, userAgent, referrer, ipAddress);
       res.status(200).json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to track view" });
@@ -1241,17 +1242,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const profile = await storage.getProfileByUserId(u.id);
         const links = profile ? await storage.getSocialLinks(profile.id) : [];
         const analytics = profile ? await storage.getProfileAnalytics(profile.id) : { views: 0, totalClicks: 0, linkCount: 0 };
-        const locationData: any[] = [];
-        const locations = locationData.reduce((acc: any, view: any) => {
-          const key = `${view.country}-${view.city}`;
-          const existing = acc.find((l: any) => l.country === view.country && l.city === view.city);
-          if (existing) existing.count++;
-          else acc.push({ country: view.country || "Unknown", city: view.city || "Unknown", count: 1 });
+        
+        // Get real location data from profile views
+        const profileViewsData = profile ? await storage.getProfileViews(profile.id) : [];
+        const locations = profileViewsData.reduce((acc: any, view: any) => {
+          const country = view.country || "Unknown";
+          const city = view.city || "Unknown";
+          const existing = acc.find((l: any) => l.country === country && l.city === city);
+          if (existing) {
+            existing.count++;
+          } else {
+            acc.push({ country, city, count: 1 });
+          }
           return acc;
         }, []).sort((a: any, b: any) => b.count - a.count).slice(0, 3);
+        
         return {
-          id: u.id, username: u.username, isAdmin: u.isAdmin || false, createdAt: u.createdAt || new Date().toISOString(),
-          totalLinks: links.length, totalViews: analytics.views, locations: locations.length ? locations : [{ country: "Unknown", city: "Unknown", count: 1 }],
+          id: u.id, 
+          username: u.username, 
+          isAdmin: u.isAdmin || false, 
+          createdAt: u.createdAt || new Date().toISOString(),
+          totalLinks: links.length, 
+          totalViews: analytics.views, 
+          locations: locations.length ? locations : [{ country: "Unknown", city: "Unknown", count: 0 }],
           lastActive: new Date().toISOString(),
         };
       }));

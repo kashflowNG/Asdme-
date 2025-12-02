@@ -62,7 +62,7 @@ export interface IStorage {
 
   // Analytics methods
   trackLinkClick(linkId: string, userAgent?: string, referrer?: string): Promise<void>;
-  trackProfileView(profileId: string, userAgent?: string, referrer?: string): Promise<void>;
+  trackProfileView(profileId: string, userAgent?: string, referrer?: string, ipAddress?: string): Promise<void>;
   getLinkAnalytics(linkId: string): Promise<{ clicks: number }>;
   getProfileAnalytics(profileId: string): Promise<{ views: number; totalClicks: number; linkCount: number }>;
   getDetailedAnalytics(profileId: string): Promise<{
@@ -73,6 +73,7 @@ export interface IStorage {
     topLinks: Array<{ platform: string; url: string; clicks: number }>;
     recentViews: Array<{ timestamp: string; userAgent?: string; referrer?: string }>;
   }>;
+  getProfileViews(profileId: string): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -274,7 +275,7 @@ export class DatabaseStorage implements IStorage {
       await this.db.delete(socialLinks).where(eq(socialLinks.profileId, profile.id));
       await this.db.delete(linkGroups).where(eq(linkGroups.profileId, profile.id));
       await this.db.delete(contentBlocks).where(eq(contentBlocks.profileId, profile.id));
-      await this.db.delete(linkClicks).where(eq(linkClicks.linkId, sql`(SELECT id FROM social_links WHERE profile_id = ${profile.id})`));
+      await this.db.delete(linkClicks).where(eq(linkClicks.linkId, drizzleSql`(SELECT id FROM social_links WHERE profile_id = ${profile.id})`));
       await this.db.delete(profileViews).where(eq(profileViews.profileId, profile.id));
       await this.db.delete(profiles).where(eq(profiles.id, profile.id));
     }
@@ -394,7 +395,7 @@ export class DatabaseStorage implements IStorage {
       seoDescription: updates.seoDescription,
       ogImage: updates.ogImage,
     });
-    
+
     if (this.memoryStore) {
       const current = this.memoryStore.profiles.get(id);
       if (!current) return undefined;
@@ -659,21 +660,21 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
-  async trackProfileView(profileId: string, userAgent?: string, referrer?: string): Promise<void> {
+  async trackProfileView(profileId: string, userAgent?: string, referrer?: string, ipAddress?: string): Promise<void> {
     if (this.memoryStore) {
       // In-memory tracking for profile views
-      this.memoryStore.profileViews.push({ profileId, timestamp: new Date().toISOString(), userAgent, referrer });
+      this.memoryStore.profileViews.push({ profileId, timestamp: new Date().toISOString(), userAgent, referrer, ipAddress });
       return;
     }
-    await this.db.update(profiles).set({
-      views: drizzleSql`${profiles.views} + 1`
-    }).where(eq(profiles.id, profileId));
-
+    // Basic placeholder - in production you'd use a geolocation API
+    // For now, we'll set a default that can be updated with real data later
     await this.db.insert(profileViews).values({
       profileId,
-      timestamp: new Date().toISOString(),
       userAgent,
       referrer,
+      timestamp: new Date().toISOString(),
+      country: null, // Will be populated by geolocation service
+      city: null,    // Will be populated by geolocation service
     });
   }
 
@@ -687,25 +688,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getProfileAnalytics(profileId: string): Promise<{ views: number; totalClicks: number; linkCount: number }> {
-    if (this.memoryStore) {
-      const views = this.memoryStore.profileViews.filter(view => view.profileId === profileId).length;
-      const links = await this.getSocialLinks(profileId); // This will fetch links from memory if in-memory is used
-      const totalClicks = links.reduce((sum, link) => sum + link.clicks, 0);
-      return {
-        views,
-        totalClicks,
-        linkCount: links.length,
-      };
-    }
-    const profile = await this.getProfile(profileId);
     const links = await this.getSocialLinks(profileId);
-    const totalClicks = links.reduce((sum, link) => sum + link.clicks, 0);
+    const linkIds = links.map(l => l.id);
+
+    let totalClicks = 0;
+    for (const linkId of linkIds) {
+      const clicks = await db.select().from(linkClicks).where(eq(linkClicks.linkId, linkId));
+      totalClicks += clicks.length;
+    }
+
+    const views = await db.select().from(profileViews).where(eq(profileViews.profileId, profileId));
 
     return {
-      views: profile?.views || 0,
+      views: views.length,
       totalClicks,
       linkCount: links.length,
     };
+  }
+
+  async getProfileViews(profileId: string) {
+    return await db.select().from(profileViews).where(eq(profileViews.profileId, profileId));
   }
 
   async getDetailedAnalytics(profileId: string): Promise<{
@@ -788,7 +790,7 @@ export class DatabaseStorage implements IStorage {
     try {
       // Check if record exists
       const existing = await this.db.select().from(dailyStreaks).where(eq(dailyStreaks.userId, userId)).limit(1);
-      
+
       if (existing.length > 0) {
         // Update existing record
         await this.db.update(dailyStreaks).set({ ...data, updatedAt: new Date().toISOString() }).where(eq(dailyStreaks.userId, userId));
@@ -819,13 +821,13 @@ export class DatabaseStorage implements IStorage {
 
   async addPoints(userId: string, points: number): Promise<void> {
     let current = await this.getPointsByUserId(userId);
-    
+
     if (!current) {
       // Initialize new points record
       if (this.memoryStore) {
-        current = { 
-          id: crypto.randomUUID(), 
-          userId, 
+        current = {
+          id: crypto.randomUUID(),
+          userId,
           totalPoints: points,
           earnedPoints: points,
           spentPoints: 0,
@@ -837,11 +839,11 @@ export class DatabaseStorage implements IStorage {
       }
       // For database, try to insert new record
       try {
-        await this.db.insert(userPoints).values({ 
-          userId, 
+        await this.db.insert(userPoints).values({
+          userId,
           totalPoints: points,
           earnedPoints: points,
-          spentPoints: 0 
+          spentPoints: 0
         });
         return;
       } catch (error) {
@@ -850,18 +852,18 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
-    const updated = { 
-      ...current, 
-      totalPoints: current.totalPoints + points, 
+    const updated = {
+      ...current,
+      totalPoints: current.totalPoints + points,
       earnedPoints: current.earnedPoints + points,
       updatedAt: new Date().toISOString()
     };
-    
+
     if (this.memoryStore) {
       this.memoryStore.userPoints.set(userId, updated as any);
       return;
     }
-    
+
     try {
       await this.db.update(userPoints).set(updated).where(eq(userPoints.userId, userId));
     } catch (error) {
@@ -871,24 +873,24 @@ export class DatabaseStorage implements IStorage {
 
   async deductPoints(userId: string, points: number): Promise<void> {
     let current = await this.getPointsByUserId(userId);
-    
+
     if (!current) {
       console.warn("deductPoints called for user with no points record:", userId);
       return;
     }
 
-    const updated = { 
-      ...current, 
-      totalPoints: Math.max(0, current.totalPoints - points), 
+    const updated = {
+      ...current,
+      totalPoints: Math.max(0, current.totalPoints - points),
       spentPoints: current.spentPoints + points,
       updatedAt: new Date().toISOString()
     };
-    
+
     if (this.memoryStore) {
       this.memoryStore.userPoints.set(userId, updated as any);
       return;
     }
-    
+
     try {
       await this.db.update(userPoints).set(updated).where(eq(userPoints.userId, userId));
     } catch (error) {
@@ -901,7 +903,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const items = await this.db.select().from(shopItems).where(eq(shopItems.isActive, true));
       const allStyles = await this.db.select().from(styles).where(eq(styles.isActive, true));
-      
+
       const styledItems = allStyles.map(style => ({
         id: style.id,
         name: style.name,
@@ -910,7 +912,7 @@ export class DatabaseStorage implements IStorage {
         type: 'style',
         isActive: style.isActive
       }));
-      
+
       return [...items, ...styledItems];
     } catch (error) {
       console.error("getShopItems error:", error);
@@ -923,7 +925,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const result = await this.db.select().from(shopItems).where(eq(shopItems.id, id)).limit(1);
       if (result[0]) return result[0];
-      
+
       const styleResult = await this.db.select().from(styles).where(eq(styles.id, id)).limit(1);
       if (styleResult[0]) {
         return {
