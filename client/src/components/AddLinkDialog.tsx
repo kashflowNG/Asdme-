@@ -55,19 +55,35 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
   const queryClient = useQueryClient();
 
   const handleAdd = () => {
-    if (formData.platform && formData.url) {
-      onAdd(
-        formData.platform,
-        formData.url,
-        formData.customTitle || undefined,
-        formData.badge === "none" ? undefined : formData.badge,
-        formData.description || undefined,
-        formData.isScheduled,
-        formData.scheduleStart || undefined,
-        formData.scheduleEnd || undefined
-      );
-      handleClose();
+    if (!formData.platform) {
+      toast({
+        title: "Error",
+        description: "Please select a platform",
+        variant: "destructive",
+      });
+      return;
     }
+
+    if (!formData.url || !formData.url.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a URL",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    onAdd(
+      formData.platform,
+      formData.url.trim(),
+      formData.customTitle || undefined,
+      formData.badge === "none" ? undefined : formData.badge,
+      formData.description || undefined,
+      formData.isScheduled,
+      formData.scheduleStart || undefined,
+      formData.scheduleEnd || undefined
+    );
+    handleClose();
   };
 
   const handleCancel = () => {
@@ -109,13 +125,19 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
     uploadFormData.append('image', file);
 
     try {
+      const token = localStorage.getItem('neropage_auth_token');
       const response = await fetch('/api/upload-image', {
         method: 'POST',
         body: uploadFormData,
-        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       });
 
-      if (!response.ok) throw new Error('Upload failed');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Upload failed');
+      }
 
       const data = await response.json();
       const fullUrl = `${window.location.origin}${data.url}`;
@@ -128,7 +150,7 @@ export function AddLinkDialog({ open, onOpenChange, onAdd, existingPlatforms }: 
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to upload image",
+        description: error instanceof Error ? error.message : "Failed to upload image",
         variant: "destructive",
       });
     } finally {
