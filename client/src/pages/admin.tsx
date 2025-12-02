@@ -437,45 +437,137 @@ export default function AdminDashboard() {
 
                 {/* Locations Tab */}
                 <TabsContent value="locations" className="p-4 sm:p-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[600px] overflow-y-auto">
-                    {(users as AdminUser[]).reduce((acc: any[], user) => {
-                      user.locations.forEach(loc => {
-                        const existing = acc.find(
-                          l => l.country === loc.country && l.city === loc.city
-                        );
-                        if (existing) {
-                          existing.count += loc.count;
-                          existing.users.push(user.username);
-                        } else {
-                          acc.push({
-                            country: loc.country,
-                            city: loc.city,
-                            count: loc.count,
-                            users: [user.username],
-                          });
-                        }
-                      });
-                      return acc;
-                    }, [])
-                      .sort((a, b) => b.count - a.count)
-                      .map((loc, idx) => (
-                        <Card key={idx} className="p-4 border-primary/20 glass-card bg-slate-800/30">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex items-start gap-2">
-                              <MapPin className="w-5 h-5 text-cyan-400 mt-0.5 flex-shrink-0" />
-                              <div>
-                                <h3 className="font-bold text-sm">{loc.city || loc.country}, {loc.country}</h3>
-                                <p className="text-xs text-muted-foreground">{loc.count} view{loc.count !== 1 ? 's' : ''}</p>
+                  <div className="space-y-6">
+                    {/* Header */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                          <Globe className="w-5 h-5 text-cyan-400" />
+                          User Locations
+                        </h3>
+                        <p className="text-sm text-muted-foreground mt-1">View where your users are accessing from</p>
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        {filteredUsers.length} User{filteredUsers.length !== 1 ? 's' : ''}
+                      </Badge>
+                    </div>
+
+                    {/* Users with Locations */}
+                    <div className="space-y-3">
+                      {filteredUsers.map((user) => (
+                        <Card key={user.id} className="p-4 border-primary/20 glass-card bg-slate-800/30">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            {/* User Info */}
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                                {user.username[0].toUpperCase()}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <h4 className="font-semibold text-white truncate">{user.username}</h4>
+                                  {user.isAdmin && (
+                                    <Badge className="bg-yellow-600/20 text-yellow-400 border-yellow-600/30 text-xs">
+                                      <Shield className="w-3 h-3 mr-1" />
+                                      Admin
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                                  <span className="flex items-center gap-1">
+                                    <Eye className="w-3 h-3" />
+                                    {user.totalViews} views
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <Link2 className="w-3 h-3" />
+                                    {user.totalLinks} links
+                                  </span>
+                                </div>
                               </div>
                             </div>
-                            <Badge className="bg-cyan-500/20 text-cyan-400 text-xs">{loc.count}</Badge>
-                          </div>
-                          <div className="mt-3 pt-3 border-t border-primary/10">
-                            <p className="text-xs text-muted-foreground mb-1">Users:</p>
-                            <p className="text-xs">{loc.users.slice(0, 2).join(", ")}{loc.users.length > 2 && ` +${loc.users.length - 2}`}</p>
+
+                            {/* Location Info */}
+                            <div className="flex items-center gap-2 sm:ml-4">
+                              {user.locations && user.locations.length > 0 ? (
+                                <div className="flex flex-wrap gap-2">
+                                  {user.locations.slice(0, 3).map((loc, idx) => (
+                                    <div
+                                      key={idx}
+                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20"
+                                    >
+                                      <MapPin className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />
+                                      <span className="text-xs font-medium text-cyan-300">
+                                        {loc.city && loc.city !== 'Unknown' ? `${loc.city}, ` : ''}{loc.country}
+                                      </span>
+                                      {loc.count > 1 && (
+                                        <Badge className="bg-cyan-500/20 text-cyan-400 text-[10px] px-1.5 py-0">
+                                          {loc.count}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  ))}
+                                  {user.locations.length > 3 && (
+                                    <Badge variant="outline" className="text-xs">
+                                      +{user.locations.length - 3} more
+                                    </Badge>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-700/50 border border-slate-600/30">
+                                  <MapPin className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                                  <span className="text-xs text-muted-foreground">No location data</span>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </Card>
                       ))}
+                    </div>
+
+                    {/* Location Summary */}
+                    <div className="mt-8">
+                      <h4 className="text-sm font-bold text-white mb-4">Location Summary</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {(users as AdminUser[]).reduce((acc: any[], user) => {
+                          user.locations.forEach(loc => {
+                            const existing = acc.find(
+                              l => l.country === loc.country && l.city === loc.city
+                            );
+                            if (existing) {
+                              existing.count += loc.count;
+                              existing.users.push(user.username);
+                            } else {
+                              acc.push({
+                                country: loc.country,
+                                city: loc.city,
+                                count: loc.count,
+                                users: [user.username],
+                              });
+                            }
+                          });
+                          return acc;
+                        }, [])
+                          .filter(loc => loc.country !== 'Unknown')
+                          .sort((a, b) => b.count - a.count)
+                          .slice(0, 6)
+                          .map((loc, idx) => (
+                            <Card key={idx} className="p-3 border-primary/20 glass-card bg-slate-800/30">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  <MapPin className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+                                  <h5 className="font-bold text-sm truncate">{loc.city && loc.city !== 'Unknown' ? loc.city : loc.country}</h5>
+                                </div>
+                                <Badge className="bg-cyan-500/20 text-cyan-400 text-xs">{loc.count}</Badge>
+                              </div>
+                              <p className="text-xs text-muted-foreground mb-2">{loc.country}</p>
+                              <div className="pt-2 border-t border-primary/10">
+                                <p className="text-[10px] text-muted-foreground">
+                                  {loc.users.length} user{loc.users.length !== 1 ? 's' : ''}: {loc.users.slice(0, 2).join(", ")}{loc.users.length > 2 && ` +${loc.users.length - 2}`}
+                                </p>
+                              </div>
+                            </Card>
+                          ))}
+                      </div>
+                    </div>
                   </div>
                 </TabsContent>
 
